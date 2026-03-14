@@ -1,0 +1,100 @@
+import { useNavigate, useParams } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
+}
+
+export default function SessionDetail() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { sessions, exercises, deleteSession } = useApp()
+
+  const session = sessions.find(s => s.id === id)
+  if (!session) return (
+    <div className="p-4 text-center py-20">
+      <p className="text-zinc-500">세션을 찾을 수 없습니다</p>
+      <button onClick={() => navigate('/history')} className="text-blue-400 mt-4 text-sm">← 기록으로</button>
+    </div>
+  )
+
+  function handleDelete() {
+    if (window.confirm('이 세션을 삭제할까요?')) {
+      deleteSession(id)
+      navigate('/history')
+    }
+  }
+
+  function handleEdit() {
+    // Navigate to session screen — today's date editing happens in /session
+    // For past sessions, redirect to session with that date context
+    navigate('/session')
+  }
+
+  return (
+    <div className="p-4 max-w-lg mx-auto">
+      <div className="flex items-center gap-3 mb-6 pt-2">
+        <button onClick={() => navigate('/history')} className="text-zinc-400 active:text-white">
+          ←
+        </button>
+        <div className="flex-1">
+          <h1 className="text-white font-bold text-lg">{formatDate(session.date)}</h1>
+          {session.duration_min > 0 && (
+            <p className="text-zinc-500 text-sm">{session.duration_min}분</p>
+          )}
+        </div>
+        <button onClick={handleDelete} className="text-red-500 text-sm active:text-red-400">삭제</button>
+      </div>
+
+      <div className="space-y-4">
+        {session.exercises.map((se, i) => {
+          const exercise = exercises.find(e => e.id === se.exerciseId)
+          const isCardio = exercise?.type === 'cardio'
+
+          return (
+            <div key={i} className="bg-zinc-900 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-white font-semibold">{exercise?.name || se.exerciseId}</h3>
+                <span className="text-zinc-600 text-xs">{exercise?.category}</span>
+              </div>
+
+              {isCardio ? (
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {se.sets[0] && Object.entries({
+                    '시간': se.sets[0].duration_min != null ? `${se.sets[0].duration_min}분` : null,
+                    '거리': se.sets[0].distance_km != null ? `${se.sets[0].distance_km}km` : null,
+                    '속도': se.sets[0].speed_kmh != null ? `${se.sets[0].speed_kmh}km/h` : null,
+                    '경사': se.sets[0].incline_pct != null ? `${se.sets[0].incline_pct}%` : null,
+                    '칼로리': se.sets[0].calories != null ? `${se.sets[0].calories}kcal` : null,
+                  }).filter(([, v]) => v !== null).map(([label, value]) => (
+                    <div key={label}>
+                      <span className="text-zinc-500 text-xs">{label}</span>
+                      <p className="text-white">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {se.sets.map((set, si) => (
+                    <div key={si} className="flex items-center gap-3 text-sm">
+                      <span className="text-zinc-600 w-4 text-right">{si + 1}</span>
+                      {exercise?.type === 'bodyweight' ? (
+                        <span className="text-zinc-300">
+                          체중{set.added_weight ? `+${set.added_weight}kg` : ''} × {set.reps}회
+                        </span>
+                      ) : (
+                        <span className="text-zinc-300">{set.weight}kg × {set.reps}회</span>
+                      )}
+                      {set.done && <span className="text-green-500 text-xs ml-auto">✓</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

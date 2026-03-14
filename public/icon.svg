@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#09090b"/>
+  <!-- Barbell -->
+  <rect x="16" y="86" width="24" height="20" rx="4" fill="#3b82f6"/>
+  <rect x="32" y="76" width="16" height="40" rx="4" fill="#3b82f6"/>
+  <rect x="44" y="68" width="104" height="56" rx="0" fill="none"/>
+  <!-- Bar -->
+  <rect x="44" y="93" width="104" height="6" rx="3" fill="#94a3b8"/>
+  <!-- Left weights -->
+  <rect x="48" y="72" width="22" height="48" rx="6" fill="#3b82f6"/>
+  <rect x="64" y="78" width="16" height="36" rx="4" fill="#2563eb"/>
+  <!-- Right weights -->
+  <rect x="122" y="72" width="22" height="48" rx="6" fill="#3b82f6"/>
+  <rect x="122" y="78" width="16" height="36" rx="4" fill="#2563eb"/>
+  <!-- Right collars -->
+  <rect x="140" y="76" width="16" height="40" rx="4" fill="#3b82f6"/>
+  <rect x="152" y="86" width="24" height="20" rx="4" fill="#3b82f6"/>
+</svg>
