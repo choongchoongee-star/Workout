@@ -125,7 +125,7 @@ export default function Settings() {
         </Field>
         <Field label="Gist ID" hint="아래 '새 Gist 생성' 버튼을 누르거나 기존 Gist ID를 입력하세요">
           <input
-            type={showTokens ? 'text' : 'password'}
+            type="text"
             value={gistId}
             onChange={e => setGistId(e.target.value)}
             className={inputCls}

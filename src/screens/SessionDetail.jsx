@@ -26,12 +26,6 @@ export default function SessionDetail() {
     }
   }
 
-  function handleEdit() {
-    // Navigate to session screen — today's date editing happens in /session
-    // For past sessions, redirect to session with that date context
-    navigate('/session')
-  }
-
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6 pt-2">

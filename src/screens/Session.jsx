@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
@@ -17,7 +17,11 @@ function newWeightSet(weight = 20, reps = 10) {
 }
 
 function newCardioRecord() {
-  return { duration_min: 0, distance_km: null, speed_kmh: null, incline_pct: null, calories: null }
+  return { duration_min: null, distance_km: null, speed_kmh: null, incline_pct: null, calories: null }
+}
+
+function deepClone(obj) {
+  return structuredClone ? structuredClone(obj) : JSON.parse(JSON.stringify(obj))
 }
 
 // Search/Add exercise modal
@@ -28,13 +32,16 @@ function ExerciseModal({ exercises, onSelect, onClose }) {
   const categories = ['전체', ...CATEGORIES]
   const filtered = exercises.filter(e => {
     const matchCat = activeCategory === '전체' || e.category === activeCategory
-    const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
+    const matchQ = !query || e.name.includes(query)
     return matchCat && matchQ
   })
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex flex-col">
-      <div className="bg-zinc-900 rounded-t-2xl mt-auto max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/80 z-50 flex flex-col" onClick={onClose}>
+      <div
+        className="bg-zinc-900 rounded-t-2xl mt-auto max-h-[80vh] flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="text-white font-semibold">운동 추가</h3>
           <button onClick={onClose} className="text-zinc-400 active:text-white p-1">✕</button>
@@ -49,15 +56,13 @@ function ExerciseModal({ exercises, onSelect, onClose }) {
             className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
           />
         </div>
-        <div className="flex gap-2 p-3 overflow-x-auto border-b border-zinc-800 no-scrollbar">
+        <div className="flex gap-2 p-3 overflow-x-auto border-b border-zinc-800">
           {categories.map(c => (
             <button
               key={c}
               onClick={() => setActiveCategory(c)}
               className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full transition-colors ${
-                activeCategory === c
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400'
+                activeCategory === c ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'
               }`}
             >
               {c}
@@ -92,12 +97,11 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet 
     <div className={`flex items-center gap-2 py-2 ${set.done ? 'opacity-40' : ''}`}>
       <span className="text-zinc-600 text-sm w-5 text-right">{setIdx + 1}</span>
 
-      {refSet && !set.done && (
-        <span className="text-zinc-600 text-xs w-16 text-center">
-          {isBodyweight ? `${refSet.reps}회` : `${refSet.weight}×${refSet.reps}`}
-        </span>
-      )}
-      {(!refSet || set.done) && <span className="w-16" />}
+      <span className="text-zinc-600 text-xs w-16 text-center">
+        {refSet && !set.done
+          ? (isBodyweight ? `${refSet.reps}회` : `${refSet.weight}×${refSet.reps}`)
+          : ''}
+      </span>
 
       <div className="flex-1 flex items-center gap-2 justify-center flex-wrap">
         {isBodyweight ? (
@@ -146,16 +150,16 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet 
   )
 }
 
-// Cardio record form
+// Cardio record form — setIdx tracks which set is being edited by photo
 function CardioForm({ record, exercise, onUpdate, onPhoto }) {
   const bodyWeight = storage.getBodyWeight()
   const geminiKey = storage.getGeminiKey()
 
-  // Auto-calculate calories when duration changes
+  // Auto-calculate calories from MET when duration changes
   useEffect(() => {
     if (record.duration_min && exercise?.met) {
       const cal = calcCalories(exercise.met, bodyWeight, record.duration_min)
-      if (cal !== record.calories) {
+      if (cal != null && cal !== record.calories) {
         onUpdate('calories', cal)
       }
     }
@@ -183,6 +187,7 @@ function CardioForm({ record, exercise, onUpdate, onPhoto }) {
             <input
               type="number"
               step="0.1"
+              min="0"
               placeholder={placeholder}
               value={record[key] ?? ''}
               onChange={e => onUpdate(key, e.target.value === '' ? null : parseFloat(e.target.value))}
@@ -193,13 +198,14 @@ function CardioForm({ record, exercise, onUpdate, onPhoto }) {
       </div>
       <div>
         <label className="text-zinc-500 text-xs block mb-1">
-          칼로리 (kcal) {record.calories && record.duration_min ? '— 자동계산됨' : ''}
+          칼로리 (kcal){record.calories && record.duration_min ? ' — 자동계산됨' : ''}
         </label>
         <input
           type="number"
+          min="0"
           placeholder="칼로리"
           value={record.calories ?? ''}
-          onChange={e => onUpdate('calories', e.target.value === '' ? null : parseInt(e.target.value))}
+          onChange={e => onUpdate('calories', e.target.value === '' ? null : parseInt(e.target.value, 10))}
           className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
       </div>
@@ -211,25 +217,41 @@ export default function Session() {
   const navigate = useNavigate()
   const { exercises, sessions, upsertSession, getLastSession } = useApp()
   const today = todayStr()
-  const startTime = useRef(Date.now())
 
-  // Initialize session from existing today session or empty
+  // Persist start time in sessionStorage so it survives navigation within the session
+  const startTimeKey = `wl_session_start_${today}`
+  if (!sessionStorage.getItem(startTimeKey)) {
+    sessionStorage.setItem(startTimeKey, String(Date.now()))
+  }
+
+  // Initialize session exercises from existing today session or empty
   const existingSession = sessions.find(s => s.id === today)
-  const [sessionExercises, setSessionExercises] = useState(
-    existingSession?.exercises ? JSON.parse(JSON.stringify(existingSession.exercises)) : []
+  const [sessionExercises, setSessionExercises] = useState(() =>
+    existingSession?.exercises ? deepClone(existingSession.exercises) : []
   )
-
   const [showModal, setShowModal] = useState(false)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90 })
+  const [photoError, setPhotoError] = useState(null)
   const [photoLoading, setPhotoLoading] = useState(null) // exerciseIdx
   const photoInputRef = useRef(null)
   const activePhotoIdx = useRef(null)
 
+  // Auto-save in-progress session to context on every change
+  useEffect(() => {
+    if (sessionExercises.length === 0) return
+    const session = {
+      id: today,
+      date: today,
+      exercises: sessionExercises.map(({ _lastSets, ...rest }) => rest),
+      duration_min: null, // not finished yet
+    }
+    upsertSession(session)
+  }, [sessionExercises])
+
   // Rest timer countdown
   useEffect(() => {
-    if (!restTimer.active) return
-    if (restTimer.remaining <= 0) {
-      setRestTimer(t => ({ ...t, active: false }))
+    if (!restTimer.active || restTimer.remaining <= 0) {
+      if (restTimer.active) setRestTimer(t => ({ ...t, active: false }))
       return
     }
     const id = setTimeout(() => {
@@ -245,13 +267,12 @@ export default function Session() {
 
   function addExercise(ex) {
     const lastSession = getLastSession(ex.id, today)
-    const lastExData = lastSession?.exercises.find(e => e.exerciseId === ex.id)
+    const lastExData = lastSession?.exercises?.find(e => e.exerciseId === ex.id) ?? null
 
     let sets
     if (ex.type === 'cardio') {
       sets = [newCardioRecord()]
-    } else if (lastExData?.sets?.length) {
-      // Pre-fill from last session
+    } else if (lastExData?.sets?.length > 0) {
       sets = lastExData.sets.map(s => ({ ...s, done: false }))
     } else {
       sets = [newWeightSet()]
@@ -260,15 +281,16 @@ export default function Session() {
     setSessionExercises(prev => [...prev, {
       exerciseId: ex.id,
       sets,
-      _lastSets: lastExData?.sets || null,
+      _lastSets: lastExData?.sets ?? null,
     }])
     setShowModal(false)
   }
 
   function addSet(exIdx) {
     setSessionExercises(prev => {
-      const copy = [...prev]
-      const ex = { ...copy[exIdx] }
+      const copy = deepClone(prev)
+      const ex = copy[exIdx]
+      if (!ex) return prev
       const exercise = exercises.find(e => e.id === ex.exerciseId)
       if (exercise?.type === 'cardio') {
         ex.sets = [...ex.sets, newCardioRecord()]
@@ -276,23 +298,26 @@ export default function Session() {
         const lastSet = ex.sets[ex.sets.length - 1]
         ex.sets = [...ex.sets, newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
       }
-      copy[exIdx] = ex
       return copy
     })
   }
 
   function updateSet(exIdx, setIdx, field, value) {
     setSessionExercises(prev => {
-      const copy = JSON.parse(JSON.stringify(prev))
-      copy[exIdx].sets[setIdx][field] = value
+      const copy = deepClone(prev)
+      if (copy[exIdx]?.sets[setIdx]) {
+        copy[exIdx].sets[setIdx][field] = value
+      }
       return copy
     })
   }
 
   function completeSet(exIdx, setIdx) {
     setSessionExercises(prev => {
-      const copy = JSON.parse(JSON.stringify(prev))
-      copy[exIdx].sets[setIdx].done = !copy[exIdx].sets[setIdx].done
+      const copy = deepClone(prev)
+      if (copy[exIdx]?.sets[setIdx]) {
+        copy[exIdx].sets[setIdx].done = !copy[exIdx].sets[setIdx].done
+      }
       return copy
     })
     startRestTimer()
@@ -300,7 +325,8 @@ export default function Session() {
 
   function removeSet(exIdx, setIdx) {
     setSessionExercises(prev => {
-      const copy = JSON.parse(JSON.stringify(prev))
+      const copy = deepClone(prev)
+      if (!copy[exIdx]) return prev
       copy[exIdx].sets.splice(setIdx, 1)
       if (copy[exIdx].sets.length === 0) copy.splice(exIdx, 1)
       return copy
@@ -312,7 +338,10 @@ export default function Session() {
   }
 
   function finishSession() {
-    const durationMin = Math.round((Date.now() - startTime.current) / 60000)
+    const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10) || Date.now()
+    const durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
+    sessionStorage.removeItem(startTimeKey)
+
     const session = {
       id: today,
       date: today,
@@ -325,6 +354,7 @@ export default function Session() {
 
   // Photo handler
   function handlePhotoClick(exIdx) {
+    setPhotoError(null)
     activePhotoIdx.current = exIdx
     photoInputRef.current?.click()
   }
@@ -332,14 +362,23 @@ export default function Session() {
   async function handlePhotoChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
+
     const exIdx = activePhotoIdx.current
+    if (exIdx == null) return
+
     setPhotoLoading(exIdx)
+    setPhotoError(null)
 
     try {
       const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader()
-        reader.onload = () => resolve(reader.result.split(',')[1])
-        reader.onerror = reject
+        reader.onload = () => {
+          const result = reader.result
+          const commaIdx = result.indexOf(',')
+          if (commaIdx === -1) { reject(new Error('파일을 읽을 수 없습니다')); return }
+          resolve(result.slice(commaIdx + 1))
+        }
+        reader.onerror = () => reject(new Error('파일 읽기 실패'))
         reader.readAsDataURL(file)
       })
 
@@ -347,7 +386,10 @@ export default function Session() {
       const result = await extractCardioFromPhoto(apiKey, base64, file.type)
 
       setSessionExercises(prev => {
-        const copy = JSON.parse(JSON.stringify(prev))
+        const copy = deepClone(prev)
+        // Ensure set[0] exists for cardio
+        if (!copy[exIdx]) return prev
+        if (!copy[exIdx].sets[0]) copy[exIdx].sets[0] = newCardioRecord()
         const record = copy[exIdx].sets[0]
         if (result.duration_min != null) record.duration_min = result.duration_min
         if (result.distance_km != null) record.distance_km = result.distance_km
@@ -357,7 +399,7 @@ export default function Session() {
         return copy
       })
     } catch (err) {
-      alert(`사진 인식 실패: ${err.message}`)
+      setPhotoError(err.message)
     } finally {
       setPhotoLoading(null)
       e.target.value = ''
@@ -382,6 +424,14 @@ export default function Session() {
         )}
       </div>
 
+      {/* Photo error banner */}
+      {photoError && (
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-3 text-sm text-red-300 flex justify-between">
+          <span>사진 인식 실패: {photoError}</span>
+          <button onClick={() => setPhotoError(null)} className="text-red-400 ml-2">✕</button>
+        </div>
+      )}
+
       {/* Exercise cards */}
       <div className="space-y-3">
         {sessionExercises.map((se, exIdx) => {
@@ -404,21 +454,18 @@ export default function Session() {
               </div>
 
               {isCardio ? (
-                <>
-                  {photoLoading === exIdx ? (
-                    <p className="text-zinc-400 text-sm text-center py-4 animate-pulse">사진 분석 중...</p>
-                  ) : (
-                    <CardioForm
-                      record={se.sets[0] || newCardioRecord()}
-                      exercise={exercise}
-                      onUpdate={(field, value) => updateSet(exIdx, 0, field, value)}
-                      onPhoto={() => handlePhotoClick(exIdx)}
-                    />
-                  )}
-                </>
+                photoLoading === exIdx ? (
+                  <p className="text-zinc-400 text-sm text-center py-4 animate-pulse">사진 분석 중...</p>
+                ) : (
+                  <CardioForm
+                    record={se.sets[0] ?? newCardioRecord()}
+                    exercise={exercise}
+                    onUpdate={(field, value) => updateSet(exIdx, 0, field, value)}
+                    onPhoto={() => handlePhotoClick(exIdx)}
+                  />
+                )
               ) : (
                 <>
-                  {/* Column headers */}
                   <div className="flex items-center gap-2 mb-1">
                     <span className="w-5" />
                     <span className="text-zinc-600 text-xs w-16 text-center">이전</span>
@@ -426,14 +473,13 @@ export default function Session() {
                     <span className="w-10" />
                     <span className="w-6" />
                   </div>
-
                   {se.sets.map((set, setIdx) => (
                     <SetRow
                       key={setIdx}
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
-                      refSet={se._lastSets?.[setIdx]}
+                      refSet={se._lastSets?.[setIdx] ?? null}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
                       onRemove={() => removeSet(exIdx, setIdx)}
@@ -452,7 +498,6 @@ export default function Session() {
         })}
       </div>
 
-      {/* Add exercise button */}
       <button
         onClick={() => setShowModal(true)}
         className="w-full mt-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
@@ -464,7 +509,6 @@ export default function Session() {
         <p className="text-zinc-600 text-sm text-center mt-6">위 버튼을 눌러 운동을 추가하세요</p>
       )}
 
-      {/* Rest timer */}
       {restTimer.active && (
         <RestTimer
           seconds={restTimer.remaining}
@@ -474,7 +518,6 @@ export default function Session() {
         />
       )}
 
-      {/* Exercise search modal */}
       {showModal && (
         <ExerciseModal
           exercises={exercises}
@@ -483,11 +526,10 @@ export default function Session() {
         />
       )}
 
-      {/* Hidden photo input */}
       <input
         ref={photoInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
         capture="environment"
         className="hidden"
         onChange={handlePhotoChange}

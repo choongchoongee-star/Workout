@@ -20,13 +20,14 @@ export default function Library() {
 
   function handleAdd() {
     if (!form.name.trim()) return
+    const metValue = parseFloat(form.met)
     const id = `custom-${Date.now()}`
     addExercise({
       id,
       name: form.name.trim(),
       category: form.category,
       type: form.type,
-      met: form.type === 'cardio' && form.met ? parseFloat(form.met) : undefined,
+      met: form.type === 'cardio' && isFinite(metValue) && metValue > 0 ? metValue : undefined,
     })
     setForm({ name: '', category: '가슴', type: 'weight', met: '' })
     setShowAdd(false)

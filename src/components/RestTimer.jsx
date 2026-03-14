@@ -1,8 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
 export default function RestTimer({ seconds, total, onDone, onSkip }) {
   const pct = total > 0 ? (seconds / total) * 100 : 0
-  const intervalRef = useRef(null)
 
   useEffect(() => {
     if (seconds <= 0) {

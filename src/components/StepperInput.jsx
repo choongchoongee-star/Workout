@@ -18,7 +18,7 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
           onPointerDown={() => dec(s)}
           className="w-9 h-9 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none"
         >
-          -{s < 1 ? s : s}
+          -{s}
         </button>
       ))}
 
