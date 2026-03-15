@@ -49,8 +49,10 @@ export default function InBodyAnalysis() {
     )
   }
 
-  // Height: prefer value stored in record, fall back to settings
-  const heightForCalc = record.height ?? storage.getHeight()
+  // Height: prefer value stored in record, fall back to settings value
+  const heightFromRecord = record.height
+  const heightForCalc = heightFromRecord ?? storage.getHeight()
+  const usingDefaultHeight = !heightFromRecord
   // Gender: default to 'male' (no gender setting currently)
   const gender = 'male'
 
@@ -93,6 +95,11 @@ export default function InBodyAnalysis() {
           <Stat label="키" value={`${heightForCalc}cm`} />
           {smi != null && <Stat label="SMI" value={smi} />}
         </div>
+        {usingDefaultHeight && (
+          <p className="text-zinc-600 text-xs mt-2">
+            * 키 정보가 없어 설정값({heightForCalc}cm)을 사용했습니다. InBody 입력 시 키를 포함하거나 설정에서 키를 등록하세요.
+          </p>
+        )}
       </div>
 
       {/* SMI evaluation */}

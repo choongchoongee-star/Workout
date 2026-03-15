@@ -82,6 +82,7 @@ export default function InBody() {
     setShowForm(false)
     setForm(emptyForm(heightDefault))
     setError(null)
+    navigate(`/inbody/${record.id}`)
   }
 
   async function handlePhotoChange(e) {
