@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { storage } from '../lib/storage'
 import { createGist, testConnection } from '../lib/gist'
 import { testGeminiKey } from '../lib/gemini'
@@ -18,6 +19,7 @@ export default function Settings() {
   const [gistId, setGistId] = useState(storage.getGistId())
   const [geminiKey, setGeminiKey] = useState(storage.getGeminiKey())
   const [bodyWeight, setBodyWeight] = useState(String(storage.getBodyWeight()))
+  const [height, setHeight] = useState(String(storage.getHeight()))
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [showTokens, setShowTokens] = useState(false)
   const [status, setStatus] = useState({})
@@ -28,6 +30,8 @@ export default function Settings() {
     storage.setGeminiKey(geminiKey)
     const bw = parseFloat(bodyWeight)
     if (!isNaN(bw) && bw > 0) storage.setBodyWeight(bw)
+    const ht = parseFloat(height)
+    if (!isNaN(ht) && ht > 0) storage.setHeight(ht)
     const rs = parseInt(restSeconds)
     if (!isNaN(rs) && rs > 0) storage.setRestSeconds(rs)
     setStatus({ msg: '저장 완료 ✓', ok: true })
@@ -86,6 +90,15 @@ export default function Settings() {
             onChange={e => setBodyWeight(e.target.value)}
             className={inputCls}
             placeholder="70"
+          />
+        </Field>
+        <Field label="키 (cm)" hint="InBody SMI 계산에 사용됩니다">
+          <input
+            type="number"
+            value={height}
+            onChange={e => setHeight(e.target.value)}
+            className={inputCls}
+            placeholder="175"
           />
         </Field>
         <Field label="휴식 타이머 (초)">
@@ -171,6 +184,18 @@ export default function Settings() {
         >
           연결 테스트
         </button>
+      </div>
+
+      {/* Library link */}
+      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
+        <h2 className="text-zinc-300 font-medium mb-3">운동 목록 관리</h2>
+        <Link
+          to="/library"
+          className="flex items-center justify-between text-sm text-zinc-300 active:text-white"
+        >
+          <span>운동 목록 보기 / 커스텀 운동 추가</span>
+          <span className="text-zinc-500">→</span>
+        </Link>
       </div>
 
       {/* Status message */}

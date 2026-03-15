@@ -7,6 +7,7 @@ import { extractCardioFromPhoto } from '../lib/gemini'
 import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import { CATEGORIES } from '../data/exercises'
+import { getLatest1RM, getProgressionSuggestion } from '../lib/epley'
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10)
@@ -215,7 +216,7 @@ function CardioForm({ record, exercise, onUpdate, onPhoto }) {
 
 export default function Session() {
   const navigate = useNavigate()
-  const { exercises, sessions, upsertSession, getLastSession } = useApp()
+  const { exercises, sessions, upsertSession, getLastSession, getLatestInBody } = useApp()
   const today = todayStr()
 
   // Persist start time in sessionStorage so it survives navigation within the session
@@ -437,10 +438,12 @@ export default function Session() {
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
+          const latest1RM = !isCardio ? getLatest1RM(sessions, se.exerciseId) : null
+          const progression = !isCardio ? getProgressionSuggestion(sessions, se.exerciseId) : null
 
           return (
             <div key={exIdx} className="bg-zinc-900 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-1">
                 <div>
                   <h3 className="text-white font-semibold">{exercise?.name || se.exerciseId}</h3>
                   <span className="text-zinc-500 text-xs">{exercise?.category}</span>
@@ -452,6 +455,18 @@ export default function Session() {
                   ×
                 </button>
               </div>
+              {/* Epley 1RM hint */}
+              {latest1RM && (
+                <p className="text-zinc-600 text-xs mb-1">
+                  최근 1RM ≈ {latest1RM.rm}kg ({latest1RM.weight}×{latest1RM.reps})
+                </p>
+              )}
+              {/* Progression suggestion */}
+              {progression && (
+                <div className="bg-blue-900/30 border border-blue-800/50 rounded-lg px-3 py-1.5 mb-2 text-xs text-blue-300">
+                  {progression.message}
+                </div>
+              )}
 
               {isCardio ? (
                 photoLoading === exIdx ? (
@@ -466,7 +481,7 @@ export default function Session() {
                 )
               ) : (
                 <>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 mt-2">
                     <span className="w-5" />
                     <span className="text-zinc-600 text-xs w-16 text-center">이전</span>
                     <span className="flex-1 text-center text-zinc-600 text-xs">무게 / 횟수</span>

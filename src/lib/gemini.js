@@ -71,6 +71,58 @@ export async function extractCardioFromPhoto(apiKey, imageBase64, mimeType = 'im
   return parseGeminiJson(text)
 }
 
+const INBODY_PROMPT = `This is a photo of an InBody body composition analysis result sheet.
+Extract the measurement data and return ONLY a JSON object with these fields (use null if not visible):
+{
+  "weight": number,
+  "skeletal_muscle_mass": number,
+  "body_fat_mass": number,
+  "body_fat_pct": number,
+  "height": number,
+  "left_arm": number,
+  "right_arm": number,
+  "trunk": number,
+  "left_leg": number,
+  "right_leg": number
+}
+All weights in kg, height in cm, body_fat_pct as percentage number (e.g. 18.5 not 0.185).
+Segmental muscle fields (left_arm etc.) are optional — use null if not shown.
+Do not include markdown or any text outside the JSON.`
+
+export async function extractInBodyFromPhoto(apiKey, imageBase64, mimeType = 'image/jpeg') {
+  if (!apiKey) throw new Error('Gemini API 키가 설정되지 않았습니다')
+  if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+    throw new Error(`지원하지 않는 파일 형식입니다: ${mimeType}`)
+  }
+
+  const body = {
+    contents: [{
+      parts: [
+        { text: INBODY_PROMPT },
+        { inline_data: { mime_type: mimeType, data: imageBase64 } },
+      ],
+    }],
+    generationConfig: { temperature: 0 },
+  }
+
+  const res = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: apiHeaders(apiKey),
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.error?.message || `Gemini API 오류 (${res.status})`)
+  }
+
+  const data = await res.json()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+  if (!text) throw new Error('Gemini 응답이 비어있습니다')
+
+  return parseGeminiJson(text)
+}
+
 export async function testGeminiKey(apiKey) {
   if (!apiKey) throw new Error('Gemini API 키가 없습니다')
   const body = {

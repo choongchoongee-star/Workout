@@ -31,11 +31,13 @@ const NAV = [
     ),
   },
   {
-    to: '/library',
-    label: '운동목록',
+    to: '/inbody',
+    label: 'InBody',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-        <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
+        <circle cx="12" cy="7" r="3" />
+        <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" strokeLinecap="round" />
+        <path d="M17 11l1.5 4h-13L7 11" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
