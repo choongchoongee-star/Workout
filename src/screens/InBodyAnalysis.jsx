@@ -167,13 +167,10 @@ export default function InBodyAnalysis() {
           <h2 className="text-zinc-400 text-sm font-medium mb-1">운동별 추천 무게</h2>
           <p className="text-zinc-600 text-xs mb-3">* 체성분 기반 참고값. 실제 능력과 다를 수 있습니다.</p>
           <div className="space-y-2.5">
-            {Object.entries(weights).map(([exerciseId, { estimated1RM, workingWeight }]) => (
+            {Object.entries(weights).map(([exerciseId, { workingWeight }]) => (
               <div key={exerciseId} className="flex items-center justify-between">
                 <span className="text-zinc-300 text-sm">{EXERCISE_NAMES[exerciseId] ?? exerciseId}</span>
-                <div className="text-right">
-                  <span className="text-white text-sm font-medium">{workingWeight}kg</span>
-                  <span className="text-zinc-600 text-xs ml-2">1RM ≈ {estimated1RM}kg</span>
-                </div>
+                <span className="text-white text-sm font-medium">{workingWeight}kg</span>
               </div>
             ))}
           </div>

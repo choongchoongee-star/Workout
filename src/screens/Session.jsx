@@ -7,7 +7,7 @@ import { extractCardioFromPhoto } from '../lib/gemini'
 import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import { CATEGORIES } from '../data/exercises'
-import { getLatest1RM, getProgressionSuggestion } from '../lib/epley'
+import { getProgressionSuggestion } from '../lib/epley'
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10)
@@ -438,7 +438,6 @@ export default function Session() {
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
-          const latest1RM = !isCardio ? getLatest1RM(sessions, se.exerciseId) : null
           const progression = !isCardio ? getProgressionSuggestion(sessions, se.exerciseId) : null
 
           return (
@@ -455,12 +454,6 @@ export default function Session() {
                   ×
                 </button>
               </div>
-              {/* Epley 1RM hint */}
-              {latest1RM && (
-                <p className="text-zinc-600 text-xs mb-1">
-                  최근 1RM ≈ {latest1RM.rm}kg ({latest1RM.weight}×{latest1RM.reps})
-                </p>
-              )}
               {/* Progression suggestion */}
               {progression && (
                 <div className="bg-blue-900/30 border border-blue-800/50 rounded-lg px-3 py-1.5 mb-2 text-xs text-blue-300">

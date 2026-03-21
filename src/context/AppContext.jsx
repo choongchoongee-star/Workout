@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
 import { DEFAULT_EXERCISES } from '../data/exercises'
-import { storage } from '../lib/storage'
-import { loadGist, saveGist } from '../lib/gist'
+import { loadWorkoutData, saveWorkoutData } from '../lib/firestore'
+import { useAuth } from './AuthContext'
 
 const AppContext = createContext(null)
 
@@ -63,18 +63,18 @@ function reducer(state, action) {
 }
 
 export function AppProvider({ children }) {
+  const { user } = useAuth()
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  // Load from Gist on mount
+  // 로그인한 유저가 바뀔 때마다 Firestore에서 데이터 로드
   useEffect(() => {
-    const token = storage.getGithubToken()
-    const gistId = storage.getGistId()
-    if (!token || !gistId) {
+    if (!user) {
+      // 로그아웃 시 상태 초기화
       dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [], inbody: [] })
       return
     }
     dispatch({ type: 'SYNC_START' })
-    loadGist(token, gistId)
+    loadWorkoutData(user.uid)
       .then(data => {
         dispatch({
           type: 'LOAD_DATA',
@@ -87,22 +87,20 @@ export function AppProvider({ children }) {
         dispatch({ type: 'SYNC_ERROR', error: err.message })
         dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [], inbody: [] })
       })
-  }, [])
+  }, [user])
 
   const persist = useCallback(async (exercises, sessions, inbody) => {
-    const token = storage.getGithubToken()
-    const gistId = storage.getGistId()
-    if (!token || !gistId) return
+    if (!user) return
     dispatch({ type: 'SYNC_START' })
     try {
-      await saveGist(token, gistId, { exercises, sessions, inbody })
+      await saveWorkoutData(user.uid, { exercises, sessions, inbody })
       dispatch({ type: 'SYNC_OK' })
     } catch (err) {
       dispatch({ type: 'SYNC_ERROR', error: err.message })
     }
-  }, [])
+  }, [user])
 
-  // Auto-persist on data changes
+  // 데이터 변경 시 자동 저장
   useEffect(() => {
     if (!state.loaded) return
     persist(state.exercises, state.sessions, state.inbody)
@@ -122,7 +120,6 @@ export function AppProvider({ children }) {
     ) ?? null
   }, [state.sessions])
 
-  // 가장 최근 InBody 기록 반환
   const getLatestInBody = useCallback(() => {
     return state.inbody[0] ?? null
   }, [state.inbody])

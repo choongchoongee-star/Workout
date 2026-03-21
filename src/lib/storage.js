@@ -1,8 +1,6 @@
-// localStorage helpers — only for settings and API keys (never workout data)
+// localStorage helpers — 설정값과 API 키 전용 (운동 데이터는 Firestore에 저장)
 
 const KEYS = {
-  GITHUB_TOKEN: 'wl_github_token',
-  GIST_ID: 'wl_gist_id',
   GEMINI_KEY: 'wl_gemini_key',
   BODY_WEIGHT: 'wl_body_weight',
   HEIGHT: 'wl_height',
@@ -51,12 +49,6 @@ function safeInt(raw, fallback) {
 
 export const storage = {
   isAvailable,
-
-  getGithubToken: () => safeGet(KEYS.GITHUB_TOKEN) || '',
-  setGithubToken: (v) => safeSet(KEYS.GITHUB_TOKEN, v),
-
-  getGistId: () => safeGet(KEYS.GIST_ID) || '',
-  setGistId: (v) => safeSet(KEYS.GIST_ID, v),
 
   getGeminiKey: () => safeGet(KEYS.GEMINI_KEY) || '',
   setGeminiKey: (v) => safeSet(KEYS.GEMINI_KEY, v),
