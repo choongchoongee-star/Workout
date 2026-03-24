@@ -9,8 +9,9 @@ import RestTimer from '../components/RestTimer'
 import { CATEGORIES } from '../data/exercises'
 import { getProgressionSuggestion } from '../lib/epley'
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+function localTodayStr() {
+  const d = new Date()
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
 function newWeightSet(weight = 20, reps = 10) {
@@ -96,7 +97,7 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet 
 
   return (
     <div className={`flex items-center gap-2 py-2 ${set.done ? 'opacity-40' : ''}`}>
-      <span className="text-zinc-600 text-sm w-5 text-right">{setIdx + 1}</span>
+      <span className="text-zinc-600 text-sm w-8 text-right flex-shrink-0">{setIdx + 1}</span>
 
       <span className="text-zinc-600 text-xs w-16 text-center">
         {refSet && !set.done
@@ -216,20 +217,31 @@ function CardioForm({ record, exercise, onUpdate, onPhoto }) {
 
 export default function Session() {
   const navigate = useNavigate()
-  const { exercises, sessions, upsertSession, getLastSession, getLatestInBody } = useApp()
-  const today = todayStr()
+  const { exercises, sessions, upsertSession, getLastSession } = useApp()
+  const realToday = localTodayStr()
 
-  // Persist start time in sessionStorage so it survives navigation within the session
-  const startTimeKey = `wl_session_start_${today}`
-  if (!sessionStorage.getItem(startTimeKey)) {
+  const [sessionDate, setSessionDate] = useState(realToday)
+  const [sessionExercises, setSessionExercises] = useState(() => {
+    const existing = sessions.find(s => s.id === realToday)
+    return existing?.exercises ? deepClone(existing.exercises) : []
+  })
+  const isDateChanging = useRef(false)
+
+  // 날짜가 바뀌면 해당 날짜 세션 로드
+  useEffect(() => {
+    isDateChanging.current = true
+    const existing = sessions.find(s => s.id === sessionDate)
+    setSessionExercises(existing?.exercises ? deepClone(existing.exercises) : [])
+    // 한 틱 후 플래그 해제 (auto-save useEffect가 건너뛰도록)
+    setTimeout(() => { isDateChanging.current = false }, 0)
+  }, [sessionDate])
+
+  // 오늘 날짜 세션의 시작 시간 추적
+  const startTimeKey = `wl_session_start_${realToday}`
+  if (sessionDate === realToday && !sessionStorage.getItem(startTimeKey)) {
     sessionStorage.setItem(startTimeKey, String(Date.now()))
   }
 
-  // Initialize session exercises from existing today session or empty
-  const existingSession = sessions.find(s => s.id === today)
-  const [sessionExercises, setSessionExercises] = useState(() =>
-    existingSession?.exercises ? deepClone(existingSession.exercises) : []
-  )
   const [showModal, setShowModal] = useState(false)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90 })
   const [photoError, setPhotoError] = useState(null)
@@ -239,12 +251,13 @@ export default function Session() {
 
   // Auto-save in-progress session to context on every change
   useEffect(() => {
+    if (isDateChanging.current) return
     if (sessionExercises.length === 0) return
     const session = {
-      id: today,
-      date: today,
+      id: sessionDate,
+      date: sessionDate,
       exercises: sessionExercises.map(({ _lastSets, ...rest }) => rest),
-      duration_min: null, // not finished yet
+      duration_min: null,
     }
     upsertSession(session)
   }, [sessionExercises])
@@ -267,7 +280,7 @@ export default function Session() {
   }
 
   function addExercise(ex) {
-    const lastSession = getLastSession(ex.id, today)
+    const lastSession = getLastSession(ex.id, sessionDate)
     const lastExData = lastSession?.exercises?.find(e => e.exerciseId === ex.id) ?? null
 
     let sets
@@ -339,13 +352,16 @@ export default function Session() {
   }
 
   function finishSession() {
-    const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10) || Date.now()
-    const durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
-    sessionStorage.removeItem(startTimeKey)
+    let durationMin = null
+    if (sessionDate === realToday) {
+      const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10) || Date.now()
+      durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
+      sessionStorage.removeItem(startTimeKey)
+    }
 
     const session = {
-      id: today,
-      date: today,
+      id: sessionDate,
+      date: sessionDate,
       exercises: sessionExercises.map(({ _lastSets, ...rest }) => rest),
       duration_min: durationMin,
     }
@@ -412,8 +428,14 @@ export default function Session() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pt-2">
         <div>
-          <p className="text-zinc-400 text-sm">오늘</p>
-          <h1 className="text-xl font-bold text-white">{today}</h1>
+          <p className="text-zinc-400 text-sm">{sessionDate === realToday ? '오늘' : '다른 날 기록'}</p>
+          <input
+            type="date"
+            value={sessionDate}
+            max={realToday}
+            onChange={e => e.target.value && setSessionDate(e.target.value)}
+            className="text-xl font-bold text-white bg-transparent focus:outline-none"
+          />
         </div>
         {sessionExercises.length > 0 && (
           <button

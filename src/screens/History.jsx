@@ -1,18 +1,39 @@
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr)
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const d = new Date(year, month - 1, day)
   return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
 }
 
 export default function History() {
   const navigate = useNavigate()
   const { sessions, exercises } = useApp()
+  const [jumpDate, setJumpDate] = useState('')
+  const cardRefs = useRef({})
+
+  function handleDateJump(dateStr) {
+    setJumpDate(dateStr)
+    if (!dateStr) return
+    const el = cardRefs.current[dateStr]
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold text-white mb-4 pt-2">운동 기록</h1>
+      <div className="flex items-center gap-3 mb-4 pt-2">
+        <h1 className="text-xl font-bold text-white">운동 기록</h1>
+        <input
+          type="date"
+          value={jumpDate}
+          onChange={e => handleDateJump(e.target.value)}
+          className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
+      </div>
 
       {sessions.length === 0 ? (
         <p className="text-zinc-600 text-sm text-center py-12">아직 기록이 없어요</p>
@@ -27,6 +48,7 @@ export default function History() {
             return (
               <button
                 key={session.id}
+                ref={el => { cardRefs.current[session.date] = el }}
                 onClick={() => navigate(`/history/${session.id}`)}
                 className="w-full bg-zinc-900 rounded-xl p-4 text-left active:bg-zinc-800"
               >

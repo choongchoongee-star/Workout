@@ -13,9 +13,22 @@ export async function loadWorkoutData(uid) {
   return snapshot.data()
 }
 
+// Firestore는 undefined 값을 거부하므로 재귀적으로 제거
+function sanitizeForFirestore(value) {
+  if (Array.isArray(value)) return value.map(sanitizeForFirestore)
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, sanitizeForFirestore(v)])
+    )
+  }
+  return value
+}
+
 /**
  * Firestore에 운동 데이터 저장
  */
 export async function saveWorkoutData(uid, data) {
-  await setDoc(WORKOUT_DOC(uid), data)
+  await setDoc(WORKOUT_DOC(uid), sanitizeForFirestore(data))
 }
