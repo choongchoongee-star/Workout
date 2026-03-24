@@ -497,7 +497,7 @@ export default function Session() {
               ) : (
                 <>
                   <div className="flex items-center gap-2 mb-1 mt-2">
-                    <span className="w-5" />
+                    <span className="w-8" />
                     <span className="text-zinc-600 text-xs w-16 text-center">이전</span>
                     <span className="flex-1 text-center text-zinc-600 text-xs">무게 / 횟수</span>
                     <span className="w-10" />

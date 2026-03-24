@@ -36,9 +36,10 @@ function reducer(state, action) {
 
     case 'UPSERT_SESSION': {
       const exists = state.sessions.findIndex(s => s.id === action.session.id)
-      const sessions = exists >= 0
+      const merged = exists >= 0
         ? state.sessions.map((s, i) => i === exists ? action.session : s)
         : [action.session, ...state.sessions]
+      const sessions = merged.slice().sort((a, b) => b.date.localeCompare(a.date))
       return { ...state, sessions }
     }
 

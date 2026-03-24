@@ -4,8 +4,9 @@ import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
 import { extractInBodyFromPhoto } from '../lib/gemini'
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+function localTodayStr() {
+  const d = new Date()
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
 const MAIN_FIELDS = [
@@ -65,7 +66,7 @@ export default function InBody() {
 
     const record = {
       id: `ib_${Date.now()}`,
-      date: todayStr(),
+      date: localTodayStr(),
       weight,
       skeletal_muscle_mass,
       body_fat_mass: parseFloat(form.body_fat_mass) || null,
