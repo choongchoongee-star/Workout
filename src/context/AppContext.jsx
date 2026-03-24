@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
 import { DEFAULT_EXERCISES } from '../data/exercises'
 import { loadWorkoutData, saveWorkoutData } from '../lib/firestore'
 import { useAuth } from './AuthContext'
@@ -66,17 +66,19 @@ function reducer(state, action) {
 export function AppProvider({ children }) {
   const { user } = useAuth()
   const [state, dispatch] = useReducer(reducer, initialState)
+  // Firestore에서 막 로드한 직후엔 동일 데이터를 다시 저장하지 않도록 플래그
+  const justLoadedRef = useRef(false)
 
   // 로그인한 유저가 바뀔 때마다 Firestore에서 데이터 로드
   useEffect(() => {
     if (!user) {
-      // 로그아웃 시 상태 초기화
       dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [], inbody: [] })
       return
     }
     dispatch({ type: 'SYNC_START' })
     loadWorkoutData(user.uid)
       .then(data => {
+        justLoadedRef.current = true
         dispatch({
           type: 'LOAD_DATA',
           exercises: data.exercises ?? DEFAULT_EXERCISES,
@@ -101,9 +103,13 @@ export function AppProvider({ children }) {
     }
   }, [user])
 
-  // 데이터 변경 시 자동 저장
+  // 데이터 변경 시 자동 저장 (로드 직후 첫 번째 실행은 건너뜀)
   useEffect(() => {
     if (!state.loaded) return
+    if (justLoadedRef.current) {
+      justLoadedRef.current = false
+      return
+    }
     persist(state.exercises, state.sessions, state.inbody)
   }, [state.exercises, state.sessions, state.inbody, state.loaded, persist])
 

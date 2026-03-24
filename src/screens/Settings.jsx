@@ -41,7 +41,7 @@ export default function Settings() {
       await testGeminiKey(geminiKey)
       setStatus({ msg: 'Gemini API 연결 성공 ✓', ok: true })
     } catch (err) {
-      setStatus({ msg: `오류: ${err.message}`, ok: false })
+      setStatus({ msg: 'Gemini API 연결에 실패했습니다. API 키를 확인해주세요.', ok: false })
     }
   }
 

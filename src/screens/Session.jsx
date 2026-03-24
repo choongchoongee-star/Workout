@@ -416,7 +416,7 @@ export default function Session() {
         return copy
       })
     } catch (err) {
-      setPhotoError(err.message)
+      setPhotoError('사진 인식에 실패했습니다. 다시 시도하거나 직접 입력해주세요.')
     } finally {
       setPhotoLoading(null)
       e.target.value = ''
@@ -460,7 +460,7 @@ export default function Session() {
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
-          const progression = !isCardio ? getProgressionSuggestion(sessions, se.exerciseId) : null
+          const progression = !isCardio ? getProgressionSuggestion(sessions, se.exerciseId, sessionDate) : null
 
           return (
             <div key={exIdx} className="bg-zinc-900 rounded-2xl p-4">

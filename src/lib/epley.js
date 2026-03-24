@@ -2,9 +2,9 @@
  * 점진적 과부하 제안
  * 최근 3회 세션에서 같은 운동을 같은 무게로 모든 세트 완료했으면 +2.5kg 제안
  */
-export function getProgressionSuggestion(sessions, exerciseId) {
+export function getProgressionSuggestion(sessions, exerciseId, excludeDate = null) {
   const recentSessions = sessions
-    .filter(s => s.exercises?.some(e => e.exerciseId === exerciseId))
+    .filter(s => s.date !== excludeDate && s.exercises?.some(e => e.exerciseId === exerciseId))
     .slice(0, 3)
 
   if (recentSessions.length < 3) return null

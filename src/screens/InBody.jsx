@@ -121,7 +121,7 @@ export default function InBody() {
         right_leg: result.right_leg != null ? String(result.right_leg) : prev.right_leg,
       }))
     } catch (err) {
-      setError(err.message)
+      setError('사진 인식에 실패했습니다. 다시 시도하거나 직접 입력해주세요.')
     } finally {
       setPhotoLoading(false)
       e.target.value = ''
