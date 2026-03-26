@@ -2,18 +2,19 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+function localTodayStr() {
+  const d = new Date()
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
 export default function Home() {
   const navigate = useNavigate()
   const { sessions, exercises, syncing, syncError } = useApp()
-  const today = todayStr()
+  const today = localTodayStr()
   const recent = sessions.slice(0, 5)
   const todaySession = sessions.find(s => s.id === today)
 
@@ -34,7 +35,7 @@ export default function Home() {
 
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          동기화 오류: {syncError}
+          데이터 동기화에 실패했습니다. 네트워크를 확인해주세요.
         </div>
       )}
 
@@ -53,10 +54,11 @@ export default function Home() {
       ) : (
         <div className="space-y-2">
           {recent.map(session => {
-            const exerciseNames = session.exercises
+            const sessionExercises = session.exercises ?? []
+            const exerciseNames = sessionExercises
               .map(e => exercises.find(ex => ex.id === e.exerciseId)?.name || e.exerciseId)
               .slice(0, 3)
-            const totalSets = session.exercises
+            const totalSets = sessionExercises
               .reduce((sum, e) => sum + (e.sets?.length || 0), 0)
 
             return (
@@ -73,7 +75,7 @@ export default function Home() {
                 </div>
                 <p className="text-zinc-400 text-sm">
                   {exerciseNames.join(' · ')}
-                  {session.exercises.length > 3 && ` +${session.exercises.length - 3}`}
+                  {sessionExercises.length > 3 && ` +${sessionExercises.length - 3}`}
                 </p>
                 <p className="text-zinc-600 text-xs mt-1">{totalSets}세트</p>
               </button>

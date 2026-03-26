@@ -32,7 +32,11 @@ export default function Settings() {
   }
 
   async function handleLogout() {
-    await logout()
+    try {
+      await logout()
+    } catch {
+      setStatus({ msg: '로그아웃에 실패했습니다. 다시 시도해주세요.', ok: false })
+    }
   }
 
   const inputCls = "w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"

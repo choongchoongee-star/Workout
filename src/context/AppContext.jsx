@@ -88,6 +88,7 @@ export function AppProvider({ children }) {
       })
       .catch(err => {
         dispatch({ type: 'SYNC_ERROR', error: err.message })
+        justLoadedRef.current = true // 에러 fallback도 auto-save 건너뜀 (빈 데이터 덮어씌움 방지)
         dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [], inbody: [] })
       })
   }, [user])

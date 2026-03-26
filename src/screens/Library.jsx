@@ -27,7 +27,7 @@ export default function Library() {
       name: form.name.trim(),
       category: form.category,
       type: form.type,
-      met: form.type === 'cardio' && isFinite(metValue) && metValue > 0 ? metValue : undefined,
+      met: form.type === 'cardio' && isFinite(metValue) && metValue > 0 ? metValue : null,
     })
     setForm({ name: '', category: '가슴', type: 'weight', met: '' })
     setShowAdd(false)

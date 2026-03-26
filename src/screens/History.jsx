@@ -40,8 +40,9 @@ export default function History() {
       ) : (
         <div className="space-y-2">
           {sessions.map(session => {
-            const totalSets = session.exercises.reduce((sum, e) => sum + (e.sets?.length || 0), 0)
-            const names = session.exercises
+            const sessionExercises = session.exercises ?? []
+            const totalSets = sessionExercises.reduce((sum, e) => sum + (e.sets?.length || 0), 0)
+            const names = sessionExercises
               .map(e => exercises.find(ex => ex.id === e.exerciseId)?.name || e.exerciseId)
               .slice(0, 3)
 
@@ -59,9 +60,9 @@ export default function History() {
                   </span>
                 </div>
                 <p className="text-zinc-400 text-sm">
-                  {names.join(' · ')}{session.exercises.length > 3 ? ` +${session.exercises.length - 3}` : ''}
+                  {names.join(' · ')}{sessionExercises.length > 3 ? ` +${sessionExercises.length - 3}` : ''}
                 </p>
-                <p className="text-zinc-600 text-xs mt-1">{session.exercises.length}종목 · {totalSets}세트</p>
+                <p className="text-zinc-600 text-xs mt-1">{sessionExercises.length}종목 · {totalSets}세트</p>
               </button>
             )
           })}
