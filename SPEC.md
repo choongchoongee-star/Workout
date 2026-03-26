@@ -9,7 +9,7 @@
 
 - **목적:** 웨이트 + 유산소 운동 세션을 최소 마찰로 기록하는 개인용 PWA
 - **핵심 제약사항:** 정적 호스팅 (GitHub Pages), 백엔드 없음, Google 계정 로그인 필수
-- **기술 스택:** React 19 + Vite + Tailwind CSS v4 + Firebase (Auth + Firestore) + Gemini Vision API
+- **기술 스택:** React 19 + Vite + Tailwind CSS v4 + Firebase (Auth + Firestore)
 - **주요 사용자:** Charlie (개인 사용)
 
 ---
@@ -27,7 +27,6 @@ Workout/
 │   ├── lib/
 │   │   ├── firebase.js    # Firebase 초기화 (auth, db)
 │   │   ├── firestore.js   # Firestore load/save (users/{uid}/data/workout)
-│   │   ├── gemini.js      # Gemini Vision API (cardio + InBody 사진 추출)
 │   │   ├── inbody.js      # 체성분 분석 (SMI, 체지방률, 목표 제안, 추천 무게)
 │   │   ├── epley.js       # 점진적 과부하 제안 (getProgressionSuggestion)
 │   │   └── calories.js    # MET 기반 칼로리 계산
@@ -43,16 +42,12 @@ Google 로그인 → Firebase Auth → uid 획득
 운동 기록 → Firestore (users/{uid}/data/workout)
   └── exercises[], sessions[], inbody[]
 
-API 키 / 설정 → localStorage (Gemini Key, 체중, 키, 휴식 시간)
-
-InBody 사진 → Gemini Vision → 수치 추출 → 분석 결과
-유산소 기기 사진 → Gemini Vision → 기록 자동 입력
+설정값 → localStorage (체중, 키, 휴식 시간)
 ```
 
 ### 외부 의존성
 - Firebase Auth (Google 로그인)
 - Firebase Firestore (데이터 저장)
-- Gemini API Key (localStorage, Google AI Studio)
 
 ---
 
@@ -116,7 +111,7 @@ InBody 사진 → Gemini Vision → 수치 추출 → 분석 결과
 - [+ 운동 추가] → 검색 모달 (카테고리 + 텍스트 검색)
 - 운동 카드: 세트 행 `[-] weight [+] × [-] reps [+] [✓ 완료]`
 - bodyweight: "체중" 레이블 + 추가 하중 입력
-- cardio: 시간/거리/속도/경사 + [📷 사진으로 입력]
+- cardio: 시간/거리/속도/경사 수동 입력
 - 이전 세션 참고값 ghost 표시
 - 휴식 타이머 자동 시작 (세트 완료 시)
 - 점진적 과부하 배너 (3회 연속 동일 무게 → +2.5kg 제안)
@@ -135,8 +130,7 @@ InBody 사진 → Gemini Vision → 수치 추출 → 분석 결과
 - **구현 상태:** ✅ 완료
 
 ### 4.5 InBody 입력
-- [📷 결과지 촬영] → Gemini Vision 자동 추출 (`extractInBodyFromPhoto`)
-- 수동 직접 입력도 가능
+- 수동 직접 입력
 - 저장 → 체성분 분석 화면 자동 이동
 - 과거 기록 목록 + [분석 보기]
 - **구현 상태:** ✅ 완료
@@ -185,11 +179,11 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 - [x] 웨이트 + 유산소 기록
 - [x] Firebase Auth (Google 로그인)
 - [x] Firestore 자동 동기화
-- [x] Gemini Vision (유산소 기기 사진)
+- [x] 유산소 수동 기록 (시간/거리/속도/경사)
 - [x] PWA
 
 ### ✅ Phase 2 — InBody
-- [x] InBody 입력 + Gemini Vision 파싱
+- [x] InBody 입력 (수동)
 - [x] 체성분 분석 및 목표 제안
 - [x] 부위별 불균형 감지
 
@@ -205,6 +199,7 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 - 바코드 / 외부 DB 운동 검색
 - 알림 / 리마인더
 - Epley 1RM 표시 (제거됨)
+- Gemini Vision API 사진 인식 (제거됨)
 
 ---
 
