@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { storage } from '../lib/storage'
-import { testGeminiKey } from '../lib/gemini'
 import { useAuth } from '../context/AuthContext'
 
 function Field({ label, hint, children }) {
@@ -16,15 +15,12 @@ function Field({ label, hint, children }) {
 
 export default function Settings() {
   const { user, logout } = useAuth()
-  const [geminiKey, setGeminiKey] = useState(storage.getGeminiKey())
   const [bodyWeight, setBodyWeight] = useState(String(storage.getBodyWeight()))
   const [height, setHeight] = useState(String(storage.getHeight()))
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
-  const [showKey, setShowKey] = useState(false)
   const [status, setStatus] = useState({})
 
   function save() {
-    storage.setGeminiKey(geminiKey)
     const bw = parseFloat(bodyWeight)
     if (!isNaN(bw) && bw > 0) storage.setBodyWeight(bw)
     const ht = parseFloat(height)
@@ -33,16 +29,6 @@ export default function Settings() {
     if (!isNaN(rs) && rs > 0) storage.setRestSeconds(rs)
     setStatus({ msg: '저장 완료 ✓', ok: true })
     setTimeout(() => setStatus({}), 2000)
-  }
-
-  async function handleTestGemini() {
-    setStatus({ msg: 'Gemini API 테스트 중...', ok: null })
-    try {
-      await testGeminiKey(geminiKey)
-      setStatus({ msg: 'Gemini API 연결 성공 ✓', ok: true })
-    } catch (err) {
-      setStatus({ msg: 'Gemini API 연결에 실패했습니다. API 키를 확인해주세요.', ok: false })
-    }
   }
 
   async function handleLogout() {
@@ -105,38 +91,6 @@ export default function Settings() {
             placeholder="90"
           />
         </Field>
-      </div>
-
-      {/* Gemini API */}
-      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-zinc-300 font-medium">Gemini API (사진 인식)</h2>
-          <button
-            onClick={() => setShowKey(s => !s)}
-            className="text-zinc-500 text-xs active:text-zinc-300"
-          >
-            {showKey ? '숨기기' : '보기'}
-          </button>
-        </div>
-        <Field
-          label="Gemini API Key"
-          hint="Google AI Studio에서 발급. 사용량 한도와 HTTP referrer 제한 설정 권장"
-        >
-          <input
-            type={showKey ? 'text' : 'password'}
-            value={geminiKey}
-            onChange={e => setGeminiKey(e.target.value)}
-            className={inputCls}
-            placeholder="AIza..."
-            autoComplete="off"
-          />
-        </Field>
-        <button
-          onClick={handleTestGemini}
-          className="w-full bg-zinc-700 text-zinc-200 text-sm rounded-xl py-2.5 active:bg-zinc-600"
-        >
-          연결 테스트
-        </button>
       </div>
 
       {/* Library link */}

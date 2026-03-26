@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
-import { extractInBodyFromPhoto } from '../lib/gemini'
 
 function localTodayStr() {
   const d = new Date()
@@ -43,14 +42,11 @@ function emptyForm(heightDefault) {
 export default function InBody() {
   const navigate = useNavigate()
   const { inbody, addInBody, deleteInBody } = useApp()
-  const geminiKey = storage.getGeminiKey()
   const heightDefault = storage.getHeight()
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(() => emptyForm(heightDefault))
-  const [photoLoading, setPhotoLoading] = useState(false)
   const [error, setError] = useState(null)
-  const photoInputRef = useRef(null)
 
   function handleFieldChange(key, value) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -86,48 +82,6 @@ export default function InBody() {
     navigate(`/inbody/${record.id}`)
   }
 
-  async function handlePhotoChange(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setPhotoLoading(true)
-    setError(null)
-
-    try {
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const result = reader.result
-          const commaIdx = result.indexOf(',')
-          if (commaIdx === -1) { reject(new Error('파일을 읽을 수 없습니다')); return }
-          resolve(result.slice(commaIdx + 1))
-        }
-        reader.onerror = () => reject(new Error('파일 읽기 실패'))
-        reader.readAsDataURL(file)
-      })
-
-      const result = await extractInBodyFromPhoto(geminiKey, base64, file.type)
-      setForm(prev => ({
-        ...prev,
-        weight: result.weight != null ? String(result.weight) : prev.weight,
-        skeletal_muscle_mass: result.skeletal_muscle_mass != null ? String(result.skeletal_muscle_mass) : prev.skeletal_muscle_mass,
-        body_fat_mass: result.body_fat_mass != null ? String(result.body_fat_mass) : prev.body_fat_mass,
-        body_fat_pct: result.body_fat_pct != null ? String(result.body_fat_pct) : prev.body_fat_pct,
-        height: result.height != null ? String(result.height) : prev.height,
-        left_arm: result.left_arm != null ? String(result.left_arm) : prev.left_arm,
-        right_arm: result.right_arm != null ? String(result.right_arm) : prev.right_arm,
-        trunk: result.trunk != null ? String(result.trunk) : prev.trunk,
-        left_leg: result.left_leg != null ? String(result.left_leg) : prev.left_leg,
-        right_leg: result.right_leg != null ? String(result.right_leg) : prev.right_leg,
-      }))
-    } catch (err) {
-      setError('사진 인식에 실패했습니다. 다시 시도하거나 직접 입력해주세요.')
-    } finally {
-      setPhotoLoading(false)
-      e.target.value = ''
-    }
-  }
-
   return (
     <div className="p-4 max-w-lg mx-auto pb-8">
       <div className="flex items-center justify-between mb-4 pt-2">
@@ -146,16 +100,6 @@ export default function InBody() {
       {showForm && (
         <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
           <h2 className="text-white font-semibold mb-3">체성분 입력</h2>
-
-          {geminiKey && (
-            <button
-              onClick={() => { setError(null); photoInputRef.current?.click() }}
-              disabled={photoLoading}
-              className="w-full bg-zinc-800 text-zinc-300 rounded-xl py-2.5 text-sm active:bg-zinc-700 flex items-center justify-center gap-2 mb-3 disabled:opacity-50"
-            >
-              {photoLoading ? '분석 중...' : '📷 InBody 결과지 촬영해서 자동 입력'}
-            </button>
-          )}
 
           {error && (
             <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-3 text-sm text-red-300 flex justify-between">
@@ -266,14 +210,6 @@ export default function InBody() {
         </div>
       )}
 
-      <input
-        ref={photoInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-        capture="environment"
-        className="hidden"
-        onChange={handlePhotoChange}
-      />
     </div>
   )
 }

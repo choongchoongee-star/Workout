@@ -1,7 +1,6 @@
 // localStorage helpers — 설정값과 API 키 전용 (운동 데이터는 Firestore에 저장)
 
 const KEYS = {
-  GEMINI_KEY: 'wl_gemini_key',
   BODY_WEIGHT: 'wl_body_weight',
   HEIGHT: 'wl_height',
   REST_SECONDS: 'wl_rest_seconds',
@@ -49,9 +48,6 @@ function safeInt(raw, fallback) {
 
 export const storage = {
   isAvailable,
-
-  getGeminiKey: () => safeGet(KEYS.GEMINI_KEY) || '',
-  setGeminiKey: (v) => safeSet(KEYS.GEMINI_KEY, v),
 
   getBodyWeight: () => safeFloat(safeGet(KEYS.BODY_WEIGHT), 70),
   setBodyWeight: (v) => safeSet(KEYS.BODY_WEIGHT, String(v)),

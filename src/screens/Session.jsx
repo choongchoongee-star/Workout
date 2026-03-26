@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
 import { calcCalories } from '../lib/calories'
-import { extractCardioFromPhoto } from '../lib/gemini'
 import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import { CATEGORIES } from '../data/exercises'
@@ -152,10 +151,9 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet 
   )
 }
 
-// Cardio record form — setIdx tracks which set is being edited by photo
-function CardioForm({ record, exercise, onUpdate, onPhoto }) {
+// Cardio record form
+function CardioForm({ record, exercise, onUpdate }) {
   const bodyWeight = storage.getBodyWeight()
-  const geminiKey = storage.getGeminiKey()
 
   // Auto-calculate calories from MET when duration changes
   useEffect(() => {
@@ -169,14 +167,6 @@ function CardioForm({ record, exercise, onUpdate, onPhoto }) {
 
   return (
     <div className="space-y-3 py-2">
-      {geminiKey && (
-        <button
-          onClick={onPhoto}
-          className="w-full bg-zinc-800 text-zinc-300 rounded-xl py-2.5 text-sm active:bg-zinc-700 flex items-center justify-center gap-2"
-        >
-          📷 기기 화면 촬영해서 자동 입력
-        </button>
-      )}
       <div className="grid grid-cols-2 gap-3">
         {[
           { key: 'duration_min', label: '시간 (분)', placeholder: '35' },
@@ -244,10 +234,6 @@ export default function Session() {
 
   const [showModal, setShowModal] = useState(false)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90 })
-  const [photoError, setPhotoError] = useState(null)
-  const [photoLoading, setPhotoLoading] = useState(null) // exerciseIdx
-  const photoInputRef = useRef(null)
-  const activePhotoIdx = useRef(null)
 
   // Auto-save in-progress session to context on every change
   useEffect(() => {
@@ -369,73 +355,24 @@ export default function Session() {
     navigate('/history')
   }
 
-  // Photo handler
-  function handlePhotoClick(exIdx) {
-    setPhotoError(null)
-    activePhotoIdx.current = exIdx
-    photoInputRef.current?.click()
-  }
-
-  async function handlePhotoChange(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const exIdx = activePhotoIdx.current
-    if (exIdx == null) return
-
-    setPhotoLoading(exIdx)
-    setPhotoError(null)
-
-    try {
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const result = reader.result
-          const commaIdx = result.indexOf(',')
-          if (commaIdx === -1) { reject(new Error('파일을 읽을 수 없습니다')); return }
-          resolve(result.slice(commaIdx + 1))
-        }
-        reader.onerror = () => reject(new Error('파일 읽기 실패'))
-        reader.readAsDataURL(file)
-      })
-
-      const apiKey = storage.getGeminiKey()
-      const result = await extractCardioFromPhoto(apiKey, base64, file.type)
-
-      setSessionExercises(prev => {
-        const copy = deepClone(prev)
-        // Ensure set[0] exists for cardio
-        if (!copy[exIdx]) return prev
-        if (!copy[exIdx].sets[0]) copy[exIdx].sets[0] = newCardioRecord()
-        const record = copy[exIdx].sets[0]
-        if (result.duration_min != null) record.duration_min = result.duration_min
-        if (result.distance_km != null) record.distance_km = result.distance_km
-        if (result.speed_kmh != null) record.speed_kmh = result.speed_kmh
-        if (result.incline_pct != null) record.incline_pct = result.incline_pct
-        if (result.calories != null) record.calories = result.calories
-        return copy
-      })
-    } catch (err) {
-      setPhotoError('사진 인식에 실패했습니다. 다시 시도하거나 직접 입력해주세요.')
-    } finally {
-      setPhotoLoading(null)
-      e.target.value = ''
-    }
-  }
-
   return (
     <div className="p-4 max-w-lg mx-auto pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pt-2">
         <div>
           <p className="text-zinc-400 text-sm">{sessionDate === realToday ? '오늘' : '다른 날 기록'}</p>
-          <input
-            type="date"
-            value={sessionDate}
-            max={realToday}
-            onChange={e => e.target.value && setSessionDate(e.target.value)}
-            className="text-xl font-bold text-white bg-transparent focus:outline-none"
-          />
+          <div className="relative">
+            <p className="text-xl font-bold text-white pointer-events-none">
+              {(() => { const [y, m, d] = sessionDate.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) })()}
+            </p>
+            <input
+              type="date"
+              value={sessionDate}
+              max={realToday}
+              onChange={e => e.target.value && setSessionDate(e.target.value)}
+              className="absolute inset-0 w-full opacity-0 cursor-pointer"
+            />
+          </div>
         </div>
         {sessionExercises.length > 0 && (
           <button
@@ -446,14 +383,6 @@ export default function Session() {
           </button>
         )}
       </div>
-
-      {/* Photo error banner */}
-      {photoError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-3 text-sm text-red-300 flex justify-between">
-          <span>사진 인식 실패: {photoError}</span>
-          <button onClick={() => setPhotoError(null)} className="text-red-400 ml-2">✕</button>
-        </div>
-      )}
 
       {/* Exercise cards */}
       <div className="space-y-3">
@@ -484,16 +413,11 @@ export default function Session() {
               )}
 
               {isCardio ? (
-                photoLoading === exIdx ? (
-                  <p className="text-zinc-400 text-sm text-center py-4 animate-pulse">사진 분석 중...</p>
-                ) : (
-                  <CardioForm
-                    record={se.sets[0] ?? newCardioRecord()}
-                    exercise={exercise}
-                    onUpdate={(field, value) => updateSet(exIdx, 0, field, value)}
-                    onPhoto={() => handlePhotoClick(exIdx)}
-                  />
-                )
+                <CardioForm
+                  record={se.sets[0] ?? newCardioRecord()}
+                  exercise={exercise}
+                  onUpdate={(field, value) => updateSet(exIdx, 0, field, value)}
+                />
               ) : (
                 <>
                   <div className="flex items-center gap-2 mb-1 mt-2">
@@ -556,14 +480,6 @@ export default function Session() {
         />
       )}
 
-      <input
-        ref={photoInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-        capture="environment"
-        className="hidden"
-        onChange={handlePhotoChange}
-      />
     </div>
   )
 }
