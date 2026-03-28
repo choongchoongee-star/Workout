@@ -16,15 +16,12 @@ function Field({ label, hint, children }) {
 export default function Settings() {
   const { user, logout } = useAuth()
   const [bodyWeight, setBodyWeight] = useState(String(storage.getBodyWeight()))
-  const [height, setHeight] = useState(String(storage.getHeight()))
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [status, setStatus] = useState({})
 
   function save() {
     const bw = parseFloat(bodyWeight)
     if (!isNaN(bw) && bw > 0) storage.setBodyWeight(bw)
-    const ht = parseFloat(height)
-    if (!isNaN(ht) && ht > 0) storage.setHeight(ht)
     const rs = parseInt(restSeconds)
     if (!isNaN(rs) && rs > 0) storage.setRestSeconds(rs)
     setStatus({ msg: '저장 완료 ✓', ok: true })
@@ -75,15 +72,6 @@ export default function Settings() {
             onChange={e => setBodyWeight(e.target.value)}
             className={inputCls}
             placeholder="70"
-          />
-        </Field>
-        <Field label="키 (cm)" hint="InBody SMI 계산에 사용됩니다">
-          <input
-            type="number"
-            value={height}
-            onChange={e => setHeight(e.target.value)}
-            className={inputCls}
-            placeholder="175"
           />
         </Field>
         <Field label="휴식 타이머 (초)">

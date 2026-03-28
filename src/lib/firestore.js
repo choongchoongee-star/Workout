@@ -5,11 +5,11 @@ const WORKOUT_DOC = (uid) => doc(db, 'users', uid, 'data', 'workout')
 
 /**
  * Firestore에서 운동 데이터 로드
- * @returns {{ exercises, sessions, inbody }}
+ * @returns {{ exercises, sessions }}
  */
 export async function loadWorkoutData(uid) {
   const snapshot = await getDoc(WORKOUT_DOC(uid))
-  if (!snapshot.exists()) return { exercises: null, sessions: [], inbody: [] }
+  if (!snapshot.exists()) return { exercises: null, sessions: [] }
   return snapshot.data()
 }
 

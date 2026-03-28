@@ -8,7 +8,6 @@ const AppContext = createContext(null)
 const initialState = {
   exercises: DEFAULT_EXERCISES,
   sessions: [],
-  inbody: [],
   syncing: false,
   syncError: null,
   loaded: false,
@@ -21,7 +20,6 @@ function reducer(state, action) {
         ...state,
         exercises: action.exercises,
         sessions: action.sessions,
-        inbody: action.inbody ?? [],
         loaded: true,
       }
 
@@ -52,12 +50,6 @@ function reducer(state, action) {
     case 'DELETE_EXERCISE':
       return { ...state, exercises: state.exercises.filter(e => e.id !== action.id) }
 
-    case 'ADD_INBODY':
-      return { ...state, inbody: [action.record, ...state.inbody] }
-
-    case 'DELETE_INBODY':
-      return { ...state, inbody: state.inbody.filter(r => r.id !== action.id) }
-
     default:
       return state
   }
@@ -72,7 +64,7 @@ export function AppProvider({ children }) {
   // 로그인한 유저가 바뀔 때마다 Firestore에서 데이터 로드
   useEffect(() => {
     if (!user) {
-      dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [], inbody: [] })
+      dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [] })
       return
     }
     dispatch({ type: 'SYNC_START' })
@@ -83,21 +75,20 @@ export function AppProvider({ children }) {
           type: 'LOAD_DATA',
           exercises: data.exercises ?? DEFAULT_EXERCISES,
           sessions: data.sessions ?? [],
-          inbody: data.inbody ?? [],
         })
       })
       .catch(err => {
         dispatch({ type: 'SYNC_ERROR', error: err.message })
         justLoadedRef.current = true // 에러 fallback도 auto-save 건너뜀 (빈 데이터 덮어씌움 방지)
-        dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [], inbody: [] })
+        dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [] })
       })
   }, [user])
 
-  const persist = useCallback(async (exercises, sessions, inbody) => {
+  const persist = useCallback(async (exercises, sessions) => {
     if (!user) return
     dispatch({ type: 'SYNC_START' })
     try {
-      await saveWorkoutData(user.uid, { exercises, sessions, inbody })
+      await saveWorkoutData(user.uid, { exercises, sessions })
       dispatch({ type: 'SYNC_OK' })
     } catch (err) {
       dispatch({ type: 'SYNC_ERROR', error: err.message })
@@ -111,26 +102,19 @@ export function AppProvider({ children }) {
       justLoadedRef.current = false
       return
     }
-    persist(state.exercises, state.sessions, state.inbody)
-  }, [state.exercises, state.sessions, state.inbody, state.loaded, persist])
+    persist(state.exercises, state.sessions)
+  }, [state.exercises, state.sessions, state.loaded, persist])
 
   const upsertSession = useCallback((session) => dispatch({ type: 'UPSERT_SESSION', session }), [])
   const deleteSession = useCallback((id) => dispatch({ type: 'DELETE_SESSION', id }), [])
   const addExercise = useCallback((exercise) => dispatch({ type: 'ADD_EXERCISE', exercise }), [])
   const deleteExercise = useCallback((id) => dispatch({ type: 'DELETE_EXERCISE', id }), [])
-  const addInBody = useCallback((record) => dispatch({ type: 'ADD_INBODY', record }), [])
-  const deleteInBody = useCallback((id) => dispatch({ type: 'DELETE_INBODY', id }), [])
-
   const getLastSession = useCallback((exerciseId, excludeDate = null) => {
     return state.sessions.find(s =>
       s.date !== excludeDate &&
       s.exercises?.some(e => e.exerciseId === exerciseId)
     ) ?? null
   }, [state.sessions])
-
-  const getLatestInBody = useCallback(() => {
-    return state.inbody[0] ?? null
-  }, [state.inbody])
 
   return (
     <AppContext.Provider value={{
@@ -139,10 +123,7 @@ export function AppProvider({ children }) {
       deleteSession,
       addExercise,
       deleteExercise,
-      addInBody,
-      deleteInBody,
       getLastSession,
-      getLatestInBody,
     }}>
       {children}
     </AppContext.Provider>

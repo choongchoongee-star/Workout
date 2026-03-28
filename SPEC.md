@@ -1,7 +1,7 @@
 # Workout Logger — 기획서
 
-> 마지막 업데이트: 2026-03-21
-> 현재 Phase: Phase 3 완료
+> 마지막 업데이트: 2026-03-29
+> 현재 Phase: Phase 2 완료
 
 ---
 
@@ -20,16 +20,16 @@
 ```
 Workout/
 ├── src/
-│   ├── screens/           # 화면 컴포넌트 (Login, Home, ActiveSession, History, Library, InBody, InBodyAnalysis, Settings)
+│   ├── screens/           # 화면 컴포넌트 (Login, Home, Session, History, SessionDetail, Library, Settings)
 │   ├── context/
 │   │   ├── AuthContext.jsx   # Firebase Google Auth 상태 관리
 │   │   └── AppContext.jsx    # 운동 데이터 상태 + Firestore 자동 동기화
 │   ├── lib/
 │   │   ├── firebase.js    # Firebase 초기화 (auth, db)
 │   │   ├── firestore.js   # Firestore load/save (users/{uid}/data/workout)
-│   │   ├── inbody.js      # 체성분 분석 (SMI, 체지방률, 목표 제안, 추천 무게)
 │   │   ├── epley.js       # 점진적 과부하 제안 (getProgressionSuggestion)
-│   │   └── calories.js    # MET 기반 칼로리 계산
+│   │   ├── calories.js    # MET 기반 칼로리 계산
+│   │   └── storage.js     # localStorage 설정값 (체중, 휴식 시간)
 │   └── ...
 ├── .env                   # Firebase config (git 제외)
 ├── public/                # PWA 아이콘, manifest
@@ -40,9 +40,9 @@ Workout/
 ```
 Google 로그인 → Firebase Auth → uid 획득
 운동 기록 → Firestore (users/{uid}/data/workout)
-  └── exercises[], sessions[], inbody[]
+  └── exercises[], sessions[]
 
-설정값 → localStorage (체중, 키, 휴식 시간)
+설정값 → localStorage (체중, 휴식 시간)
 ```
 
 ### 외부 의존성
@@ -58,8 +58,7 @@ Google 로그인 → Firebase Auth → uid 획득
 ```json
 {
   "exercises": [{ "id": "bench-press", "name": "벤치프레스", "category": "가슴", "type": "weight", "met": null }],
-  "sessions": [{ "id": "2026-03-14", "date": "2026-03-14", "exercises": [...], "duration_min": 65, "note": "" }],
-  "inbody": [{ "id": "ib_1234567890", "date": "2026-03-14", "weight": 78.5, "skeletal_muscle_mass": 35.2, "body_fat_pct": 18.5, ... }]
+  "sessions": [{ "id": "2026-03-14", "date": "2026-03-14", "exercises": [...], "duration_min": 65, "note": "" }]
 }
 ```
 
@@ -79,19 +78,7 @@ Google 로그인 → Firebase Auth → uid 획득
 ```json
 { "duration_min": 35, "distance_km": 5.2, "speed_kmh": 8.5, "incline_pct": 2.0, "calories": 338 }
 ```
-- 칼로리 우선순위: Gemini Vision 추출 → MET 자동 계산 → 수동 입력
-
-### InBody Record
-```json
-{
-  "id": "ib_1234567890", "date": "2026-03-14",
-  "weight": 78.5, "skeletal_muscle_mass": 35.2, "body_fat_pct": 18.5, "body_fat_mass": 14.5,
-  "height": 175,
-  "left_arm": 3.8, "right_arm": 3.9, "trunk": 27.1, "left_leg": 10.1, "right_leg": 10.3
-}
-```
-- `id`: `ib_${timestamp}` — 하루 여러 개 가능
-- segmental 필드 선택사항
+- 칼로리: MET 자동 계산 또는 수동 입력
 
 ---
 
@@ -129,37 +116,13 @@ Google 로그인 → Firebase Auth → uid 획득
 - 삭제
 - **구현 상태:** ✅ 완료
 
-### 4.5 InBody 입력
-- 수동 직접 입력
-- 저장 → 체성분 분석 화면 자동 이동
-- 과거 기록 목록 + [분석 보기]
-- **구현 상태:** ✅ 완료
-
-### 4.6 체성분 분석 (InBodyAnalysis)
-- SMI = 골격근량(kg) / 키(m)²
-  - 남: 낮음 <7.0 / 보통 7.0~8.5 / 높음 >8.5
-  - 여: 낮음 <5.7 / 보통 5.7~6.8 / 높음 >6.8
-- 트레이닝 목표 자동 제안
-
-| 조건 | 목표 | 횟수 | 세트 | 휴식 |
-|------|------|------|------|------|
-| 체지방률 높음 (남>25%, 여>33%) | 지방 감량 | 12-15회 | 3세트 | 60초 |
-| SMI 낮음 + 체지방률 정상 | 근육 증가 | 8-12회 | 4세트 | 90초 |
-| SMI 보통↑ + 체지방률 정상 | 근력 향상 | 4-6회 | 5세트 | 180초 |
-| 전반적 균형 | 근비대 유지 | 8-12회 | 3-4세트 | 90초 |
-
-- 부위별 불균형 감지 (좌우 차이 >10% → 경고)
-- 운동별 추천 무게 테이블 (InBody 체성분 기반)
-- **구현 상태:** ✅ 완료
-
-### 4.7 점진적 과부하
+### 4.5 점진적 과부하
 - 3회 연속 동일 무게 완료 → +2.5kg 제안 배너
 - **구현 상태:** ✅ 완료
 
-### 4.8 설정
+### 4.6 설정
 - 계정 정보 (Google 프로필 사진, 이름, 이메일) + 로그아웃
-- 체중 (kg), 키 (cm), 기본 휴식 타이머 (초)
-- Gemini API Key + [연결 테스트]
+- 체중 (kg), 기본 휴식 타이머 (초)
 - **구현 상태:** ✅ 완료
 
 ---
@@ -182,12 +145,7 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 - [x] 유산소 수동 기록 (시간/거리/속도/경사)
 - [x] PWA
 
-### ✅ Phase 2 — InBody
-- [x] InBody 입력 (수동)
-- [x] 체성분 분석 및 목표 제안
-- [x] 부위별 불균형 감지
-
-### ✅ Phase 3 — 점진적 과부하
+### ✅ Phase 2 — 점진적 과부하
 - [x] 점진적 과부하 알림 (+2.5kg 제안)
 
 ---
@@ -198,6 +156,7 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 - 분석 차트 / 통계
 - 바코드 / 외부 DB 운동 검색
 - 알림 / 리마인더
+- InBody / 체성분 분석 (제거됨)
 - Epley 1RM 표시 (제거됨)
 - Gemini Vision API 사진 인식 (제거됨)
 
@@ -206,4 +165,3 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 ## 8. 미완료 / 알려진 이슈
 
 - Firebase 프로젝트 설정 필요 (.env에 config 입력)
-- 성별 설정 없음 — InBody 분석 남성 기준 고정
