@@ -7,11 +7,7 @@ import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import { CATEGORIES } from '../data/exercises'
 import { getProgressionSuggestion } from '../lib/epley'
-
-function localTodayStr() {
-  const d = new Date()
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
-}
+import { localTodayStr } from '../lib/dateUtils'
 
 function newWeightSet(weight = 20, reps = 10) {
   return { weight, reps, done: false }
@@ -207,7 +203,7 @@ function CardioForm({ record, exercise, onUpdate }) {
 
 export default function Session() {
   const navigate = useNavigate()
-  const { exercises, sessions, upsertSession, getLastSession } = useApp()
+  const { exercises, sessions, upsertSession, getLastSession, syncError } = useApp()
   const realToday = localTodayStr()
 
   const [sessionDate, setSessionDate] = useState(realToday)
@@ -228,8 +224,12 @@ export default function Session() {
 
   // 오늘 날짜 세션의 시작 시간 추적
   const startTimeKey = `wl_session_start_${realToday}`
-  if (sessionDate === realToday && !sessionStorage.getItem(startTimeKey)) {
-    sessionStorage.setItem(startTimeKey, String(Date.now()))
+  try {
+    if (sessionDate === realToday && !sessionStorage.getItem(startTimeKey)) {
+      sessionStorage.setItem(startTimeKey, String(Date.now()))
+    }
+  } catch {
+    // sessionStorage 접근 불가 (Safari 사생활 보호 모드 등) — 무시하고 계속
   }
 
   const [showModal, setShowModal] = useState(false)
@@ -340,9 +340,13 @@ export default function Session() {
   function finishSession() {
     let durationMin = null
     if (sessionDate === realToday) {
-      const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10) || Date.now()
-      durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
-      sessionStorage.removeItem(startTimeKey)
+      try {
+        const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10) || Date.now()
+        durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
+        sessionStorage.removeItem(startTimeKey)
+      } catch {
+        durationMin = null
+      }
     }
 
     const session = {
@@ -383,6 +387,12 @@ export default function Session() {
           </button>
         )}
       </div>
+
+      {syncError && (
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
+          데이터 저장에 실패했습니다. 네트워크를 확인해주세요.
+        </div>
+      )}
 
       {/* Exercise cards */}
       <div className="space-y-3">

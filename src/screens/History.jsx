@@ -1,12 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-
-function formatDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  const d = new Date(year, month - 1, day)
-  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })
-}
+import { formatDate } from '../lib/dateUtils'
 
 export default function History() {
   const navigate = useNavigate()
@@ -54,7 +49,7 @@ export default function History() {
                 className="w-full bg-zinc-900 rounded-xl p-4 text-left active:bg-zinc-800"
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-white font-medium">{formatDate(session.date)}</span>
+                  <span className="text-white font-medium">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</span>
                   <span className="text-zinc-500 text-sm">
                     {session.duration_min ? `${session.duration_min}분` : ''}
                   </span>

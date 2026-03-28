@@ -1,10 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-
-function formatDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  return new Date(year, month - 1, day).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
-}
+import { formatDate } from '../lib/dateUtils'
 
 export default function SessionDetail() {
   const { id } = useParams()
@@ -33,7 +29,7 @@ export default function SessionDetail() {
           ←
         </button>
         <div className="flex-1">
-          <h1 className="text-white font-bold text-lg">{formatDate(session.date)}</h1>
+          <h1 className="text-white font-bold text-lg">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</h1>
           {session.duration_min > 0 && (
             <p className="text-zinc-500 text-sm">{session.duration_min}분</p>
           )}
