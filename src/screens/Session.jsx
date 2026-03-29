@@ -159,6 +159,8 @@ function CardioForm({ record, exercise, onUpdate }) {
         onUpdate('calories', cal)
       }
     }
+  // onUpdate/record.calories 포함 시 칼로리 갱신 후 재실행 → 무한루프
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [record.duration_min, exercise?.met, bodyWeight])
 
   return (
@@ -220,17 +222,22 @@ export default function Session() {
     setSessionExercises(existing?.exercises ? deepClone(existing.exercises) : [])
     // 한 틱 후 플래그 해제 (auto-save useEffect가 건너뛰도록)
     setTimeout(() => { isDateChanging.current = false }, 0)
+  // sessions 포함 시 auto-save 때마다 재실행 → 입력 중 데이터 리셋
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionDate])
 
   // 오늘 날짜 세션의 시작 시간 추적
   const startTimeKey = `wl_session_start_${realToday}`
-  try {
-    if (sessionDate === realToday && !sessionStorage.getItem(startTimeKey)) {
-      sessionStorage.setItem(startTimeKey, String(Date.now()))
+  useEffect(() => {
+    if (sessionDate !== realToday) return
+    try {
+      if (!sessionStorage.getItem(startTimeKey)) {
+        sessionStorage.setItem(startTimeKey, String(Date.now()))
+      }
+    } catch {
+      // sessionStorage 접근 불가 (Safari 사생활 보호 모드 등) — 무시하고 계속
     }
-  } catch {
-    // sessionStorage 접근 불가 (Safari 사생활 보호 모드 등) — 무시하고 계속
-  }
+  }, [sessionDate, realToday, startTimeKey])
 
   const [showModal, setShowModal] = useState(false)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90 })
@@ -246,7 +253,7 @@ export default function Session() {
       duration_min: null,
     }
     upsertSession(session)
-  }, [sessionExercises])
+  }, [sessionExercises, sessionDate, upsertSession])
 
   // Rest timer countdown
   useEffect(() => {

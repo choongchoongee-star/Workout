@@ -130,6 +130,7 @@ export function AppProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- 훅과 프로바이더를 같은 파일에 공존시키는 표준 패턴
 export function useApp() {
   const ctx = useContext(AppContext)
   if (!ctx) throw new Error('useApp must be used within AppProvider')
