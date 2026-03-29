@@ -34,6 +34,12 @@ export default function SessionDetail() {
             <p className="text-zinc-500 text-sm">{session.duration_min}분</p>
           )}
         </div>
+        <button
+          onClick={() => navigate('/session', { state: { date: session.date } })}
+          className="text-blue-400 text-sm active:text-blue-300"
+        >
+          수정
+        </button>
         <button onClick={handleDelete} className="text-red-500 text-sm active:text-red-400">삭제</button>
       </div>
 

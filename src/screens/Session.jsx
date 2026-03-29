@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
 import { calcCalories } from '../lib/calories'
@@ -87,28 +87,39 @@ function ExerciseModal({ exercises, onSelect, onClose }) {
 }
 
 // Single set row for weight/bodyweight exercise
-function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet }) {
+function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
   const isBodyweight = exerciseType === 'bodyweight'
+  const locked = set.done
 
   return (
-    <div className={`flex items-center gap-2 py-2 ${set.done ? 'opacity-40' : ''}`}>
-      <span className="text-zinc-600 text-sm w-8 text-right flex-shrink-0">{setIdx + 1}</span>
-
-      <span className="text-zinc-600 text-xs w-16 text-center">
-        {refSet && !set.done
-          ? (isBodyweight ? `${refSet.reps}회` : `${refSet.weight}×${refSet.reps}`)
-          : ''}
-      </span>
-
-      <div className="flex-1 flex items-center gap-2 justify-center flex-wrap">
+    <div className={`py-2 border-b border-zinc-800/40 last:border-b-0 ${locked ? 'opacity-60' : ''}`}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-zinc-500 text-sm">{setIdx + 1}세트</span>
+        <div className="flex-1" />
+        <button
+          onClick={onDone}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+            locked
+              ? 'bg-green-600 text-white'
+              : 'bg-zinc-800 text-zinc-400 active:bg-green-600 active:text-white'
+          }`}
+        >
+          ✓
+        </button>
+        <button onClick={onRemove} className="text-zinc-700 active:text-red-400 px-1 text-lg">
+          ×
+        </button>
+      </div>
+      <div className="flex items-center gap-3">
         {isBodyweight ? (
-          <div className="flex items-center gap-1">
-            <span className="text-zinc-500 text-xs">+</span>
+          <div className="flex items-center gap-2">
+            <span className="text-zinc-500 text-xs">체중+</span>
             <StepperInput
               value={set.added_weight ?? 0}
               onChange={v => onUpdate('added_weight', v)}
               step={2.5}
               unit="kg"
+              disabled={locked}
             />
           </div>
         ) : (
@@ -117,6 +128,7 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet 
             onChange={v => onUpdate('weight', v)}
             step={2.5}
             unit="kg"
+            disabled={locked}
           />
         )}
         <StepperInput
@@ -124,25 +136,9 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove, refSet 
           onChange={v => onUpdate('reps', v)}
           step={1}
           unit="회"
+          disabled={locked}
         />
       </div>
-
-      <button
-        onClick={onDone}
-        className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-          set.done
-            ? 'bg-green-600 text-white'
-            : 'bg-zinc-800 text-zinc-400 active:bg-green-600 active:text-white'
-        }`}
-      >
-        ✓
-      </button>
-      <button
-        onClick={onRemove}
-        className="text-zinc-700 active:text-red-400 px-1 text-lg"
-      >
-        ×
-      </button>
     </div>
   )
 }
@@ -205,12 +201,14 @@ function CardioForm({ record, exercise, onUpdate }) {
 
 export default function Session() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { exercises, sessions, upsertSession, getLastSession, syncError } = useApp()
   const realToday = localTodayStr()
 
-  const [sessionDate, setSessionDate] = useState(realToday)
+  const initialDate = location.state?.date ?? realToday
+  const [sessionDate, setSessionDate] = useState(initialDate)
   const [sessionExercises, setSessionExercises] = useState(() => {
-    const existing = sessions.find(s => s.id === realToday)
+    const existing = sessions.find(s => s.id === initialDate)
     return existing?.exercises ? deepClone(existing.exercises) : []
   })
   const isDateChanging = useRef(false)
@@ -246,13 +244,7 @@ export default function Session() {
   useEffect(() => {
     if (isDateChanging.current) return
     if (sessionExercises.length === 0) return
-    const session = {
-      id: sessionDate,
-      date: sessionDate,
-      exercises: sessionExercises.map(({ _lastSets, ...rest }) => rest),
-      duration_min: null,
-    }
-    upsertSession(session)
+    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: null })
   }, [sessionExercises, sessionDate, upsertSession])
 
   // Rest timer countdown
@@ -279,17 +271,13 @@ export default function Session() {
     let sets
     if (ex.type === 'cardio') {
       sets = [newCardioRecord()]
-    } else if (lastExData?.sets?.length > 0) {
-      sets = lastExData.sets.map(s => ({ ...s, done: false }))
     } else {
-      sets = [newWeightSet()]
+      // 이전 세션의 마지막 세트 값을 기본값으로, 한 세트씩 추가
+      const lastSet = lastExData?.sets?.[lastExData.sets.length - 1] ?? null
+      sets = [newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
     }
 
-    setSessionExercises(prev => [...prev, {
-      exerciseId: ex.id,
-      sets,
-      _lastSets: lastExData?.sets ?? null,
-    }])
+    setSessionExercises(prev => [{ exerciseId: ex.id, sets }, ...prev])
     setShowModal(false)
   }
 
@@ -320,6 +308,7 @@ export default function Session() {
   }
 
   function completeSet(exIdx, setIdx) {
+    const wasUndone = !sessionExercises[exIdx]?.sets[setIdx]?.done
     setSessionExercises(prev => {
       const copy = deepClone(prev)
       if (copy[exIdx]?.sets[setIdx]) {
@@ -327,7 +316,7 @@ export default function Session() {
       }
       return copy
     })
-    startRestTimer()
+    if (wasUndone) startRestTimer()
   }
 
   function removeSet(exIdx, setIdx) {
@@ -356,13 +345,7 @@ export default function Session() {
       }
     }
 
-    const session = {
-      id: sessionDate,
-      date: sessionDate,
-      exercises: sessionExercises.map(({ _lastSets, ...rest }) => rest),
-      duration_min: durationMin,
-    }
-    upsertSession(session)
+    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: durationMin })
     navigate('/history')
   }
 
@@ -401,6 +384,17 @@ export default function Session() {
         </div>
       )}
 
+      <button
+        onClick={() => setShowModal(true)}
+        className="w-full mb-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
+      >
+        + 운동 추가
+      </button>
+
+      {sessionExercises.length === 0 && (
+        <p className="text-zinc-600 text-sm text-center mt-2">위 버튼을 눌러 운동을 추가하세요</p>
+      )}
+
       {/* Exercise cards */}
       <div className="space-y-3">
         {sessionExercises.map((se, exIdx) => {
@@ -437,20 +431,12 @@ export default function Session() {
                 />
               ) : (
                 <>
-                  <div className="flex items-center gap-2 mb-1 mt-2">
-                    <span className="w-8" />
-                    <span className="text-zinc-600 text-xs w-16 text-center">이전</span>
-                    <span className="flex-1 text-center text-zinc-600 text-xs">무게 / 횟수</span>
-                    <span className="w-10" />
-                    <span className="w-6" />
-                  </div>
                   {se.sets.map((set, setIdx) => (
                     <SetRow
                       key={setIdx}
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
-                      refSet={se._lastSets?.[setIdx] ?? null}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
                       onRemove={() => removeSet(exIdx, setIdx)}
@@ -468,17 +454,6 @@ export default function Session() {
           )
         })}
       </div>
-
-      <button
-        onClick={() => setShowModal(true)}
-        className="w-full mt-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
-      >
-        + 운동 추가
-      </button>
-
-      {sessionExercises.length === 0 && (
-        <p className="text-zinc-600 text-sm text-center mt-6">위 버튼을 눌러 운동을 추가하세요</p>
-      )}
 
       {restTimer.active && (
         <RestTimer
