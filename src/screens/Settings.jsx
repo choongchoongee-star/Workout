@@ -22,7 +22,7 @@ export default function Settings() {
   function save() {
     const bw = parseFloat(bodyWeight)
     if (!isNaN(bw) && bw > 0) storage.setBodyWeight(bw)
-    const rs = parseInt(restSeconds)
+    const rs = parseInt(restSeconds, 10)
     if (!isNaN(rs) && rs > 0) storage.setRestSeconds(rs)
     setStatus({ msg: '저장 완료 ✓', ok: true })
     setTimeout(() => setStatus({}), 2000)

@@ -1,0 +1,810 @@
+[
+  {
+    "id": 1,
+    "category": "security",
+    "risk": "ask_human",
+    "description": "Firestore security rules: verify users can only read/write their own data (users/{uid}/data/workout)",
+    "steps": [
+      "Step 1: Open Firebase console → Firestore → Rules tab",
+      "Step 2: Confirm rule pattern: `allow read, write: if request.auth != null && request.auth.uid == userId;`",
+      "Step 3: Test with Firebase Rules Playground — attempt read/write as a different uid and verify it's denied",
+      "Step 4: Verify no wildcard `allow read, write: if true` rules exist"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 2,
+    "category": "security",
+    "risk": "ask_human",
+    "description": "No Content Security Policy (CSP) in index.html — XSS attacks have wider blast radius without CSP",
+    "steps": [
+      "Step 1: Open index.html — confirm there is no <meta http-equiv='Content-Security-Policy'> tag",
+      "Step 2: Determine if GitHub Pages supports custom response headers (it does not natively)",
+      "Step 3: Evaluate adding a CSP meta tag restricting script-src to 'self' and Firebase/Google domains",
+      "Step 4: Verify the app still functions after adding CSP (Firebase SDK loads from gstatic.com)"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 3,
+    "category": "security",
+    "risk": "ask_human",
+    "description": "Firebase API key and config are bundled in client-side JS (VITE_ prefix = public) — verify this is intentional",
+    "steps": [
+      "Step 1: Run `npm run build`, then open dist/assets/*.js and search for the Firebase projectId",
+      "Step 2: Confirm Firebase Web SDK keys are intentionally public (they are, by Firebase design) and security relies on Firestore rules",
+      "Step 3: Verify the Firebase project has domain restrictions set in Firebase Console → Authentication → Settings → Authorized domains",
+      "Step 4: Confirm only the production domain (GitHub Pages URL) and localhost are in the authorized domains list"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 4,
+    "category": "security",
+    "risk": "ask_human",
+    "description": "No Firebase App Check configured — unauthenticated API calls can be made to the Firebase project",
+    "steps": [
+      "Step 1: Check Firebase console → App Check — see if enforcement is enabled",
+      "Step 2: Evaluate if App Check is worth adding for a personal app (prevents quota abuse)",
+      "Step 3: If not added, confirm Firestore rules properly block unauthenticated reads/writes as mitigation"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 5,
+    "category": "security",
+    "risk": "ask_human",
+    "description": "window.confirm() used for session delete — confirm dialogs can be suppressed in some PWA standalone modes",
+    "steps": [
+      "Step 1: Open SessionDetail, click 삭제 — verify confirm dialog appears on mobile PWA standalone mode",
+      "Step 2: Check if Chrome/Safari on Android/iOS suppresses confirm() in standalone PWA mode",
+      "Step 3: If suppressed, the delete fires without confirmation — consider replacing with an inline confirm UI"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 6,
+    "category": "security",
+    "risk": "ask_human",
+    "description": "Google profile photo (user.photoURL) displayed without domain validation — could be any external URL if Firebase auth state is tampered",
+    "steps": [
+      "Step 1: In Settings.jsx line 50, inspect `user?.photoURL` — it comes from Firebase Auth, which is trusted",
+      "Step 2: Verify photo URL is always from googleusercontent.com (normal) or null",
+      "Step 3: Consider adding `referrerPolicy='no-referrer'` to the img tag to prevent referrer leakage"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 7,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Session auto-save overwrites duration_min with null when user edits a previously completed session",
+    "steps": [
+      "Step 1: Complete a workout session (click 완료 ✓) — note the duration is saved",
+      "Step 2: Go to History, click 수정 on the completed session",
+      "Step 3: Add or modify any set, then navigate away",
+      "Step 4: Check history — verify if duration_min is now null/missing for that session",
+      "Step 5: Root cause: Session.jsx line 247 always upserts with `duration_min: null` during auto-save"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 8,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Adding all exercises from a session and removing them all doesn't clear the session from Firestore",
+    "steps": [
+      "Step 1: Start a session, add at least one exercise",
+      "Step 2: Remove all exercises (click × on each)",
+      "Step 3: Navigate to History — verify whether the empty session record still exists",
+      "Step 4: Root cause: Session.jsx auto-save effect has `if (sessionExercises.length === 0) return` — no delete is called"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 9,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Same exercise can be added multiple times in one session — no duplicate guard or warning",
+    "steps": [
+      "Step 1: Open Session screen, add '벤치프레스'",
+      "Step 2: Click '+ 운동 추가' again, add '벤치프레스' a second time",
+      "Step 3: Verify two separate 벤치프레스 cards appear with no warning",
+      "Step 4: Evaluate whether a warning (e.g., 'Already in this session') or prevention is desired"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 10,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Progressive overload suggestion (epley.js) never triggers for bodyweight exercises because it checks s.weight (null for bodyweight)",
+    "steps": [
+      "Step 1: Add a bodyweight exercise (e.g., 풀업) for 3+ consecutive sessions with same reps",
+      "Step 2: Verify no progression banner appears in Session screen",
+      "Step 3: Review epley.js line 15: `doneSets.filter(s => s.done && s.weight)` — s.weight is null for bodyweight, so doneSets is always empty",
+      "Step 4: For bodyweight, progression could check added_weight or reps progression instead"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 11,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "History date-jump input silently fails when chosen date has no session — no user feedback",
+    "steps": [
+      "Step 1: Go to History screen",
+      "Step 2: Pick a date in the date input that has no session",
+      "Step 3: Verify nothing happens — no scroll, no message",
+      "Step 4: Expected: show a toast or message like '해당 날짜에 기록이 없어요'"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 12,
+    "category": "qa",
+    "risk": "missing_optional_chaining",
+    "description": "SessionDetail crashes if session.exercises is null or undefined (legacy data format)",
+    "steps": [
+      "Step 1: In SessionDetail.jsx line 47: `session.exercises.map(...)` — no null check",
+      "Step 2: Check if any real Firestore documents might have null/missing exercises field (e.g., from migration bugs)",
+      "Step 3: Should be `(session.exercises ?? []).map(...)` to prevent crash"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 13,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Cardio: multiple cardio records (sets) can be added to one exercise but SessionDetail only renders sets[0]",
+    "steps": [
+      "Step 1: In Session, add a cardio exercise (e.g., 러닝머신)",
+      "Step 2: Note that the UI shows CardioForm (single form) — no '+ 세트 추가' button visible (correct)",
+      "Step 3: Verify addSet() in Session.jsx would add additional cardio records if called directly",
+      "Step 4: Confirm SessionDetail line 60 only shows se.sets[0] — any extra cardio records would be silently ignored",
+      "Step 5: Confirm that the Session UI for cardio does NOT show the '+ 세트 추가' button (it's inside the `else` block of isCardio check)"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 14,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "React key={exIdx} (array index) used for exercise cards — may cause incorrect UI state when exercises are removed",
+    "steps": [
+      "Step 1: Add 3 exercises: A, B, C",
+      "Step 2: Complete a set in exercise B (so it has dirty UI state)",
+      "Step 3: Remove exercise A (first item)",
+      "Step 4: Verify that exercise B's UI state is now associated with the correct exercise (not shifted to A's old position)",
+      "Step 5: Root cause: Session.jsx line 406 `key={exIdx}` — should use `key={se.exerciseId + '-' + exIdx}` or a stable ID"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 15,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "React key={setIdx} (array index) used for SetRow — may cause stale input values when sets are removed",
+    "steps": [
+      "Step 1: Add an exercise with 3 sets, set different weights for each (e.g., 60, 70, 80 kg)",
+      "Step 2: Remove the first set (60 kg)",
+      "Step 3: Verify the remaining sets still show 70 and 80 correctly (not 60, 70)",
+      "Step 4: Root cause: Session.jsx line 434 `key={setIdx}` — index-based keys cause React to reuse components in wrong order"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 16,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Settings: body weight and rest timer changes are lost if user navigates away without pressing 저장",
+    "steps": [
+      "Step 1: Go to Settings, change body weight to a new value",
+      "Step 2: Tap the bottom nav to navigate to Home without pressing 저장",
+      "Step 3: Return to Settings — verify the body weight reverted to the old value",
+      "Step 4: Evaluate whether auto-save on change or a navigation-guard warning is desired"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 17,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Storage API has getHeight/setHeight but Settings screen has no height input field — stored height is inaccessible to user",
+    "steps": [
+      "Step 1: Check storage.js — `getHeight` and `setHeight` are defined with key 'wl_height'",
+      "Step 2: Check Settings.jsx — no height input field exists",
+      "Step 3: Check entire codebase for usage of `getHeight` / `setHeight` — only defined, never called",
+      "Step 4: Determine: remove the dead API, or add height input to Settings (used to be for InBody which was removed)"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 18,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "ExerciseModal search is case-sensitive (`name.includes(query)`) but Library search is case-insensitive (`name.toLowerCase().includes(query.toLowerCase())`)",
+    "steps": [
+      "Step 1: In Session screen, tap '+ 운동 추가' to open modal",
+      "Step 2: Type 'bench' (English lowercase) — observe no results",
+      "Step 3: Go to Library screen, type 'bench' — observe same result (both Korean exercises, but test with English)",
+      "Step 4: More impactful: type 'SQUAT' in Session modal vs Library to verify inconsistency",
+      "Step 5: Fix: Session.jsx ExerciseModal line 31 should add `.toLowerCase()` to both sides"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 19,
+    "category": "qa",
+    "risk": "logic_change",
+    "description": "Firestore load error causes silent fallback to DEFAULT_EXERCISES — user may not notice custom exercises are temporarily unavailable",
+    "steps": [
+      "Step 1: Simulate a network error during app load (disable network in DevTools after app starts loading)",
+      "Step 2: Observe: Home screen shows syncError banner (good)",
+      "Step 3: Go to Library — verify custom exercises are NOT shown (shows only defaults)",
+      "Step 4: Verify Session exercise modal also shows only default exercises",
+      "Step 5: Evaluate whether a more prominent warning is needed in Library when data failed to load"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 20,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "When deleted library exercise is referenced in a saved session, SessionDetail shows raw exerciseId (e.g., 'custom-1704891234567')",
+    "steps": [
+      "Step 1: Add a custom exercise to Library, log a session using it",
+      "Step 2: Delete that exercise from Library",
+      "Step 3: Open SessionDetail for that session — verify exercise shows as raw ID string",
+      "Step 4: Consider showing a fallback like '[삭제된 운동]' instead of the raw ID"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 21,
+    "category": "qa",
+    "risk": "missing_optional_chaining",
+    "description": "SessionDetail: bodyweight exercise with null weight shows 'null×10회' if the exercise definition was deleted",
+    "steps": [
+      "Step 1: Log a bodyweight exercise session",
+      "Step 2: Delete that exercise from Library",
+      "Step 3: Open SessionDetail — verify set display: Session.jsx line 83 `{set.weight}kg × {set.reps}회` shows 'nullkg × 10회'",
+      "Step 4: Fix: use `{set.weight ?? '?'}kg × {set.reps}회` or check exercise type before rendering"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 22,
+    "category": "qa",
+    "risk": "logic_change",
+    "description": "Login: popup-blocked and auth-failed show same generic error message — 'popup-closed-by-user' is common and should have a clearer message",
+    "steps": [
+      "Step 1: On mobile, trigger a Google login attempt while popups are blocked",
+      "Step 2: Observe the error message: '로그인에 실패했습니다. 다시 시도해주세요.'",
+      "Step 3: The same message shows for network errors, popup blocked, and auth failures",
+      "Step 4: Consider catching `error.code === 'auth/popup-blocked'` separately with a message like '팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.'"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 23,
+    "category": "qa",
+    "risk": "missing_error_handling",
+    "description": "CardioForm allows negative numeric values — e.g., duration_min=-5 is possible via keyboard",
+    "steps": [
+      "Step 1: Open a session with a cardio exercise",
+      "Step 2: In the 시간(분) field, type -5",
+      "Step 3: Verify that -5 is accepted and saved (min='0' attribute doesn't block manual entry in most browsers)",
+      "Step 4: A negative duration would cause calcCalories to return null (protected by `durationMin <= 0` check), but the field would still show -5",
+      "Step 5: Add client-side validation: Math.abs or clamp to >= 0 in onChange handler"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 24,
+    "category": "qa",
+    "risk": "logic_change",
+    "description": "Custom exercise IDs use Date.now() — extremely unlikely but two exercises added within same millisecond would collide",
+    "steps": [
+      "Step 1: Review Library.jsx line 24: `const id = 'custom-' + Date.now()`",
+      "Step 2: This is practically safe for a single-user app but is fragile by design",
+      "Step 3: Consider using crypto.randomUUID() which is available in all modern browsers and guaranteed unique"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 25,
+    "category": "qa",
+    "risk": "logic_change",
+    "description": "isDateChanging.current + setTimeout(0) pattern for preventing auto-save on date change may be flaky in React StrictMode",
+    "steps": [
+      "Step 1: Run app in development mode (StrictMode enabled)",
+      "Step 2: Change the session date via the date input",
+      "Step 3: Verify session exercises load correctly for the new date without triggering an unwanted auto-save",
+      "Step 4: Check console for any unexpected Firestore writes",
+      "Step 5: Root cause: React StrictMode runs effects twice; the setTimeout may fire before the second effect run in dev"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 26,
+    "category": "qa",
+    "risk": "dead_code",
+    "description": "App.css contains only Vite scaffold boilerplate — it is not imported anywhere in the project",
+    "steps": [
+      "Step 1: Grep for 'App.css' across all src/ files — confirms zero imports",
+      "Step 2: Review App.css content: .counter, .hero, #center, #next-steps — all Vite starter template classes",
+      "Step 3: None of these classes appear in any component",
+      "Step 4: File is safe to delete — it's pure dead code from the initial Vite scaffold"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 27,
+    "category": "qa",
+    "risk": "dead_code",
+    "description": "deepClone() in Session.jsx has dead fallback: `structuredClone ? structuredClone(obj) : JSON.parse(JSON.stringify(obj))`",
+    "steps": [
+      "Step 1: Review Session.jsx lines 20-22: the ternary checks if structuredClone is truthy",
+      "Step 2: structuredClone is supported in all targeted browsers (Chrome 98+, Safari 15.4+, Firefox 94+)",
+      "Step 3: The JSON.parse/stringify fallback is never executed and can be removed",
+      "Step 4: Simplify to: `function deepClone(obj) { return structuredClone(obj) }`"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 28,
+    "category": "qa",
+    "risk": "ask_human",
+    "description": "Editing a past session via History→수정 does not update the 'edited' session's duration_min (it resets to null)",
+    "steps": [
+      "Step 1: Finish a session — check History shows duration (e.g., 45분)",
+      "Step 2: Tap 수정, modify a set, navigate away",
+      "Step 3: Check History for that session — verify duration_min is now null or blank",
+      "Step 4: Root cause: Session.jsx finishSession() only writes duration when sessionDate === realToday",
+      "Step 5: Consider preserving existing duration_min when editing past sessions, or only updating it on explicit finish"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 29,
+    "category": "qa",
+    "risk": "logic_change",
+    "description": "Library screen is not accessible from the bottom navigation bar — only reachable via Settings",
+    "steps": [
+      "Step 1: Look at bottom nav — only: 홈, 운동, 기록, 설정",
+      "Step 2: To access Library, user must go Settings → 운동 목록 보기 / 커스텀 운동 추가",
+      "Step 3: This is a UX friction point — evaluate adding Library to nav bar or making it more discoverable"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 30,
+    "category": "qa",
+    "risk": "missing_error_handling",
+    "description": "Settings.jsx parseInt(restSeconds) missing radix argument",
+    "steps": [
+      "Step 1: Review Settings.jsx line 25: `const rs = parseInt(restSeconds)` — should be `parseInt(restSeconds, 10)`",
+      "Step 2: Without radix, '090' would be parsed as 90 in modern JS (ES5+), but it's a lint/style issue",
+      "Step 3: Fix by adding radix: `parseInt(restSeconds, 10)`"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 31,
+    "category": "polish",
+    "risk": "typo",
+    "description": "index.html has lang='en' but the app is entirely in Korean",
+    "steps": [
+      "Step 1: Open index.html — `<html lang='en'>`",
+      "Step 2: Screen readers and translation tools will incorrectly identify the page language",
+      "Step 3: Fix: change to `<html lang='ko'>`"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 32,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "no-scrollbar CSS class used in Library.jsx but not defined anywhere — horizontal category scroll shows a scrollbar",
+    "steps": [
+      "Step 1: Open Library screen on desktop — observe horizontal category tab scroll area",
+      "Step 2: Verify a horizontal scrollbar is visible (no-scrollbar has no effect since it's undefined)",
+      "Step 3: Fix: add to index.css: `@layer utilities { .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; } }`"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 33,
+    "category": "polish",
+    "risk": "accessibility_basic",
+    "description": "Icon-only buttons missing aria-label: ×, ✕, ← buttons in Session, History, SessionDetail",
+    "steps": [
+      "Step 1: In Session.jsx — exercise remove button (×), set remove button (×), ExerciseModal close (✕) have no aria-label",
+      "Step 2: In SessionDetail.jsx — back button (←) has no aria-label",
+      "Step 3: Screen readers will announce these as just '×' or '✕'",
+      "Step 4: Fix: add aria-label='운동 삭제', aria-label='세트 삭제', aria-label='닫기', aria-label='뒤로가기'"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 34,
+    "category": "polish",
+    "risk": "accessibility_basic",
+    "description": "Set complete toggle button (✓) has no aria-label or aria-pressed attribute",
+    "steps": [
+      "Step 1: In Session.jsx SetRow component — the ✓ button toggles locked state but has no aria-label or aria-pressed",
+      "Step 2: Screen readers can't distinguish 'checked' vs 'unchecked' state",
+      "Step 3: Fix: add `aria-label={locked ? '세트 완료 취소' : '세트 완료'}` and `aria-pressed={locked}`"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 35,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "No env(safe-area-inset-bottom) applied to bottom navigation bar — home indicator overlaps nav on iPhone",
+    "steps": [
+      "Step 1: Open the app on an iPhone with home indicator (iPhone X or later)",
+      "Step 2: Verify that the bottom nav bar is not obscured by the home indicator",
+      "Step 3: Current Layout.jsx: `<nav className='fixed bottom-0 ...'>`  — no safe-area padding",
+      "Step 4: Fix: add `pb-[env(safe-area-inset-bottom)]` to the nav and increase `pb-20` to `pb-[calc(5rem+env(safe-area-inset-bottom))]` on main"
+    ],
+    "status": "fixed"
+  },
+  {
+    "id": 36,
+    "category": "polish",
+    "risk": "api_change",
+    "description": "PWA manifest icons missing purpose: 'any maskable' — Android adaptive icons may show white background",
+    "steps": [
+      "Step 1: Review vite.config.js icons: `{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }`",
+      "Step 2: No `purpose` field — Android may apply a white background to the icon",
+      "Step 3: Check if icon-192.png has a transparent background suitable for maskable icons",
+      "Step 4: Fix: add `purpose: 'any maskable'` to both icon entries, or create separate maskable variants"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 37,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "No loading state while Firestore data is loading — Library and Session show default exercises before user data appears",
+    "steps": [
+      "Step 1: Open app on slow connection, navigate directly to Library",
+      "Step 2: Observe: default exercises show immediately (state.loaded=false but DEFAULT_EXERCISES used)",
+      "Step 3: When Firestore loads, exercises flash/update — can be jarring if user added custom exercises",
+      "Step 4: Consider showing a loading skeleton or spinner when `!state.loaded` in Session modal and Library"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 38,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "History date-jump input is visible and interactive even when sessions list is empty",
+    "steps": [
+      "Step 1: On a fresh account (no sessions), go to History",
+      "Step 2: Observe: empty state message '아직 기록이 없어요' shown alongside the date input",
+      "Step 3: The date input is useless when there are no sessions — can be hidden or disabled in empty state"
+    ],
+    "status": "fixed"
+  },
+  {
+    "id": 39,
+    "category": "polish",
+    "risk": "accessibility_basic",
+    "description": "No meta description in index.html — affects PWA bookmarks, share previews, and SEO",
+    "steps": [
+      "Step 1: Open index.html — confirm no <meta name='description'> tag",
+      "Step 2: Fix: add `<meta name='description' content='개인 운동 기록 앱'>`"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 40,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Long exercise names can overflow exercise card layout (no text truncation applied)",
+    "steps": [
+      "Step 1: Add a custom exercise with a very long name (e.g., '오버헤드 덤벨 트라이셉스 익스텐션 슈퍼셋')",
+      "Step 2: Open a session and add that exercise — check if the name overflows the card header",
+      "Step 3: Check Library screen — verify the long name truncates or wraps cleanly",
+      "Step 4: Fix: add `truncate` or `line-clamp-1` Tailwind class to exercise name elements in cards"
+    ],
+    "status": "fixed"
+  },
+  {
+    "id": 41,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Sync status indicator is only text ('동기화 중...') — no icon, hard to notice on small screens",
+    "steps": [
+      "Step 1: Open Home screen with slow network — observe '동기화 중...' text in top-right",
+      "Step 2: The text is `text-zinc-500` and `animate-pulse` — very subtle",
+      "Step 3: Consider adding a small spinner icon next to the text, or using a more visible color"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 42,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "RestTimer fixed position (bottom-20) may visually overlap with ExerciseModal on small screens",
+    "steps": [
+      "Step 1: Start a rest timer (complete a set), then immediately tap '+ 운동 추가'",
+      "Step 2: Verify the ExerciseModal and RestTimer don't visually conflict",
+      "Step 3: RestTimer is z-50 and fixed bottom-20; ExerciseModal is z-50 and covers full screen — modal should cover timer",
+      "Step 4: Verify modal correctly covers the timer by checking z-index stacking"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 43,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Session date input overlay has no visual affordance — users may not know the date is tappable to change",
+    "steps": [
+      "Step 1: Open Session screen — observe the date display",
+      "Step 2: The date text has `pointer-events-none` and an invisible `opacity-0` date input overlaid on top",
+      "Step 3: There's no visual hint (pencil icon, underline, etc.) that the date is interactive",
+      "Step 4: Consider adding a small edit icon or underline to indicate the date is tappable"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 44,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "No scroll-to-top behavior when navigating between screens via bottom nav",
+    "steps": [
+      "Step 1: Scroll down on the History screen (with many sessions)",
+      "Step 2: Tap a different nav item, then tap History again",
+      "Step 3: Verify whether the History screen scrolls back to top on re-navigation",
+      "Step 4: Each screen is inside overflow-y-auto main — check if scroll position is reset on route change"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 45,
+    "category": "polish",
+    "risk": "accessibility_basic",
+    "description": "ExerciseModal: focus is not trapped inside the modal — keyboard Tab can navigate behind the modal",
+    "steps": [
+      "Step 1: Open the '+ 운동 추가' modal on desktop",
+      "Step 2: Use Tab key to navigate — verify focus stays within the modal",
+      "Step 3: Pressing Escape should close the modal (currently no keyboard close handler)",
+      "Step 4: Consider adding `onKeyDown` for Escape key and a focus trap"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 46,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Home screen shows no loading state while syncing — 'syncing' flag exists but only a subtle text indicator is shown",
+    "steps": [
+      "Step 1: Open app on slow network — observe Home screen during Firestore load",
+      "Step 2: The recent sessions list is empty until loaded — no skeleton cards shown",
+      "Step 3: Consider adding skeleton placeholder cards for recent sessions while state.loaded is false"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 47,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Library category tabs in Session modal don't have no-scrollbar treatment — horizontal scrollbar visible on desktop",
+    "steps": [
+      "Step 1: Open Session screen, tap '+ 운동 추가'",
+      "Step 2: On desktop, observe the category tabs row — check for horizontal scrollbar",
+      "Step 3: Session.jsx ExerciseModal line 56: `<div className='flex gap-2 p-3 overflow-x-auto border-b border-zinc-800'>` — no `no-scrollbar`",
+      "Step 4: Once no-scrollbar is defined in CSS (see item #32), add it to this element"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 48,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "StepperInput: button label shows '-2.5' which is unusual — consider showing '-' / '+' labels and displaying step in tooltip or elsewhere",
+    "steps": [
+      "Step 1: Open Session screen, add a weight exercise — observe set row stepper buttons",
+      "Step 2: Buttons show '-2.5' and '+2.5' text (step=2.5 for weight, step=1 for reps)",
+      "Step 3: '-2.5' text is slightly awkward — many fitness apps use '-' and '+' with the step shown separately",
+      "Step 4: Evaluate UX preference: keep as-is (informative) or switch to -/+ (cleaner)"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 49,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Session empty state hint ('위 버튼을 눌러 운동을 추가하세요') appears even after exercises were removed — could be confusing",
+    "steps": [
+      "Step 1: Start a session, add and remove all exercises",
+      "Step 2: Verify the empty state hint message appears again",
+      "Step 3: This is actually fine UX — just verify the message is still accurate and not contradictory"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 50,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "SessionDetail: no empty state message when a session has 0 exercises (edge case from data corruption)",
+    "steps": [
+      "Step 1: If session.exercises is [] (empty array), SessionDetail renders the outer div with no exercise cards",
+      "Step 2: No message like '운동이 기록되지 않은 세션입니다' is shown",
+      "Step 3: Add empty state: `{session.exercises.length === 0 && <p>기록된 운동이 없습니다</p>}`"
+    ],
+    "status": "fixed"
+  },
+  {
+    "id": 51,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Home screen: '최근 기록' section shows up to 5 items without indicating it's limited to 5",
+    "steps": [
+      "Step 1: Have more than 5 sessions logged",
+      "Step 2: Go to Home — only 5 sessions are shown with no '더보기' or '전체 보기' link",
+      "Step 3: Users may not realize there are more sessions — consider adding a '기록 전체 보기 →' link to History"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 52,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Session screen: '완료 ✓' button appears only when exercises > 0 — no visual cue that session needs exercises before finishing",
+    "steps": [
+      "Step 1: Open Session with no exercises — verify '완료 ✓' button is hidden",
+      "Step 2: The '위 버튼을 눌러 운동을 추가하세요' hint is shown, which is good",
+      "Step 3: Verify this UX is intentional and works correctly — confirm button appears as soon as first exercise is added"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 53,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "App has no PWA update notification — vite-plugin-pwa autoUpdate silently reloads; user may lose in-progress session",
+    "steps": [
+      "Step 1: Deploy an update to GitHub Pages while a session is in progress on a device",
+      "Step 2: The service worker autoUpdate will eventually reload the page",
+      "Step 3: In-progress session data is auto-saved to Firestore, so data loss is unlikely, but the page reload could be jarring",
+      "Step 4: Consider using 'prompt' registerType instead of 'autoUpdate' to let user control reload timing"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 54,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Library screen has no empty state for filtered results per category — shows '검색 결과 없음' for both search and empty category",
+    "steps": [
+      "Step 1: Go to Library, select a category that has exercises",
+      "Step 2: The list shows correctly",
+      "Step 3: Verify that '검색 결과 없음' shows when filter returns empty — this works",
+      "Step 4: Verify the message is appropriate for both 'no search match' and 'empty category' cases"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 55,
+    "category": "polish",
+    "risk": "accessibility_basic",
+    "description": "StepperInput uses onPointerDown instead of onClick — may cause double-fire on some touch devices",
+    "steps": [
+      "Step 1: Open Session on a touch device (or mobile emulation in DevTools)",
+      "Step 2: Tap the +2.5 or -2.5 button — verify the value changes by exactly one step",
+      "Step 3: Tap rapidly — verify no double-increment occurs",
+      "Step 4: onPointerDown fires on press; if the browser also fires a synthetic click event, onChange could fire twice",
+      "Step 5: Add `e.preventDefault()` in onPointerDown if double-fire is detected"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 56,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Session modal: already-added exercises in current session have no visual indicator ('이미 추가됨')",
+    "steps": [
+      "Step 1: Add 벤치프레스 to a session",
+      "Step 2: Open the exercise modal again — 벤치프레스 appears with no indication it's already in the session",
+      "Step 3: Adding it again creates a duplicate card with no warning",
+      "Step 4: Consider graying out or marking exercises already in the current session"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 57,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Cardio calorie field shows '— 자동계산됨' label only when both calories and duration_min exist — but doesn't indicate auto-calc is unavailable when MET is null",
+    "steps": [
+      "Step 1: Add a custom cardio exercise with no MET value",
+      "Step 2: Open a session, add that cardio exercise",
+      "Step 3: Enter a duration — observe no auto-calculation occurs and no indication why",
+      "Step 4: Consider showing '수동 입력' or 'MET 미설정 — 수동 입력 필요' hint when exercise has no MET"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 58,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "RestTimer: when timer finishes (reaches 0), there is no sound or strong visual notification",
+    "steps": [
+      "Step 1: Complete a set to start the rest timer, wait for countdown to finish",
+      "Step 2: Observe: the timer simply disappears (onDone hides it) — no vibration or audio cue",
+      "Step 3: On mobile, the screen may be off during rest — user won't see the timer finish",
+      "Step 4: Consider using navigator.vibrate() for a haptic pulse when timer completes (if available)"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 59,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "History screen: session cards show '0세트' for sessions that only have cardio exercises",
+    "steps": [
+      "Step 1: Log a session with only cardio exercise(s)",
+      "Step 2: Go to History — observe the session card shows 'N종목 · 1세트' (cardio has 1 record = 1 'set')",
+      "Step 3: '1세트' is technically wrong for cardio — it's 1 record, not a set",
+      "Step 4: Consider showing '1기록' for cardio-only sessions or hiding the set count for cardio"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 60,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Progression banner message uses hardcoded '+2.5kg' text but the suggestion value comes from getProgressionSuggestion()",
+    "steps": [
+      "Step 1: Review epley.js: `suggestedWeight: weights[0] + 2.5` and `message: '최근 3회 연속 ...+2.5kg 도전해보세요'`",
+      "Step 2: The suggestion delta is always 2.5 kg — verify this is the intended fixed value",
+      "Step 3: In Session.jsx, the banner renders `progression.message` directly — correctly uses the message from the lib",
+      "Step 4: Verify the banner is correctly dismissed when the user increments the weight"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 61,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Library exercises are displayed in insertion order — no alphabetical or categorical sorting within categories",
+    "steps": [
+      "Step 1: Go to Library, select '가슴' category",
+      "Step 2: Exercises appear in the order they are defined in exercises.js",
+      "Step 3: Custom exercises added by user appear at the end of the full list, not sorted into their category",
+      "Step 4: Consider sorting by name within each category for better discoverability"
+    ],
+    "status": "reported"
+  },
+  {
+    "id": 62,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Session screen header date change input has no max-width constraint — on very wide screens the invisible input may misbehave",
+    "steps": [
+      "Step 1: Open app on desktop with wide viewport (1440px+)",
+      "Step 2: The invisible date input in Session header uses `absolute inset-0 w-full` within `relative` parent",
+      "Step 3: Verify the click target for date change is correctly scoped to the date text area only"
+    ],
+    "status": "pass"
+  },
+  {
+    "id": 63,
+    "category": "polish",
+    "risk": "css_style",
+    "description": "Mobile 320px: verify UI is usable at minimum viewport width — StepperInput buttons may be cramped",
+    "steps": [
+      "Step 1: Open Chrome DevTools, set viewport to 320px width",
+      "Step 2: Navigate to Session screen with an exercise added",
+      "Step 3: Verify StepperInput (two stepper buttons + input + unit) fits within the card without overflow",
+      "Step 4: Each stepper button is w-9 (36px), input is w-14 (56px) — two sets side by side = ~230px minimum"
+    ],
+    "status": "pass"
+  }
+]

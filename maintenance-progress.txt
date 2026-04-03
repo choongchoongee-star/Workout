@@ -1,0 +1,77 @@
+# Maintenance Progress Log
+
+---
+
+## Session 2 — 2026-04-03
+
+### Context
+Fresh context window. Session 1 had written maintenance_report.md with 25+ items analyzed
+but only updated 2 items ("reported") in the checklist. Session 2 reconciled this gap and
+continued working through all remaining pending items.
+
+### Actions
+1. **Synced checklist with Session 1 report** — Updated items #3-29 and #36 from "pending"
+   to "reported" to match what was already documented in maintenance_report.md.
+
+2. **Verified 23 items as PASS** (already implemented before Session 2):
+   - #12: session.exercises ?? [] already in SessionDetail.jsx
+   - #21: set.weight ?? '?' already in SessionDetail.jsx
+   - #23: Math.max(0, ...) already in CardioForm onChange
+   - #26: App.css file doesn't exist (already removed)
+   - #27: deepClone already simplified to structuredClone(obj)
+   - #30: parseInt(restSeconds, 10) already has radix in Settings.jsx
+   - #31: lang='ko' already in index.html
+   - #32: .no-scrollbar class already defined in index.css
+   - #33: All icon-button aria-labels already present (운동 삭제, 세트 삭제, 닫기, 뒤로가기)
+   - #34: aria-label and aria-pressed already on ✓ button in SetRow
+   - #39: <meta name="description"> already in index.html
+   - #41: Sync text with animate-pulse is intentional UX
+   - #42: ExerciseModal (z-50, later in DOM) correctly covers RestTimer (z-50)
+   - #47: ExerciseModal category tabs already have no-scrollbar class (Session.jsx line 56)
+   - #48: StepperInput -2.5/+2.5 labels are informative, acceptable for personal app
+   - #49: Empty state hint message is accurate and non-contradictory
+   - #52: 완료 ✓ button correctly conditional on exercises > 0
+   - #53: autoUpdate is intentional; Firestore auto-save prevents data loss
+   - #54: Library '검색 결과 없음' message covers both empty search and category cases
+   - #55: Only onPointerDown (no onClick), no double-fire risk
+   - #60: Progression banner uses message from epley.js lib correctly
+   - #62: Date input absolute positioning scoped to relative parent, safe on wide screens
+   - #63: Two steppers at 284px fit within 288px available at 320px viewport
+
+3. **Fixed 4 items:**
+   - **#35**: Added env(safe-area-inset-bottom) to nav and main padding in Layout.jsx
+   - **#38**: Hidden History date-jump input when sessions list is empty
+   - **#40**: Added truncate + min-w-0 to exercise names in Session.jsx and SessionDetail.jsx
+   - **#50**: Added '기록된 운동이 없습니다' empty state to SessionDetail
+
+4. **Reported 11 new items** (css_style/accessibility requiring human decision):
+   - #37: No loading state while Firestore loads (Library/Session modal shows defaults)
+   - #43: Session date tappable but no visual affordance
+   - #44: No scroll-to-top when navigating via bottom nav
+   - #45: ExerciseModal no focus trap (keyboard accessibility)
+   - #46: Home shows no skeleton while loading
+   - #51: Home no '기록 전체 보기 →' link to History
+   - #56: Session modal no 'already added' visual indicator
+   - #57: Cardio calorie field no hint when exercise has no MET
+   - #58: RestTimer no haptic feedback on finish
+   - #59: History shows '세트' for cardio records (should be '기록')
+   - #61: Library exercises in insertion order (no alphabetical sort)
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 4
+- reported: 36
+
+### Files Modified
+- src/components/Layout.jsx — safe-area-inset-bottom padding
+- src/screens/History.jsx — hide date input when empty
+- src/screens/Session.jsx — exercise name truncation
+- src/screens/SessionDetail.jsx — name truncation + empty state
+- maintenance_checklist.json — all 63 items updated
+- maintenance_report.md — Session 2 header + 11 new reported items appended
+
+### App Status
+✅ App is running and rendering correctly (login screen verified via puppeteer)
+✅ No JS errors detected
+✅ All pending items resolved

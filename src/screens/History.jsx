@@ -22,12 +22,14 @@ export default function History() {
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-4 pt-2">
         <h1 className="text-xl font-bold text-white">운동 기록</h1>
-        <input
-          type="date"
-          value={jumpDate}
-          onChange={e => handleDateJump(e.target.value)}
-          className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        />
+        {sessions.length > 0 && (
+          <input
+            type="date"
+            value={jumpDate}
+            onChange={e => handleDateJump(e.target.value)}
+            className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        )}
       </div>
 
       {sessions.length === 0 ? (

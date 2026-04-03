@@ -25,7 +25,7 @@ export default function SessionDetail() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6 pt-2">
-        <button onClick={() => navigate('/history')} className="text-zinc-400 active:text-white">
+        <button onClick={() => navigate('/history')} aria-label="뒤로가기" className="text-zinc-400 active:text-white">
           ←
         </button>
         <div className="flex-1">
@@ -44,15 +44,18 @@ export default function SessionDetail() {
       </div>
 
       <div className="space-y-4">
-        {session.exercises.map((se, i) => {
+        {(session.exercises ?? []).length === 0 && (
+          <p className="text-zinc-600 text-sm text-center py-8">기록된 운동이 없습니다</p>
+        )}
+        {(session.exercises ?? []).map((se, i) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
 
           return (
             <div key={i} className="bg-zinc-900 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="text-white font-semibold">{exercise?.name || se.exerciseId}</h3>
-                <span className="text-zinc-600 text-xs">{exercise?.category}</span>
+              <div className="flex items-center gap-2 mb-3 min-w-0">
+                <h3 className="text-white font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
+                <span className="text-zinc-600 text-xs flex-shrink-0">{exercise?.category}</span>
               </div>
 
               {isCardio ? (
@@ -80,7 +83,7 @@ export default function SessionDetail() {
                           체중{set.added_weight ? `+${set.added_weight}kg` : ''} × {set.reps}회
                         </span>
                       ) : (
-                        <span className="text-zinc-300">{set.weight}kg × {set.reps}회</span>
+                        <span className="text-zinc-300">{set.weight ?? '?'}kg × {set.reps}회</span>
                       )}
                       {set.done && <span className="text-green-500 text-xs ml-auto">✓</span>}
                     </div>

@@ -18,7 +18,7 @@ function newCardioRecord() {
 }
 
 function deepClone(obj) {
-  return structuredClone ? structuredClone(obj) : JSON.parse(JSON.stringify(obj))
+  return structuredClone(obj)
 }
 
 // Search/Add exercise modal
@@ -41,7 +41,7 @@ function ExerciseModal({ exercises, onSelect, onClose }) {
       >
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="text-white font-semibold">운동 추가</h3>
-          <button onClick={onClose} className="text-zinc-400 active:text-white p-1">✕</button>
+          <button onClick={onClose} aria-label="닫기" className="text-zinc-400 active:text-white p-1">✕</button>
         </div>
         <div className="p-3 border-b border-zinc-800">
           <input
@@ -53,7 +53,7 @@ function ExerciseModal({ exercises, onSelect, onClose }) {
             className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
           />
         </div>
-        <div className="flex gap-2 p-3 overflow-x-auto border-b border-zinc-800">
+        <div className="flex gap-2 p-3 overflow-x-auto no-scrollbar border-b border-zinc-800">
           {categories.map(c => (
             <button
               key={c}
@@ -98,6 +98,8 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
         <div className="flex-1" />
         <button
           onClick={onDone}
+          aria-label={locked ? '세트 완료 취소' : '세트 완료'}
+          aria-pressed={locked}
           className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
             locked
               ? 'bg-green-600 text-white'
@@ -106,7 +108,7 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
         >
           ✓
         </button>
-        <button onClick={onRemove} className="text-zinc-700 active:text-red-400 px-1 text-lg">
+        <button onClick={onRemove} aria-label="세트 삭제" className="text-zinc-700 active:text-red-400 px-1 text-lg">
           ×
         </button>
       </div>
@@ -176,7 +178,7 @@ function CardioForm({ record, exercise, onUpdate }) {
               min="0"
               placeholder={placeholder}
               value={record[key] ?? ''}
-              onChange={e => onUpdate(key, e.target.value === '' ? null : parseFloat(e.target.value))}
+              onChange={e => onUpdate(key, e.target.value === '' ? null : Math.max(0, parseFloat(e.target.value)))}
               className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -405,12 +407,13 @@ export default function Session() {
           return (
             <div key={exIdx} className="bg-zinc-900 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-1">
-                <div>
-                  <h3 className="text-white font-semibold">{exercise?.name || se.exerciseId}</h3>
+                <div className="min-w-0 flex-1 mr-2">
+                  <h3 className="text-white font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
                   <span className="text-zinc-500 text-xs">{exercise?.category}</span>
                 </div>
                 <button
                   onClick={() => removeExercise(exIdx)}
+                  aria-label="운동 삭제"
                   className="text-zinc-700 active:text-red-400 text-xl px-2"
                 >
                   ×
