@@ -550,7 +550,7 @@
       "Step 3: There's no visual hint (pencil icon, underline, etc.) that the date is interactive",
       "Step 4: Consider adding a small edit icon or underline to indicate the date is tappable"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 44,
@@ -650,7 +650,7 @@
       "Step 2: Go to Home — only 5 sessions are shown with no '더보기' or '전체 보기' link",
       "Step 3: Users may not realize there are more sessions — consider adding a '기록 전체 보기 →' link to History"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 52,
@@ -728,7 +728,7 @@
       "Step 3: Enter a duration — observe no auto-calculation occurs and no indication why",
       "Step 4: Consider showing '수동 입력' or 'MET 미설정 — 수동 입력 필요' hint when exercise has no MET"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 58,
@@ -741,7 +741,7 @@
       "Step 3: On mobile, the screen may be off during rest — user won't see the timer finish",
       "Step 4: Consider using navigator.vibrate() for a haptic pulse when timer completes (if available)"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 59,
@@ -754,7 +754,7 @@
       "Step 3: '1세트' is technically wrong for cardio — it's 1 record, not a set",
       "Step 4: Consider showing '1기록' for cardio-only sessions or hiding the set count for cardio"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 60,

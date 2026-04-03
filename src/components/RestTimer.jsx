@@ -5,6 +5,9 @@ export default function RestTimer({ seconds, total, onDone, onSkip }) {
 
   useEffect(() => {
     if (seconds <= 0) {
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200])
+      }
       onDone?.()
     }
   }, [seconds, onDone])

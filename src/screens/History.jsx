@@ -39,6 +39,8 @@ export default function History() {
           {sessions.map(session => {
             const sessionExercises = session.exercises ?? []
             const totalSets = sessionExercises.reduce((sum, e) => sum + (e.sets?.length || 0), 0)
+            const allCardio = sessionExercises.length > 0 &&
+              sessionExercises.every(e => exercises.find(ex => ex.id === e.exerciseId)?.type === 'cardio')
             const names = sessionExercises
               .map(e => exercises.find(ex => ex.id === e.exerciseId)?.name || e.exerciseId)
               .slice(0, 3)
@@ -59,7 +61,7 @@ export default function History() {
                 <p className="text-zinc-400 text-sm">
                   {names.join(' · ')}{sessionExercises.length > 3 ? ` +${sessionExercises.length - 3}` : ''}
                 </p>
-                <p className="text-zinc-600 text-xs mt-1">{sessionExercises.length}종목 · {totalSets}세트</p>
+                <p className="text-zinc-600 text-xs mt-1">{sessionExercises.length}종목 · {totalSets}{allCardio ? '기록' : '세트'}</p>
               </button>
             )
           })}

@@ -186,7 +186,7 @@ function CardioForm({ record, exercise, onUpdate }) {
       </div>
       <div>
         <label className="text-zinc-500 text-xs block mb-1">
-          칼로리 (kcal){record.calories && record.duration_min ? ' — 자동계산됨' : ''}
+          칼로리 (kcal){record.calories && record.duration_min ? ' — 자동계산됨' : (!exercise?.met ? ' — 수동 입력' : '')}
         </label>
         <input
           type="number"
@@ -358,7 +358,7 @@ export default function Session() {
         <div>
           <p className="text-zinc-400 text-sm">{sessionDate === realToday ? '오늘' : '다른 날 기록'}</p>
           <div className="relative">
-            <p className="text-xl font-bold text-white pointer-events-none">
+            <p className="text-xl font-bold text-white pointer-events-none underline decoration-dotted decoration-zinc-600 underline-offset-4">
               {(() => { const [y, m, d] = sessionDate.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) })()}
             </p>
             <input

@@ -74,6 +74,14 @@ export default function Home() {
           })}
         </div>
       )}
+      {sessions.length > 5 && (
+        <button
+          onClick={() => navigate('/history')}
+          className="w-full mt-3 text-zinc-500 text-sm py-2 active:text-zinc-300"
+        >
+          기록 전체 보기 →
+        </button>
+      )}
     </div>
   )
 }

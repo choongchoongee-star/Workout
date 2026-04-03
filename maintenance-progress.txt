@@ -75,3 +75,45 @@ continued working through all remaining pending items.
 ✅ App is running and rendering correctly (login screen verified via puppeteer)
 ✅ No JS errors detected
 ✅ All pending items resolved
+
+---
+
+## Session 3 — 2026-04-03
+
+### Context
+Fresh context window. No pending items remained from Session 2.
+Session 3 audited "reported" items with css_style/accessibility_basic risk and found 5 that
+were safely auto-fixable (Session 2 had run out of context before fixing them).
+
+### Actions
+
+1. **Fixed 5 reported items** (all had css_style risk = auto_fix category):
+   - **#43**: Added `underline decoration-dotted decoration-zinc-600 underline-offset-4` to
+     Session header date text — signals the date is tappable to change
+   - **#51**: Added '기록 전체 보기 →' button below Home recent sessions when sessions > 5
+   - **#57**: Added '— 수동 입력' hint to cardio calorie label when exercise has no MET value
+   - **#58**: Added `navigator.vibrate([200, 100, 200])` in RestTimer useEffect on timer finish
+   - **#59**: History session cards now show '기록' instead of '세트' for cardio-only sessions
+
+2. **Regression check**: App renders correctly after changes (login screen screenshot verified)
+
+3. **ESLint check**: 0 warnings/errors in modified files (1 pre-existing error in AuthContext.jsx)
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 9
+- reported: 31
+
+### Files Modified
+- src/screens/History.jsx — allCardio detection, '기록' label for cardio-only sessions
+- src/screens/Session.jsx — date underline affordance, cardio calorie '수동 입력' hint
+- src/screens/Home.jsx — '기록 전체 보기 →' link when sessions > 5
+- src/components/RestTimer.jsx — navigator.vibrate() on timer finish
+- maintenance_checklist.json — items #43, #51, #57, #58, #59 updated to "fixed"
+- maintenance-progress.txt — this log
+
+### App Status
+✅ App is running and rendering correctly
+✅ No JS errors
+✅ No pending items remain
