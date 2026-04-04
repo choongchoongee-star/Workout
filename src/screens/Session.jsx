@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
@@ -22,20 +22,50 @@ function deepClone(obj) {
 }
 
 // Search/Add exercise modal
-function ExerciseModal({ exercises, onSelect, onClose }) {
+function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loaded = true }) {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('전체')
+  const modalRef = useRef(null)
 
   const categories = ['전체', ...CATEGORIES]
   const filtered = exercises.filter(e => {
     const matchCat = activeCategory === '전체' || e.category === activeCategory
-    const matchQ = !query || e.name.includes(query)
+    const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
   })
+
+  // Escape to close + Tab focus trap
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      onClose()
+      return
+    }
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusable = modalRef.current.querySelectorAll(
+        'button, input, [tabindex]:not([tabindex="-1"])'
+      )
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus() }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first?.focus() }
+      }
+    }
+  }, [onClose])
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex flex-col" onClick={onClose}>
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="운동 추가"
         className="bg-zinc-900 rounded-t-2xl mt-auto max-h-[80vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
@@ -67,17 +97,30 @@ function ExerciseModal({ exercises, onSelect, onClose }) {
           ))}
         </div>
         <div className="overflow-y-auto flex-1">
-          {filtered.map(ex => (
-            <button
-              key={ex.id}
-              onClick={() => onSelect(ex)}
-              className="w-full flex items-center justify-between px-4 py-3.5 active:bg-zinc-800 border-b border-zinc-800/50"
-            >
-              <span className="text-white">{ex.name}</span>
-              <span className="text-zinc-500 text-xs">{ex.category}</span>
-            </button>
-          ))}
-          {filtered.length === 0 && (
+          {!loaded ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : filtered.length > 0 ? (
+            filtered.map(ex => {
+              const alreadyAdded = addedIds.has(ex.id)
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => onSelect(ex)}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 active:bg-zinc-800 border-b border-zinc-800/50 ${
+                    alreadyAdded ? 'opacity-50' : ''
+                  }`}
+                >
+                  <span className="text-white">{ex.name}</span>
+                  <div className="flex items-center gap-2">
+                    {alreadyAdded && <span className="text-zinc-500 text-xs">추가됨</span>}
+                    <span className="text-zinc-500 text-xs">{ex.category}</span>
+                  </div>
+                </button>
+              )
+            })
+          ) : (
             <p className="text-zinc-600 text-sm text-center py-8">검색 결과 없음</p>
           )}
         </div>
@@ -204,7 +247,7 @@ function CardioForm({ record, exercise, onUpdate }) {
 export default function Session() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { exercises, sessions, upsertSession, getLastSession, syncError } = useApp()
+  const { exercises, sessions, upsertSession, getLastSession, syncError, loaded } = useApp()
   const realToday = localTodayStr()
 
   const initialDate = location.state?.date ?? realToday
@@ -472,6 +515,8 @@ export default function Session() {
           exercises={exercises}
           onSelect={addExercise}
           onClose={() => setShowModal(false)}
+          addedIds={new Set(sessionExercises.map(se => se.exerciseId))}
+          loaded={loaded}
         />
       )}
 

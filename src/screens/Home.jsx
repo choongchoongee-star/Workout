@@ -4,7 +4,7 @@ import { formatDate, localTodayStr } from '../lib/dateUtils'
 
 export default function Home() {
   const navigate = useNavigate()
-  const { sessions, exercises, syncing, syncError } = useApp()
+  const { sessions, exercises, syncing, syncError, loaded } = useApp()
   const today = localTodayStr()
   const recent = sessions.slice(0, 5)
   const todaySession = sessions.find(s => s.id === today)
@@ -40,7 +40,17 @@ export default function Home() {
 
       {/* Recent sessions */}
       <h2 className="text-zinc-400 text-sm font-medium mb-3">최근 기록</h2>
-      {recent.length === 0 ? (
+      {!loaded ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-zinc-900 rounded-xl p-4 animate-pulse">
+              <div className="h-4 bg-zinc-800 rounded w-1/3 mb-2" />
+              <div className="h-3 bg-zinc-800 rounded w-2/3 mb-1" />
+              <div className="h-3 bg-zinc-800 rounded w-1/4" />
+            </div>
+          ))}
+        </div>
+      ) : recent.length === 0 ? (
         <p className="text-zinc-600 text-sm text-center py-8">아직 기록이 없어요</p>
       ) : (
         <div className="space-y-2">

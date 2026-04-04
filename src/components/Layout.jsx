@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 
 const NAV = [
   {
@@ -43,9 +44,16 @@ const NAV = [
 ]
 
 export default function Layout({ children }) {
+  const mainRef = useRef(null)
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [pathname])
+
   return (
     <div className="flex flex-col h-full bg-zinc-950">
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {children}
       </main>
       <nav className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 flex pb-[env(safe-area-inset-bottom)]">

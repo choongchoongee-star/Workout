@@ -5,23 +5,25 @@ import { CATEGORIES } from '../data/exercises'
 const TYPE_LABELS = { weight: '웨이트', bodyweight: '맨몸', cardio: '유산소' }
 
 export default function Library() {
-  const { exercises, addExercise, deleteExercise } = useApp()
+  const { exercises, addExercise, deleteExercise, loaded, syncError } = useApp()
   const [activeCategory, setActiveCategory] = useState('전체')
   const [query, setQuery] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name: '', category: '가슴', type: 'weight', met: '' })
 
   const categories = ['전체', ...CATEGORIES]
-  const filtered = exercises.filter(e => {
-    const matchCat = activeCategory === '전체' || e.category === activeCategory
-    const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
-    return matchCat && matchQ
-  })
+  const filtered = exercises
+    .filter(e => {
+      const matchCat = activeCategory === '전체' || e.category === activeCategory
+      const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
+      return matchCat && matchQ
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
 
   function handleAdd() {
     if (!form.name.trim()) return
     const metValue = parseFloat(form.met)
-    const id = `custom-${Date.now()}`
+    const id = `custom-${crypto.randomUUID()}`
     addExercise({
       id,
       name: form.name.trim(),
@@ -44,6 +46,13 @@ export default function Library() {
           + 추가
         </button>
       </div>
+
+      {/* Firestore load error warning */}
+      {syncError && (
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
+          데이터를 불러오지 못했습니다. 커스텀 운동이 표시되지 않을 수 있습니다.
+        </div>
+      )}
 
       {/* Add form */}
       {showAdd && (
@@ -136,7 +145,12 @@ export default function Library() {
 
       {/* Exercise list */}
       <div className="space-y-1">
-        {filtered.map(ex => (
+        {!loaded && (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {loaded && filtered.map(ex => (
           <div key={ex.id} className="flex items-center bg-zinc-900 rounded-xl px-4 py-3">
             <div className="flex-1">
               <span className="text-white text-sm">{ex.name}</span>
@@ -153,7 +167,7 @@ export default function Library() {
             )}
           </div>
         ))}
-        {filtered.length === 0 && (
+        {loaded && filtered.length === 0 && (
           <p className="text-zinc-600 text-sm text-center py-8">검색 결과 없음</p>
         )}
       </div>

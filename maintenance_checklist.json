@@ -231,7 +231,7 @@
       "Step 4: More impactful: type 'SQUAT' in Session modal vs Library to verify inconsistency",
       "Step 5: Fix: Session.jsx ExerciseModal line 31 should add `.toLowerCase()` to both sides"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 19,
@@ -245,7 +245,7 @@
       "Step 4: Verify Session exercise modal also shows only default exercises",
       "Step 5: Evaluate whether a more prominent warning is needed in Library when data failed to load"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 20,
@@ -284,7 +284,7 @@
       "Step 3: The same message shows for network errors, popup blocked, and auth failures",
       "Step 4: Consider catching `error.code === 'auth/popup-blocked'` separately with a message like '팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.'"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 23,
@@ -310,7 +310,7 @@
       "Step 2: This is practically safe for a single-user app but is fragile by design",
       "Step 3: Consider using crypto.randomUUID() which is available in all modern browsers and guaranteed unique"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 25,
@@ -463,7 +463,7 @@
       "Step 3: Check if icon-192.png has a transparent background suitable for maskable icons",
       "Step 4: Fix: add `purpose: 'any maskable'` to both icon entries, or create separate maskable variants"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 37,
@@ -476,7 +476,7 @@
       "Step 3: When Firestore loads, exercises flash/update — can be jarring if user added custom exercises",
       "Step 4: Consider showing a loading skeleton or spinner when `!state.loaded` in Session modal and Library"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 38,
@@ -563,7 +563,7 @@
       "Step 3: Verify whether the History screen scrolls back to top on re-navigation",
       "Step 4: Each screen is inside overflow-y-auto main — check if scroll position is reset on route change"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 45,
@@ -576,7 +576,7 @@
       "Step 3: Pressing Escape should close the modal (currently no keyboard close handler)",
       "Step 4: Consider adding `onKeyDown` for Escape key and a focus trap"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 46,
@@ -588,7 +588,7 @@
       "Step 2: The recent sessions list is empty until loaded — no skeleton cards shown",
       "Step 3: Consider adding skeleton placeholder cards for recent sessions while state.loaded is false"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 47,
@@ -715,7 +715,7 @@
       "Step 3: Adding it again creates a duplicate card with no warning",
       "Step 4: Consider graying out or marking exercises already in the current session"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 57,
@@ -780,7 +780,7 @@
       "Step 3: Custom exercises added by user appear at the end of the full list, not sorted into their category",
       "Step 4: Consider sorting by name within each category for better discoverability"
     ],
-    "status": "reported"
+    "status": "fixed"
   },
   {
     "id": 62,

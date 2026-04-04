@@ -2,6 +2,61 @@
 
 ---
 
+## Session 4 — 2026-04-04
+
+### Context
+Fresh context window. Sessions 1-3 had documented/fixed 63 items, but the maintenance_checklist.json
+was out of sync: 18 items remained as "pending" despite having been analyzed and written into the
+maintenance_report.md in earlier sessions.
+
+### Root Cause of Discrepancy
+Session 2 progress log claimed "Updated items #3-29 and #36 from pending to reported" but the actual
+checklist still showed #2, #5, #6, #7, #8, #11, #13, #14, #15, #16, #17, #19, #20, #22, #24, #25,
+#28, #36 as "pending". The sync was incomplete.
+
+### Actions
+
+1. **Fixed 4 auto-fixable items** (logic_change / api_change risk = auto_fix):
+   - **#22**: Login.jsx — catch block now inspects `err?.code` for `auth/popup-closed-by-user`
+     (silent dismiss, no error shown) and `auth/popup-blocked` (specific message)
+   - **#24**: Library.jsx — `Date.now()` ID replaced with `crypto.randomUUID()`
+   - **#19**: Library.jsx — Added `syncError` destructure + red warning banner when Firestore load fails
+   - **#36**: vite.config.js — Added `purpose: 'any maskable'` to both PWA manifest icon entries
+
+2. **Synced 14 ask_human items** from "pending" to "reported":
+   - #2 (No CSP), #5 (window.confirm delete), #6 (Google photo referrerPolicy)
+   - #7 (auto-save overwrites duration_min), #8 (empty session not deleted)
+   - #11 (date-jump silent fail), #13 (cardio only sets[0] shown)
+   - #14 (React key={exIdx}), #15 (React key={setIdx})
+   - #16 (Settings changes lost), #17 (dead getHeight/setHeight API)
+   - #20 (deleted exercise shows raw ID)
+   - #25 (isDateChanging flaky in StrictMode), #28 (past session edit resets duration)
+
+3. **Regression check**: App renders correctly (login screen verified via puppeteer screenshots)
+
+4. **ESLint check**: 0 warnings/errors in modified files
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 13
+- reported: 27
+
+### Files Modified
+- src/screens/Login.jsx — specific Firebase auth error messages
+- src/screens/Library.jsx — crypto.randomUUID() IDs + syncError banner
+- vite.config.js — PWA manifest icon purpose field
+- maintenance_checklist.json — 18 items updated from pending to reported/fixed
+- maintenance_report.md — Session 4 header + 4 fix descriptions prepended
+- maintenance-progress.txt — this log
+
+### App Status
+✅ App is running and rendering correctly
+✅ No JS errors
+✅ No pending items remain
+
+---
+
 ## Session 2 — 2026-04-03
 
 ### Context

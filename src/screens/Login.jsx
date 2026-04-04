@@ -11,8 +11,14 @@ export default function Login() {
     setLoading(true)
     try {
       await signInWithGoogle()
-    } catch {
-      setError('로그인에 실패했습니다. 다시 시도해주세요.')
+    } catch (err) {
+      if (err?.code === 'auth/popup-closed-by-user') {
+        // 사용자가 팝업을 직접 닫음 — 에러 메시지 불필요
+      } else if (err?.code === 'auth/popup-blocked') {
+        setError('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.')
+      } else {
+        setError('로그인에 실패했습니다. 다시 시도해주세요.')
+      }
     } finally {
       setLoading(false)
     }
