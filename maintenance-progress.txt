@@ -2,6 +2,59 @@
 
 ---
 
+## Session 7 — 2026-04-04
+
+### Context
+Fresh context window. All 63 checklist items fully processed from Sessions 1–6.
+Counts on entry: 0 pending / 23 pass / 20 fixed / 20 reported.
+
+### Actions
+
+1. **Orientation**: Verified counts via Grep. 0 pending — no checklist items to process.
+
+2. **Dev server**: Started on port 5177 (5173–5176 already in use).
+   App renders correctly at http://localhost:5177/Workout/ (login screen visible — screenshot taken).
+
+3. **Evaluated item #25** (risk: logic_change — `isDateChanging` + `setTimeout(0)` flakiness):
+   - Reviewed Session.jsx lines 259–293.
+   - Pattern: date-change effect sets `isDateChanging.current = true`, updates sessionExercises,
+     then resets flag via `setTimeout(0)`. Auto-save effect checks flag and returns early.
+   - StrictMode concern: double-invocation only occurs on initial mount, NOT on ongoing state changes.
+     Since `sessionDate` doesn't change on initial mount, the race condition cannot trigger at mount.
+     For user-triggered date changes, effects run in the normal order (no double-invocation).
+   - **Assessment**: Risk is theoretical, not practical. Pattern works correctly in production.
+     Fix would require restructuring (e.g., AbortController), risking breakage of auto-save.
+   - **Decision**: Keep as "reported". No change to checklist.
+
+4. **Evaluated item #29** (risk: logic_change — Library not in bottom nav):
+   - Reviewed Layout.jsx: 4-item nav (홈/운동/기록/설정). Library is reachable via Settings.
+   - Adding Library to nav requires UX decision: replace existing item, add 5th slot (cramped at 320px),
+     or restructure nav. Not a code fix — genuinely requires human design decision.
+   - **Decision**: Keep as "reported". No change to checklist.
+
+5. **ESLint check**: 0 errors, 0 warnings (clean state maintained from Session 6).
+
+6. **Production build check**: `npm run build` completed successfully in 585ms.
+   Only pre-existing chunk size warning (Firebase SDK ~615kB) — no new issues.
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 20
+- reported: 20
+
+### Files Modified
+- maintenance-progress.txt — this log
+
+### App Status
+✅ App renders correctly (login screen verified via screenshot)
+✅ ESLint: 0 errors, 0 warnings
+✅ Production build: passes (585ms)
+✅ No pending checklist items
+✅ Reported items #25/#29 (logic_change risk) reviewed and confirmed as legitimately requiring human decision
+
+---
+
 ## Session 6 — 2026-04-04
 
 ### Context
