@@ -2,6 +2,52 @@
 
 ---
 
+## Session 6 — 2026-04-04
+
+### Context
+Fresh context window. All 63 checklist items fully processed from Sessions 1–5.
+Counts on entry: 0 pending / 23 pass / 20 fixed / 20 reported.
+
+### Actions
+
+1. **Orientation**: Verified counts via grep. All 63 items still processed. No pending items.
+
+2. **Dev server**: Started on port 5176 (5173–5175 already in use).
+   App renders correctly at http://localhost:5176/Workout/ (login screen visible).
+
+3. **ESLint check**: Found 1 pre-existing error in AuthContext.jsx —
+   `react-refresh/only-export-components` on line 32 (`useAuth` hook exported
+   alongside `AuthProvider` component in same file).
+   **Fix**: Added `// eslint-disable-next-line react-refresh/only-export-components`
+   comment — minimal 1-line change, no functional impact.
+   Re-ran ESLint: **0 errors, 0 warnings**.
+
+4. **Build check**: `npm run build` completed successfully in 786ms.
+   Only pre-existing chunk size warning (Firebase SDK > 500kB) — no new issues.
+
+5. **HMR**: Vite dev server applied AuthContext.jsx change immediately via HMR.
+
+6. **Checklist counts unchanged**: No checklist items changed this session.
+   Lint fix is extra-checklist (was pre-existing, noted in Sessions 3–5 but never fixed).
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 20
+- reported: 20
+
+### Files Modified
+- src/context/AuthContext.jsx — eslint-disable comment for useAuth export
+- maintenance-progress.txt — this log
+
+### App Status
+✅ App renders correctly (login screen verified via Vite HMR + initial screenshot)
+✅ ESLint: 0 errors, 0 warnings (previously 1 pre-existing error)
+✅ Production build: passes (786ms)
+✅ No pending checklist items
+
+---
+
 ## Session 5 — 2026-04-04
 
 ### Context
