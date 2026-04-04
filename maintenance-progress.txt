@@ -2,6 +2,56 @@
 
 ---
 
+## Session 5 — 2026-04-04
+
+### Context
+Fresh context window. All 63 items were already fully processed (0 pending) from Sessions 1–4.
+Between Session 4 and Session 5, 7 additional items were fixed (undocumented session):
+#18, #37, #44, #45, #46, #56, #61.
+
+### Actions
+
+1. **Read orientation files**: SPEC.md, maintenance_checklist.json, maintenance-progress.txt.
+   Confirmed counts: 0 pending / 23 pass / 20 fixed / 20 reported.
+
+2. **Verified 7 post-Session-4 fixes** via source code inspection:
+   - **#18** ✅ Session.jsx ExerciseModal — `.toLowerCase()` on both sides of search
+   - **#37** ✅ Library.jsx — spinner shown when `!loaded`
+   - **#44** ✅ Layout.jsx — `scrollTo(0,0)` on pathname change
+   - **#45** ✅ Session.jsx ExerciseModal — Escape to close + Tab focus trap
+   - **#46** ✅ Home.jsx — 3 skeleton cards shown when `!loaded`
+   - **#56** ✅ Session.jsx ExerciseModal — `opacity-50` + "추가됨" for already-added exercises
+   - **#61** ✅ Library.jsx — `.sort(localeCompare)` applied to filtered list
+
+3. **Confirmed AppContext exports `loaded`** via `...state` spread — Home and Library consume it correctly.
+
+4. **ESLint check**: 0 new errors. Only pre-existing AuthContext.jsx error (noted in Session 3).
+
+5. **Browser regression check**: App loads at http://localhost:5175/Workout/. Login screen renders correctly. No JS errors.
+
+6. **All "reported" items** are `ask_human` risk (or were deliberately escalated by previous sessions):
+   - #1–6: Security (Firestore rules, CSP, Firebase key, App Check, window.confirm, photoURL)
+   - #7–11, #13–17, #20, #25, #28: QA ask_human items
+   - #29: Library nav bar placement (logic_change risk but requires UX decision)
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 20
+- reported: 20
+
+### Files Modified
+- maintenance_report.md — Session 5 header + 7 fix descriptions prepended
+- maintenance-progress.txt — this log
+
+### App Status
+✅ App renders correctly (login screen verified)
+✅ No JS errors
+✅ No lint errors (beyond pre-existing AuthContext.jsx)
+✅ All 63 checklist items fully processed
+
+---
+
 ## Session 4 — 2026-04-04
 
 ### Context

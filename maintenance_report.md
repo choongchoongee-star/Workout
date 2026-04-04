@@ -1,3 +1,44 @@
+# Maintenance Report — Session 5 (2026-04-04)
+
+> **Session 5 Summary:** Fresh context. All 63 items already processed (0 pending). Verified 7 items fixed after Session 4 via source code inspection and browser test. No new issues found. App is in a fully working state.
+>
+> **Final counts:** 23 pass / 20 fixed / 20 reported / 0 pending
+>
+> **Verified fixed this session (code-confirmed):** #18, #37, #44, #45, #46, #56, #61
+
+## Items Verified Fixed (Post-Session-4)
+
+### #18 — ExerciseModal Search: Case-Insensitive
+**Fixed in:** `src/screens/Session.jsx` (ExerciseModal filtered list)
+Both sides of the search comparison now call `.toLowerCase()`:
+`e.name.toLowerCase().includes(query.toLowerCase())`
+
+### #37 — Library Loading Spinner While Firestore Loads
+**Fixed in:** `src/screens/Library.jsx`
+When `!loaded`, a spinning blue circle indicator replaces the exercise list. Prevents flash of default-only exercises before user data arrives.
+
+### #44 — Scroll-to-Top on Bottom Nav Navigation
+**Fixed in:** `src/components/Layout.jsx`
+`useEffect` on `pathname` calls `mainRef.current?.scrollTo(0, 0)`, resetting scroll position whenever the active screen changes.
+
+### #45 — ExerciseModal: Escape to Close + Tab Focus Trap
+**Fixed in:** `src/screens/Session.jsx` (ExerciseModal `handleKeyDown`)
+`Escape` key calls `onClose()`. `Tab`/`Shift+Tab` cycle focus within the modal's focusable elements (buttons, inputs), preventing keyboard navigation behind the modal.
+
+### #46 — Home Screen Skeleton Cards While Loading
+**Fixed in:** `src/screens/Home.jsx`
+When `!loaded`, 3 animated pulse skeleton cards replace the sessions list. Prevents jarring empty→populated flash on slow connections.
+
+### #56 — Session Modal: Already-Added Exercise Indicator
+**Fixed in:** `src/screens/Session.jsx` (ExerciseModal exercise list)
+Exercises already in the current session show `opacity-50` + a `"추가됨"` label in the modal list, preventing accidental duplicates.
+
+### #61 — Library Alphabetical Sort
+**Fixed in:** `src/screens/Library.jsx`
+Filtered exercise list now calls `.sort((a, b) => a.name.localeCompare(b.name, 'ko'))` — both default and custom exercises appear alphabetically within each category.
+
+---
+
 # Maintenance Report — Session 4 (2026-04-04)
 
 > **Session 4 Summary:** Discovered 18 items were still "pending" in the checklist despite being documented in Sessions 1-2 report. Fixed 4 auto-fixable items. Synced 14 ask_human items to "reported".
