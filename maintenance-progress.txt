@@ -2,6 +2,45 @@
 
 ---
 
+## Session 9 — 2026-04-04
+
+### Context
+Fresh context window. All 63 checklist items fully processed from Sessions 1–8.
+Counts on entry: 0 pending / 23 pass / 20 fixed / 20 reported.
+
+### Actions
+
+1. **Orientation**: Verified counts via Grep. 0 pending — no checklist items to process.
+
+2. **Dev server**: Started on port 5179 (ports 5173–5178 already in use).
+   App renders correctly at http://localhost:5179/Workout/ (login screen visible — screenshot taken).
+
+3. **ESLint check**: `npx eslint src --max-warnings=0` — 0 errors, 0 warnings (clean state maintained).
+
+4. **Production build check**: `npm run build` completed successfully in 628ms.
+   Only pre-existing chunk size warning (Firebase SDK ~615kB) — no new issues.
+
+5. **Browser JS error check**: `window.__consoleErrors` empty — no runtime JS errors.
+   Page title: "workout", body text includes "Workout / 운동 기록 / Google로 로그인" — correct.
+
+### Final Counts
+- pending: 0
+- pass: 23
+- fixed: 20
+- reported: 20
+
+### Files Modified
+- maintenance-progress.txt — this log
+
+### App Status
+✅ App renders correctly (login screen verified via screenshot)
+✅ ESLint: 0 errors, 0 warnings
+✅ Production build: passes (628ms)
+✅ No JS runtime errors
+✅ No pending checklist items
+
+---
+
 ## Session 8 — 2026-04-04
 
 ### Context
