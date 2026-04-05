@@ -16,10 +16,8 @@ export default function SessionDetail() {
   )
 
   function handleDelete() {
-    if (window.confirm('이 세션을 삭제할까요?')) {
-      deleteSession(id)
-      navigate('/history')
-    }
+    deleteSession(id)
+    navigate('/history', { state: { undoSession: session } })
   }
 
   return (

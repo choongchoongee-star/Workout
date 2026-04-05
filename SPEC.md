@@ -1,6 +1,6 @@
 # Workout Logger — 기획서
 
-> 마지막 업데이트: 2026-03-29 (UX 수정)
+> 마지막 업데이트: 2026-04-05
 > 현재 Phase: Phase 2 완료
 
 ---
@@ -21,6 +21,7 @@
 Workout/
 ├── src/
 │   ├── screens/           # 화면 컴포넌트 (Login, Home, Session, History, SessionDetail, Library, Settings)
+│   ├── components/        # 재사용 컴포넌트 (Layout, StepperInput, RestTimer, UndoToast)
 │   ├── context/
 │   │   ├── AuthContext.jsx   # Firebase Google Auth 상태 관리
 │   │   └── AppContext.jsx    # 운동 데이터 상태 + Firestore 자동 동기화
@@ -29,7 +30,10 @@ Workout/
 │   │   ├── firestore.js   # Firestore load/save (users/{uid}/data/workout)
 │   │   ├── epley.js       # 점진적 과부하 제안 (getProgressionSuggestion)
 │   │   ├── calories.js    # MET 기반 칼로리 계산
+│   │   ├── dateUtils.js   # 날짜 포맷 유틸
 │   │   └── storage.js     # localStorage 설정값 (체중, 휴식 시간)
+│   ├── data/
+│   │   └── exercises.js   # 기본 운동 목록 (~50개)
 │   └── ...
 ├── .env                   # Firebase config (git 제외)
 ├── public/                # PWA 아이콘, manifest
@@ -70,8 +74,9 @@ Google 로그인 → Firebase Auth → uid 획득
 
 ### Weight Set
 ```json
-{ "weight": 80, "added_weight": 0, "reps": 10 }
+{ "weight": 80, "reps": 10, "done": false }
 ```
+- `done`: 세트 완료 체크 여부
 - bodyweight: `weight = null`, `added_weight` = 추가 하중
 
 ### Cardio Record
@@ -96,6 +101,7 @@ Google 로그인 → Firebase Auth → uid 획득
 
 ### 4.2 Active Session (핵심 화면)
 - [+ 운동 추가] 버튼 상단 → 검색 모달 (카테고리 + 텍스트 검색)
+  - 검색 모달: 항상 화면 상단에 고정 (결과 적어도 모달 높이 유지)
 - 운동 추가 시: 이전 세션 마지막 세트 값으로 **1세트만** 생성 (나머지는 직접 추가)
 - 새 운동은 목록 맨 위에 추가 (오래된 운동이 아래로)
 - 운동 카드: 2줄 세트 행 (1줄: `N세트 [✓] [×]`, 2줄: `[-] weight [+] [-] reps [+]`)
@@ -105,11 +111,14 @@ Google 로그인 → Firebase Auth → uid 획득
 - 휴식 타이머 자동 시작 (세트 완료 시만, 해제 시 안 켜짐)
 - 점진적 과부하 배너 (3회 연속 동일 무게 → +2.5kg 제안)
 - 날짜 변경: 헤더 날짜 탭 → 해당 날짜 세션 로드
+- 운동/세트 삭제 시 되돌리기 토스트 (5초 내 undo 가능)
+- 자동 저장: 운동 데이터 변경 시 Firestore에 즉시 동기화
 - **구현 상태:** ✅ 완료
 
 ### 4.3 히스토리
 - 날짜 역순 목록
 - 탭 → 상세 보기 + [수정] 버튼 (해당 날짜 운동탭으로 이동) + [삭제]
+- 세션 삭제 시 되돌리기 토스트 (5초 내 undo 가능, confirm 대화상자 제거)
 - **구현 상태:** ✅ 완료
 
 ### 4.4 운동 라이브러리
@@ -167,4 +176,4 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 
 ## 8. 미완료 / 알려진 이슈
 
-- Firebase 프로젝트 설정 필요 (.env에 config 입력)
+- (없음)

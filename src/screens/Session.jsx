@@ -5,6 +5,7 @@ import { storage } from '../lib/storage'
 import { calcCalories } from '../lib/calories'
 import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
+import UndoToast from '../components/UndoToast'
 import { CATEGORIES } from '../data/exercises'
 import { getProgressionSuggestion } from '../lib/epley'
 import { localTodayStr } from '../lib/dateUtils'
@@ -66,7 +67,7 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
         role="dialog"
         aria-modal="true"
         aria-label="운동 추가"
-        className="bg-zinc-900 rounded-t-2xl mt-auto max-h-[80vh] flex flex-col"
+        className="bg-zinc-900 rounded-t-2xl mt-auto h-[80vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
@@ -284,6 +285,7 @@ export default function Session() {
 
   const [showModal, setShowModal] = useState(false)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90 })
+  const [undoData, setUndoData] = useState(null)
 
   // Auto-save in-progress session to context on every change
   useEffect(() => {
@@ -365,6 +367,12 @@ export default function Session() {
   }
 
   function removeSet(exIdx, setIdx) {
+    const exerciseData = sessionExercises[exIdx]
+    if (!exerciseData) return
+    const removedSet = exerciseData.sets[setIdx]
+    const exerciseName = exercises.find(e => e.id === exerciseData.exerciseId)?.name || exerciseData.exerciseId
+    const isLastSet = exerciseData.sets.length === 1
+
     setSessionExercises(prev => {
       const copy = deepClone(prev)
       if (!copy[exIdx]) return prev
@@ -372,11 +380,46 @@ export default function Session() {
       if (copy[exIdx].sets.length === 0) copy.splice(exIdx, 1)
       return copy
     })
+
+    if (isLastSet) {
+      setUndoData({ type: 'exercise', data: deepClone(exerciseData), index: exIdx, name: exerciseName })
+    } else {
+      setUndoData({ type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} ${setIdx + 1}세트` })
+    }
   }
 
   function removeExercise(exIdx) {
+    const removed = sessionExercises[exIdx]
+    const exerciseName = exercises.find(e => e.id === removed?.exerciseId)?.name || removed?.exerciseId
     setSessionExercises(prev => prev.filter((_, i) => i !== exIdx))
+    setUndoData({ type: 'exercise', data: removed, index: exIdx, name: exerciseName })
   }
+
+  const handleUndo = useCallback(() => {
+    if (!undoData) return
+    if (undoData.type === 'set') {
+      setSessionExercises(prev => {
+        const copy = deepClone(prev)
+        if (!copy[undoData.exIdx]) return prev
+        copy[undoData.exIdx].sets.splice(
+          Math.min(undoData.setIdx, copy[undoData.exIdx].sets.length),
+          0,
+          undoData.setData
+        )
+        return copy
+      })
+    } else {
+      setSessionExercises(prev => {
+        const copy = [...prev]
+        copy.splice(Math.min(undoData.index, copy.length), 0, undoData.data)
+        return copy
+      })
+    }
+  }, [undoData])
+
+  const handleUndoDismiss = useCallback(() => {
+    setUndoData(null)
+  }, [])
 
   function finishSession() {
     let durationMin = null
@@ -507,6 +550,14 @@ export default function Session() {
           total={restTimer.total}
           onDone={() => setRestTimer(t => ({ ...t, active: false }))}
           onSkip={() => setRestTimer(t => ({ ...t, active: false }))}
+        />
+      )}
+
+      {undoData && (
+        <UndoToast
+          message={`${undoData.name} 삭제됨`}
+          onUndo={handleUndo}
+          onDismiss={handleUndoDismiss}
         />
       )}
 

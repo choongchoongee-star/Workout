@@ -1,13 +1,30 @@
-import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useCallback, useRef, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate } from '../lib/dateUtils'
+import UndoToast from '../components/UndoToast'
 
 export default function History() {
   const navigate = useNavigate()
-  const { sessions, exercises } = useApp()
+  const location = useLocation()
+  const { sessions, exercises, upsertSession } = useApp()
   const [jumpDate, setJumpDate] = useState('')
   const cardRefs = useRef({})
+
+  // 세션 삭제 되돌리기
+  const [undoSession, setUndoSession] = useState(() => location.state?.undoSession ?? null)
+  // location.state 소비 후 제거 (새로고침 시 재표시 방지)
+  if (location.state?.undoSession) {
+    window.history.replaceState({}, '')
+  }
+
+  const handleUndoRestore = useCallback(() => {
+    if (undoSession) upsertSession(undoSession)
+  }, [undoSession, upsertSession])
+
+  const handleUndoDismiss = useCallback(() => {
+    setUndoSession(null)
+  }, [])
 
   function handleDateJump(dateStr) {
     setJumpDate(dateStr)
@@ -66,6 +83,14 @@ export default function History() {
             )
           })}
         </div>
+      )}
+
+      {undoSession && (
+        <UndoToast
+          message="세션이 삭제되었습니다"
+          onUndo={handleUndoRestore}
+          onDismiss={handleUndoDismiss}
+        />
       )}
     </div>
   )
