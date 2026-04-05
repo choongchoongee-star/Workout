@@ -2,7 +2,6 @@
 
 const KEYS = {
   BODY_WEIGHT: 'wl_body_weight',
-  HEIGHT: 'wl_height',
   REST_SECONDS: 'wl_rest_seconds',
 }
 
@@ -51,9 +50,6 @@ export const storage = {
 
   getBodyWeight: () => safeFloat(safeGet(KEYS.BODY_WEIGHT), 70),
   setBodyWeight: (v) => safeSet(KEYS.BODY_WEIGHT, String(v)),
-
-  getHeight: () => safeFloat(safeGet(KEYS.HEIGHT), 170),
-  setHeight: (v) => safeSet(KEYS.HEIGHT, String(v)),
 
   getRestSeconds: () => safeInt(safeGet(KEYS.REST_SECONDS), 90),
   setRestSeconds: (v) => safeSet(KEYS.REST_SECONDS, String(v)),

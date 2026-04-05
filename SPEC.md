@@ -62,7 +62,7 @@ Google 로그인 → Firebase Auth → uid 획득
 ```json
 {
   "exercises": [{ "id": "bench-press", "name": "벤치프레스", "category": "가슴", "type": "weight", "met": null }],
-  "sessions": [{ "id": "2026-03-14", "date": "2026-03-14", "exercises": [...], "duration_min": 65 }]
+  "sessions": [{ "id": "2026-03-14", "date": "2026-03-14", "exercises": [...], "duration_min": 65 }]  // id === date (1일 1세션)
 }
 ```
 
@@ -111,6 +111,7 @@ Google 로그인 → Firebase Auth → uid 획득
 - 휴식 타이머 자동 시작 (세트 완료 시만, 해제 시 안 켜짐)
 - 점진적 과부하 배너 (3회 연속 동일 무게 → +2.5kg 제안)
 - 날짜 변경: 헤더 날짜 탭 → 해당 날짜 세션 로드
+- [완료 ✓] 버튼: 세션 종료 → 소요시간 자동 계산 → 히스토리로 이동
 - 운동/세트 삭제 시 되돌리기 토스트 (5초 내 undo 가능)
 - 자동 저장: 운동 데이터 변경 시 Firestore에 즉시 동기화
 - **구현 상태:** ✅ 완료
