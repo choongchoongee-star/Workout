@@ -40,17 +40,15 @@ function safeFloat(raw, fallback) {
   return isFinite(v) && v > 0 ? v : fallback
 }
 
-function safeInt(raw, fallback) {
-  const v = parseInt(raw, 10)
-  return isFinite(v) && v > 0 ? v : fallback
-}
-
 export const storage = {
   isAvailable,
 
   getBodyWeight: () => safeFloat(safeGet(KEYS.BODY_WEIGHT), 70),
   setBodyWeight: (v) => safeSet(KEYS.BODY_WEIGHT, String(v)),
 
-  getRestSeconds: () => safeInt(safeGet(KEYS.REST_SECONDS), 90),
+  getRestSeconds: () => {
+    const v = parseInt(safeGet(KEYS.REST_SECONDS), 10)
+    return isFinite(v) && v >= 0 ? v : 90
+  },
   setRestSeconds: (v) => safeSet(KEYS.REST_SECONDS, String(v)),
 }

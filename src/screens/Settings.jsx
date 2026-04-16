@@ -23,7 +23,7 @@ export default function Settings() {
     const bw = parseFloat(bodyWeight)
     if (!isNaN(bw) && bw > 0) storage.setBodyWeight(bw)
     const rs = parseInt(restSeconds, 10)
-    if (!isNaN(rs) && rs > 0) storage.setRestSeconds(rs)
+    if (!isNaN(rs) && rs >= 0) storage.setRestSeconds(rs)
     setStatus({ msg: '저장 완료 ✓', ok: true })
     setTimeout(() => setStatus({}), 2000)
   }
@@ -74,9 +74,10 @@ export default function Settings() {
             placeholder="70"
           />
         </Field>
-        <Field label="휴식 타이머 (초)">
+        <Field label="휴식 타이머 (초)" hint="0으로 설정하면 휴식 타이머가 꺼집니다">
           <input
             type="number"
+            min="0"
             value={restSeconds}
             onChange={e => setRestSeconds(e.target.value)}
             className={inputCls}
