@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { storage } from '../lib/storage'
 import { useAuth } from '../context/AuthContext'
+import { useApp } from '../context/AppContext'
+import { buildMarkdown, downloadTextFile, exportFilename } from '../lib/exportUtils'
 
 function Field({ label, hint, children }) {
   return (
@@ -15,9 +17,26 @@ function Field({ label, hint, children }) {
 
 export default function Settings() {
   const { user, logout } = useAuth()
+  const { sessions, exercises } = useApp()
   const [bodyWeight, setBodyWeight] = useState(String(storage.getBodyWeight()))
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [status, setStatus] = useState({})
+
+  function handleExport() {
+    if (!sessions?.length) {
+      setStatus({ msg: '내보낼 기록이 없습니다', ok: false })
+      setTimeout(() => setStatus({}), 2000)
+      return
+    }
+    try {
+      downloadTextFile(buildMarkdown(sessions, exercises), exportFilename('md'), 'text/markdown;charset=utf-8')
+      setStatus({ msg: '내보내기 완료 ✓', ok: true })
+      setTimeout(() => setStatus({}), 2000)
+    } catch {
+      setStatus({ msg: '내보내기에 실패했습니다', ok: false })
+      setTimeout(() => setStatus({}), 2000)
+    }
+  }
 
   function save() {
     const bw = parseFloat(bodyWeight)
@@ -96,6 +115,20 @@ export default function Settings() {
           <span>운동 목록 보기 / 커스텀 운동 추가</span>
           <span className="text-zinc-500">→</span>
         </Link>
+      </div>
+
+      {/* Data export */}
+      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
+        <h2 className="text-zinc-300 font-medium mb-1">데이터 내보내기</h2>
+        <p className="text-zinc-600 text-xs mb-3">
+          전체 운동 기록({sessions.length}개 세션)을 Markdown 파일로 다운로드합니다
+        </p>
+        <button
+          onClick={handleExport}
+          className="w-full bg-zinc-800 text-zinc-200 text-sm rounded-xl py-2.5 active:bg-zinc-700"
+        >
+          운동 기록 내보내기 (.md)
+        </button>
       </div>
 
       {/* Status message */}
