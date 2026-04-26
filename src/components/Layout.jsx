@@ -45,10 +45,23 @@ const NAV = [
 
 export default function Layout({ children }) {
   const mainRef = useRef(null)
+  const scrollPositions = useRef({})
   const { pathname } = useLocation()
 
   useEffect(() => {
-    mainRef.current?.scrollTo(0, 0)
+    const main = mainRef.current
+    if (!main) return
+
+    if (pathname === '/session' && scrollPositions.current[pathname] != null) {
+      main.scrollTo(0, scrollPositions.current[pathname])
+    } else {
+      main.scrollTo(0, 0)
+    }
+
+    if (pathname !== '/session') return
+    const handler = () => { scrollPositions.current[pathname] = main.scrollTop }
+    main.addEventListener('scroll', handler, { passive: true })
+    return () => main.removeEventListener('scroll', handler)
   }, [pathname])
 
   return (
