@@ -9,6 +9,7 @@ import UndoToast from '../components/UndoToast'
 import { CATEGORIES } from '../data/exercises'
 import { getProgressionSuggestion } from '../lib/epley'
 import { localTodayStr } from '../lib/dateUtils'
+import { getMainCategory } from '../lib/sessionUtils'
 
 function newWeightSet(weight = 20, reps = 10) {
   return { weight, reps, done: false }
@@ -23,9 +24,9 @@ function deepClone(obj) {
 }
 
 // Search/Add exercise modal
-function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loaded = true }) {
+function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loaded = true, defaultCategory = '전체' }) {
   const [query, setQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('전체')
+  const [activeCategory, setActiveCategory] = useState(defaultCategory)
   const modalRef = useRef(null)
 
   const categories = ['전체', ...CATEGORIES]
@@ -252,15 +253,33 @@ export default function Session() {
   const realToday = localTodayStr()
 
   const initialDate = location.state?.date ?? realToday
+  const presetExerciseIds = location.state?.presetExerciseIds ?? null
   const [sessionDate, setSessionDate] = useState(initialDate)
   const [sessionExercises, setSessionExercises] = useState(() => {
     const existing = sessions.find(s => s.id === initialDate)
-    return existing?.exercises ? deepClone(existing.exercises) : []
+    if (existing?.exercises?.length) return deepClone(existing.exercises)
+    if (presetExerciseIds?.length) {
+      return presetExerciseIds.map(id => ({ exerciseId: id, sets: [] }))
+    }
+    return []
   })
   const isDateChanging = useRef(false)
+  const didMount = useRef(false)
 
-  // 날짜가 바뀌면 해당 날짜 세션 로드
+  // 마운트 후 location.state 소비 (새로고침 시 재시드 방지)
   useEffect(() => {
+    if (presetExerciseIds) {
+      window.history.replaceState({}, '')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 날짜가 바뀌면 해당 날짜 세션 로드 (첫 마운트 제외 — 초기 state는 lazy init이 처리)
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true
+      return
+    }
     isDateChanging.current = true
     const existing = sessions.find(s => s.id === sessionDate)
     setSessionExercises(existing?.exercises ? deepClone(existing.exercises) : [])
@@ -308,23 +327,14 @@ export default function Session() {
 
   function startRestTimer() {
     const secs = storage.getRestSeconds()
+    if (secs <= 0) return
     setRestTimer({ active: true, remaining: secs, total: secs })
   }
 
   function addExercise(ex) {
-    const lastSession = getLastSession(ex.id, sessionDate)
-    const lastExData = lastSession?.exercises?.find(e => e.exerciseId === ex.id) ?? null
-
-    let sets
-    if (ex.type === 'cardio') {
-      sets = [newCardioRecord()]
-    } else {
-      // 이전 세션의 마지막 세트 값을 기본값으로, 한 세트씩 추가
-      const lastSet = lastExData?.sets?.[lastExData.sets.length - 1] ?? null
-      sets = [newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
-    }
-
-    setSessionExercises(prev => [{ exerciseId: ex.id, sets }, ...prev])
+    // 카디오는 단일 기록이라 빈 배열로 두면 폼이 없어지므로 그대로 한 개 생성
+    const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
+    setSessionExercises(prev => [...prev, { exerciseId: ex.id, sets }])
     setShowModal(false)
   }
 
@@ -337,8 +347,18 @@ export default function Session() {
       if (exercise?.type === 'cardio') {
         ex.sets = [...ex.sets, newCardioRecord()]
       } else {
-        const lastSet = ex.sets[ex.sets.length - 1]
-        ex.sets = [...ex.sets, newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
+        let lastSet = ex.sets[ex.sets.length - 1]
+        // 첫 세트일 경우 과거 세션의 마지막 세트 값을 기본값으로 사용
+        if (!lastSet) {
+          const lastSession = getLastSession(ex.exerciseId, sessionDate)
+          const lastExData = lastSession?.exercises?.find(e => e.exerciseId === ex.exerciseId) ?? null
+          lastSet = lastExData?.sets?.[lastExData.sets.length - 1] ?? null
+        }
+        if (exercise?.type === 'bodyweight') {
+          ex.sets = [...ex.sets, { added_weight: lastSet?.added_weight ?? 0, reps: lastSet?.reps ?? 10, done: false }]
+        } else {
+          ex.sets = [...ex.sets, newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
+        }
       }
       return copy
     })
@@ -371,21 +391,15 @@ export default function Session() {
     if (!exerciseData) return
     const removedSet = exerciseData.sets[setIdx]
     const exerciseName = exercises.find(e => e.id === exerciseData.exerciseId)?.name || exerciseData.exerciseId
-    const isLastSet = exerciseData.sets.length === 1
 
     setSessionExercises(prev => {
       const copy = deepClone(prev)
       if (!copy[exIdx]) return prev
       copy[exIdx].sets.splice(setIdx, 1)
-      if (copy[exIdx].sets.length === 0) copy.splice(exIdx, 1)
       return copy
     })
 
-    if (isLastSet) {
-      setUndoData({ type: 'exercise', data: deepClone(exerciseData), index: exIdx, name: exerciseName })
-    } else {
-      setUndoData({ type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} ${setIdx + 1}세트` })
-    }
+    setUndoData({ type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} ${setIdx + 1}세트` })
   }
 
   function removeExercise(exIdx) {
@@ -568,6 +582,16 @@ export default function Session() {
           onClose={() => setShowModal(false)}
           addedIds={new Set(sessionExercises.map(se => se.exerciseId))}
           loaded={loaded}
+          defaultCategory={(() => {
+            const current = getMainCategory(sessionExercises, exercises)
+            if (current) return current
+            for (const s of sessions) {
+              if (s.date === sessionDate) continue
+              const cat = getMainCategory(s.exercises, exercises)
+              if (cat) return cat
+            }
+            return '전체'
+          })()}
         />
       )}
 

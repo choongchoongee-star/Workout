@@ -1,6 +1,95 @@
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate, localTodayStr } from '../lib/dateUtils'
+import { getMainCategory, getLatestCategoryExerciseIds } from '../lib/sessionUtils'
+import { CATEGORIES } from '../data/exercises'
+
+function StartWorkoutModal({ sessions, exercises, onClose, onStart }) {
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const modalRef = useRef(null)
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') onClose()
+  }, [onClose])
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
+
+  const loadableIds = selectedCategory
+    ? getLatestCategoryExerciseIds(sessions, exercises, selectedCategory)
+    : []
+  const canLoadPast = loadableIds.length > 0
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex flex-col" onClick={onClose}>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="운동 시작"
+        className="bg-zinc-900 rounded-t-2xl mt-auto flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            {selectedCategory && (
+              <button
+                onClick={() => setSelectedCategory(null)}
+                aria-label="뒤로"
+                className="text-zinc-400 active:text-white text-lg"
+              >
+                ←
+              </button>
+            )}
+            <h3 className="text-white font-semibold">
+              {selectedCategory ? selectedCategory : '어떤 부위 운동할까요?'}
+            </h3>
+          </div>
+          <button onClick={onClose} aria-label="닫기" className="text-zinc-400 active:text-white p-1">✕</button>
+        </div>
+
+        {!selectedCategory ? (
+          <div className="p-4 grid grid-cols-3 gap-2">
+            {CATEGORIES.map(c => (
+              <button
+                key={c}
+                onClick={() => setSelectedCategory(c)}
+                className="bg-zinc-800 active:bg-blue-600 text-white text-sm font-medium rounded-xl py-4 transition-colors"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 space-y-3">
+            <button
+              onClick={() => onStart(null)}
+              className="w-full bg-blue-600 active:bg-blue-700 text-white font-semibold rounded-xl py-4 transition-colors"
+            >
+              처음부터 시작
+            </button>
+            <button
+              onClick={() => canLoadPast && onStart(loadableIds)}
+              disabled={!canLoadPast}
+              className={`w-full font-semibold rounded-xl py-4 transition-colors ${
+                canLoadPast
+                  ? 'bg-zinc-800 active:bg-zinc-700 text-white'
+                  : 'bg-zinc-800/50 text-zinc-600 cursor-not-allowed'
+              }`}
+            >
+              {canLoadPast
+                ? `과거 ${selectedCategory} 운동 불러오기`
+                : `${selectedCategory} 과거 기록 없음`}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function Home() {
   const navigate = useNavigate()
@@ -8,6 +97,24 @@ export default function Home() {
   const today = localTodayStr()
   const recent = sessions.slice(0, 5)
   const todaySession = sessions.find(s => s.id === today)
+  const [showStartModal, setShowStartModal] = useState(false)
+
+  function handleStartClick() {
+    if (todaySession) {
+      navigate('/session')
+    } else {
+      setShowStartModal(true)
+    }
+  }
+
+  function handleStart(presetExerciseIds) {
+    setShowStartModal(false)
+    if (presetExerciseIds?.length) {
+      navigate('/session', { state: { presetExerciseIds } })
+    } else {
+      navigate('/session')
+    }
+  }
 
   return (
     <div className="p-4 max-w-lg mx-auto">
@@ -32,7 +139,7 @@ export default function Home() {
 
       {/* Start workout button */}
       <button
-        onClick={() => navigate('/session')}
+        onClick={handleStartClick}
         className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-lg rounded-2xl py-5 mb-6 transition-colors"
       >
         {todaySession ? '오늘 세션 이어하기 💪' : '오늘 운동 시작 💪'}
@@ -61,6 +168,7 @@ export default function Home() {
               .slice(0, 3)
             const totalSets = sessionExercises
               .reduce((sum, e) => sum + (e.sets?.length || 0), 0)
+            const mainCategory = getMainCategory(sessionExercises, exercises)
 
             return (
               <button
@@ -78,7 +186,11 @@ export default function Home() {
                   {exerciseNames.join(' · ')}
                   {sessionExercises.length > 3 && ` +${sessionExercises.length - 3}`}
                 </p>
-                <p className="text-zinc-600 text-xs mt-1">{totalSets}세트</p>
+                <p className="text-zinc-600 text-xs mt-1">
+                  {mainCategory && <span className="text-blue-400">메인: {mainCategory}</span>}
+                  {mainCategory && ' · '}
+                  {totalSets}세트
+                </p>
               </button>
             )
           })}
@@ -91,6 +203,15 @@ export default function Home() {
         >
           기록 전체 보기 →
         </button>
+      )}
+
+      {showStartModal && (
+        <StartWorkoutModal
+          sessions={sessions}
+          exercises={exercises}
+          onClose={() => setShowStartModal(false)}
+          onStart={handleStart}
+        />
       )}
     </div>
   )

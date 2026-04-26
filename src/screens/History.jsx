@@ -1,14 +1,15 @@
 import { useCallback, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { formatDate } from '../lib/dateUtils'
+import { formatDate, localTodayStr } from '../lib/dateUtils'
+import { getMainCategory } from '../lib/sessionUtils'
 import UndoToast from '../components/UndoToast'
 
 export default function History() {
   const navigate = useNavigate()
   const location = useLocation()
   const { sessions, exercises, upsertSession } = useApp()
-  const [jumpDate, setJumpDate] = useState('')
+  const [jumpDate, setJumpDate] = useState(() => localTodayStr())
   const cardRefs = useRef({})
 
   // 세션 삭제 되돌리기
@@ -61,6 +62,7 @@ export default function History() {
             const names = sessionExercises
               .map(e => exercises.find(ex => ex.id === e.exerciseId)?.name || e.exerciseId)
               .slice(0, 3)
+            const mainCategory = getMainCategory(sessionExercises, exercises)
 
             return (
               <button
@@ -78,7 +80,11 @@ export default function History() {
                 <p className="text-zinc-400 text-sm">
                   {names.join(' · ')}{sessionExercises.length > 3 ? ` +${sessionExercises.length - 3}` : ''}
                 </p>
-                <p className="text-zinc-600 text-xs mt-1">{sessionExercises.length}종목 · {totalSets}{allCardio ? '기록' : '세트'}</p>
+                <p className="text-zinc-600 text-xs mt-1">
+                  {mainCategory && <span className="text-blue-400">메인: {mainCategory}</span>}
+                  {mainCategory && ' · '}
+                  {sessionExercises.length}종목 · {totalSets}{allCardio ? '기록' : '세트'}
+                </p>
               </button>
             )
           })}
