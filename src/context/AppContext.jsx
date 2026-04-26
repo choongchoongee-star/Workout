@@ -96,13 +96,15 @@ export function AppProvider({ children }) {
   }, [user])
 
   // 데이터 변경 시 자동 저장 (로드 직후 첫 번째 실행은 건너뜀)
+  // 연속 변경 (StepperInput 등) 시 Firestore 쓰기 폭주 방지를 위해 500ms 디바운스
   useEffect(() => {
     if (!state.loaded) return
     if (justLoadedRef.current) {
       justLoadedRef.current = false
       return
     }
-    persist(state.exercises, state.sessions)
+    const id = setTimeout(() => persist(state.exercises, state.sessions), 500)
+    return () => clearTimeout(id)
   }, [state.exercises, state.sessions, state.loaded, persist])
 
   const upsertSession = useCallback((session) => dispatch({ type: 'UPSERT_SESSION', session }), [])
