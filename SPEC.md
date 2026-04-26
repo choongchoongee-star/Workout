@@ -1,7 +1,7 @@
 # Workout Logger — 기획서
 
-> 마지막 업데이트: 2026-04-05
-> 현재 Phase: Phase 2 완료
+> 마지막 업데이트: 2026-04-10
+> 현재 Phase: Phase 2 완료 (유지보수 완료)
 
 ---
 
@@ -22,6 +22,7 @@ Workout/
 ├── src/
 │   ├── screens/           # 화면 컴포넌트 (Login, Home, Session, History, SessionDetail, Library, Settings)
 │   ├── components/        # 재사용 컴포넌트 (Layout, StepperInput, RestTimer, UndoToast)
+│   │                      # Layout: 하단 네비게이션 + 스크롤 리셋
 │   ├── context/
 │   │   ├── AuthContext.jsx   # Firebase Google Auth 상태 관리
 │   │   └── AppContext.jsx    # 운동 데이터 상태 + Firestore 자동 동기화
@@ -33,7 +34,7 @@ Workout/
 │   │   ├── dateUtils.js   # 날짜 포맷 유틸
 │   │   └── storage.js     # localStorage 설정값 (체중, 휴식 시간)
 │   ├── data/
-│   │   └── exercises.js   # 기본 운동 목록 (~50개)
+│   │   └── exercises.js   # 기본 운동 목록 (48개, 7카테고리)
 │   └── ...
 ├── .env                   # Firebase config (git 제외)
 ├── public/                # PWA 아이콘, manifest
@@ -102,7 +103,7 @@ Google 로그인 → Firebase Auth → uid 획득
 ### 4.2 Active Session (핵심 화면)
 - [+ 운동 추가] 버튼 상단 → 검색 모달 (카테고리 + 텍스트 검색)
   - 검색 모달: 바텀시트 (높이 고정, 결과 수와 관계없이 검색바 위치 유지)
-- 운동 추가 시: 이전 세션 마지막 세트 값으로 **1세트만** 생성 (나머지는 직접 추가)
+- 운동 추가 시: **0세트**로 시작 (세트 추가 시 이전 세션 마지막 세트 값으로 자동 입력)
 - 새 운동은 목록 맨 위에 추가 (오래된 운동이 아래로)
 - 운동 카드: 2줄 세트 행 (1줄: `N세트 [✓] [×]`, 2줄: `[-] weight [+] [-] reps [+]`)
 - ✓ 체크 후 값 잠금 — 다시 눌러야 수정 가능
@@ -124,7 +125,7 @@ Google 로그인 → Firebase Auth → uid 획득
 
 ### 4.4 운동 라이브러리
 - 카테고리 탭 + 검색바
-- 기본 ~50개 운동 (가슴/등/어깨/팔/하체/복근/유산소)
+- 기본 48개 운동 (가슴/등/어깨/팔/하체/복근/유산소)
 - 커스텀 운동 추가 (이름, 카테고리, 타입, MET)
 - 커스텀 운동 삭제 (기본 운동은 삭제 불가)
 - **구현 상태:** ✅ 완료
@@ -176,6 +177,9 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 
 ---
 
-## 8. 미완료 / 알려진 이슈
+## 8. 유지보수 이력
 
-- (없음)
+- Phase 1~2 구현 완료
+- InBody, Gemini Vision, Epley 1RM 표시 등 불필요 기능 제거 후 운동 기록에 집중
+- 유지보수 13회 세션 수행: 63개 항목 검수 (23 pass / 20 fixed / 20 reported)
+- ESLint 경고 전체 해결, 접근성 개선 (키보드 포커스 트랩, aria 속성 등)
