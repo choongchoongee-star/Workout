@@ -1,188 +1,462 @@
-# Workout Logger — 기획서
+# Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-06-14
-> 현재 Phase: Phase 2 완료 (유지보수 완료)
+> 현재 Phase: Phase 2 완료 (유지보수 단계)
+> 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 ---
 
 ## 1. Overview
 
 - **목적:** 웨이트 + 유산소 운동 세션을 최소 마찰로 기록하는 개인용 PWA
-- **핵심 제약사항:** 정적 호스팅 (GitHub Pages), 백엔드 없음, Google 계정 로그인 필수
-- **기술 스택:** React 19 + Vite + Tailwind CSS v4 + Firebase (Auth + Firestore)
-- **주요 사용자:** Charlie (개인 사용)
+- **핵심 철학:** "운동 중에 빠르게 기록" — 탭 수 최소화, 자동 입력(이전 값 재사용), 자동 저장
+- **핵심 제약사항:** 정적 호스팅(GitHub Pages), 백엔드 서버 없음(Firebase BaaS만 사용), Google 계정 로그인 필수, 1일 1세션
+- **주요 사용자:** Charlie (단일 사용자, 개인용)
+- **플랫폼:** 모바일 우선 PWA (세로형, 폭 `max-w-lg` 중앙 정렬), 다크 테마 고정
 
 ---
 
-## 2. 아키텍처
+## 2. 기술 스택 & 빌드/배포
+
+### 스택
+- **React 19** + **Vite 8** (`@vitejs/plugin-react`)
+- **Tailwind CSS v4** (`@tailwindcss/vite` 플러그인 방식 — `tailwind.config` 없이 CSS-first)
+- **react-router-dom v7** (`BrowserRouter`, `basename="/Workout"`)
+- **Firebase v12** — Auth(Google) + Firestore
+- **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
+- 아이콘 생성: `sharp` (`generate-icons.mjs`)
+
+### vite.config.js 핵심
+```js
+base: '/Workout/',           // GitHub Pages 레포 경로
+VitePWA({
+  registerType: 'autoUpdate',
+  manifest: {
+    name: 'Workout Logger', short_name: 'Workout',
+    theme_color: '#09090b', background_color: '#09090b',
+    display: 'standalone', start_url: '/Workout/',
+    icons: [192, 512]  // any maskable
+  }
+})
+```
+
+### npm scripts
+| script | 동작 |
+|--------|------|
+| `dev` | `vite` (로컬 개발 서버) |
+| `build` | `vite build` (→ `dist/`) |
+| `lint` | `eslint .` |
+| `preview` | `vite preview` |
+| `icons` | `node generate-icons.mjs` (PWA 아이콘 생성) |
+| `deploy` | `npm run build && gh-pages -d dist` |
+
+### 배포 (중요)
+- **자동 CI 없음.** `master` 푸시는 소스만 올라감.
+- 라이브 반영은 **수동으로 `npm run deploy`** 실행 → `dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙.
+- 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
+- PWA 서비스워커(`autoUpdate`)가 새 빌드를 백그라운드 갱신하므로, 배포 후 기기에서는 앱 재실행 1~2회 또는 잠깐의 지연 후 반영됨.
+
+### 환경변수 (`.env`, git 제외)
+Firebase 설정값. `src/lib/firebase.js`가 `import.meta.env.VITE_*`로 읽어 `initializeApp` → `auth`, `db`, `googleProvider(GoogleAuthProvider)` export.
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+---
+
+## 3. 아키텍처
 
 ### 폴더 구조
 ```
 Workout/
 ├── src/
-│   ├── screens/           # 화면 컴포넌트 (Login, Session, History, SessionDetail, Library, Settings)
-│   ├── components/        # 재사용 컴포넌트 (Layout, StepperInput, RestTimer, UndoToast)
-│   │                      # Layout: 하단 네비게이션(운동/기록/설정) + 스크롤 리셋
+│   ├── main.jsx              # 엔트리, <App/> 렌더
+│   ├── App.jsx               # Provider + Router + 라우트 정의
+│   ├── index.css             # Tailwind import + 커스텀 애니메이션(animate-slide-up 등)
+│   ├── screens/              # 화면 컴포넌트
+│   │   ├── Login.jsx
+│   │   ├── Session.jsx       # Active Session (핵심 화면)
+│   │   ├── History.jsx       # 기록 목록
+│   │   ├── SessionDetail.jsx # 기록 상세
+│   │   ├── Library.jsx       # 운동 목록/커스텀 관리
+│   │   └── Settings.jsx
+│   ├── components/
+│   │   ├── Layout.jsx        # 하단 네비(운동/기록/설정) + 스크롤 위치 관리
+│   │   ├── StepperInput.jsx  # -/+ 숫자 스테퍼
+│   │   ├── RestTimer.jsx     # 휴식 타이머 (원형 진행 + 바)
+│   │   └── UndoToast.jsx     # 5초 되돌리기 토스트
 │   ├── context/
-│   │   ├── AuthContext.jsx   # Firebase Google Auth 상태 관리
+│   │   ├── AuthContext.jsx   # Firebase Google Auth 상태
 │   │   └── AppContext.jsx    # 운동 데이터 상태 + Firestore 자동 동기화
 │   ├── lib/
-│   │   ├── firebase.js    # Firebase 초기화 (auth, db)
-│   │   ├── firestore.js   # Firestore load/save (users/{uid}/data/workout)
-│   │   ├── epley.js       # 점진적 과부하 제안 (getProgressionSuggestion)
-│   │   ├── calories.js    # MET 기반 칼로리 계산
-│   │   ├── dateUtils.js   # 날짜 포맷 유틸
-│   │   └── storage.js     # localStorage 설정값 (체중, 휴식 시간)
+│   │   ├── firebase.js       # Firebase 초기화 (auth, db, googleProvider)
+│   │   ├── firestore.js      # load/save (users/{uid}/data/workout), undefined 새니타이즈
+│   │   ├── epley.js          # 점진적 과부하 제안 (getProgressionSuggestion)
+│   │   ├── calories.js       # MET 기반 칼로리 계산 (calcCalories)
+│   │   ├── sessionUtils.js   # getMainCategory (그날 메인 카테고리)
+│   │   ├── dateUtils.js      # localTodayStr, formatDate
+│   │   ├── exportUtils.js    # buildMarkdown, downloadTextFile, exportFilename
+│   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
-│   │   └── exercises.js   # 기본 운동 목록 (48개, 7카테고리)
+│   │   └── exercises.js      # DEFAULT_EXERCISES(48개), CATEGORIES(7개)
 │   └── ...
-├── .env                   # Firebase config (git 제외)
-├── public/                # PWA 아이콘, manifest
+├── .env                      # Firebase config (git 제외)
+├── public/                   # PWA 아이콘(icon-192/512.png), manifest 산출물
+├── generate-icons.mjs
 └── vite.config.js
 ```
 
 ### 핵심 데이터 흐름
 ```
 Google 로그인 → Firebase Auth → uid 획득
-운동 기록 → Firestore (users/{uid}/data/workout)
-  └── exercises[], sessions[]
+  └ AuthContext: user = undefined(로딩) | null(미로그인) | User(로그인)
 
-설정값 → localStorage (체중, 휴식 시간)
+로그인 시 AppProvider가 Firestore에서 1회 로드
+  users/{uid}/data/workout → { exercises[], sessions[] }
+  (문서 없으면 exercises=null→기본48개, sessions=[])
+
+운동 데이터 변경 → reducer state 갱신 → 500ms 디바운스 후 Firestore에 setDoc
+  (로드 직후 첫 실행은 justLoadedRef로 스킵 — 빈 데이터 덮어쓰기 방지)
+
+설정값(휴식 시간) → localStorage (수동 저장)
+세션 시작 시각 → sessionStorage (소요시간 계산용)
 ```
 
 ### 외부 의존성
-- Firebase Auth (Google 로그인)
-- Firebase Firestore (데이터 저장)
+- Firebase Auth (Google 팝업 로그인)
+- Firebase Firestore (단일 문서에 전체 데이터 저장)
 
 ---
 
-## 3. 데이터 모델
+## 4. 데이터 모델
 
-### Firestore 구조 (`users/{uid}/data/workout`)
-
+### 4.1 Firestore — `users/{uid}/data/workout` (단일 문서)
 ```json
 {
-  "exercises": [{ "id": "bench-press", "name": "벤치프레스", "category": "가슴", "type": "weight", "met": null }],
-  "sessions": [{ "id": "2026-03-14", "date": "2026-03-14", "exercises": [...], "duration_min": 65 }]  // id === date (1일 1세션)
+  "exercises": [ Exercise, ... ],   // 기본48 + 커스텀
+  "sessions":  [ Session, ... ]     // 날짜 역순 정렬 유지
 }
 ```
+- 저장 전 `undefined` 값을 재귀 제거(`sanitizeForFirestore`) — Firestore가 undefined 거부.
 
-### Exercise 타입
+### 4.2 Exercise
 ```json
-{ "id": "bench-press", "name": "벤치프레스", "category": "가슴", "type": "weight | bodyweight | cardio", "met": 8.3 }
+{ "id": "bench-press", "name": "벤치프레스", "category": "가슴",
+  "type": "weight | bodyweight | cardio", "met": 8.3 }
 ```
-- `met`: cardio 타입에만 사용 (칼로리 계산)
+- `id`: 기본 운동은 고정 슬러그, 커스텀은 `custom-${crypto.randomUUID()}`
+- `category`: CATEGORIES 중 하나 (가슴/등/어깨/팔/하체/복근/유산소)
+- `met`: cardio 타입에만 존재 (칼로리 계산용). 그 외 타입은 필드 없음/null
+- 커스텀 판별: `id.startsWith('custom-')` → 라이브러리에서만 색상 구별 + 삭제 가능
 
-### Weight Set
+### 4.3 Session (id === date, 1일 1세션)
 ```json
-{ "weight": 80, "reps": 10, "done": false }
+{ "id": "2026-03-14", "date": "2026-03-14",
+  "exercises": [ SessionExercise, ... ], "duration_min": 65 }
 ```
-- `done`: 세트 완료 체크 여부
-- bodyweight: `weight = null`, `added_weight` = 추가 하중
+- `id` = `date` = `YYYY-MM-DD` (로컬 기준, `localTodayStr()`)
+- `duration_min`: 완료 시 자동 계산. 진행 중 자동저장 시엔 null
 
-### Cardio Record
+### 4.4 SessionExercise
 ```json
-{ "duration_min": 35, "distance_km": 5.2, "speed_kmh": 8.5, "incline_pct": 2.0, "calories": 338 }
+{ "exerciseId": "bench-press", "sets": [ Set, ... ] }
 ```
-- 칼로리: MET 자동 계산 또는 수동 입력
+
+### 4.5 Set
+- **weight:** `{ "weight": 80, "reps": 10, "done": false }`
+- **bodyweight:** `{ "added_weight": 0, "reps": 10, "done": false }` (weight 없음)
+- **cardio:** `{ "duration_min": 35, "distance_km": 5.2, "speed_kmh": 8.5, "incline_pct": 2.0, "calories": 338 }` — cardio는 항상 sets 길이 1 (단일 기록)
+- `done`: 세트 완료 체크. true면 입력 잠금(다시 눌러야 수정)
+
+### 4.6 localStorage (`storage.js`)
+| 키 | 의미 | 기본값 | 비고 |
+|----|------|--------|------|
+| `wl_rest_seconds` | 휴식 타이머 초 | 90 | 설정 탭에서 수정 |
+| `wl_body_weight` | 체중(kg) | 70 | **설정 UI 제거됨(2026-06-14)**, 칼로리 계산 시 기본값 70 사용 |
+- private/incognito 등 접근 불가 환경 안전 처리(try/catch, isAvailable).
+
+### 4.7 sessionStorage
+| 키 | 의미 |
+|----|------|
+| `wl_session_start_{today}` | 오늘 세션 첫 진입 시각(ms). 완료 시 소요시간 계산 후 제거 |
 
 ---
 
-## 4. 기능 명세
+## 5. 네비게이션 / 라우팅
 
-### 4.0 로그인
-- Google 로그인 버튼 (Firebase Auth Google 팝업)
-- 미로그인 시 모든 화면 차단 → 로그인 화면으로
-- **구현 상태:** ✅ 완료
+`App.jsx` 구조: `<AuthProvider><BrowserRouter basename="/Workout"><AppRoutes/>`
+- `user === undefined` → 전체 화면 스피너
+- `user === null` → `<Login/>`
+- 로그인됨 → `<AppProvider><Layout><Routes>...`
 
-### 4.1 진입 / 네비게이션
-- 하단 탭: 운동 / 기록 / 설정 (홈 탭 제거됨 — 기록 탭과 역할 중복으로 2026-06-13 삭제)
-- 기본 경로 `/` 및 알 수 없는 경로 → 운동(`/session`) 탭으로 리다이렉트
-- **구현 상태:** ✅ 완료
+| 경로 | 화면 | 비고 |
+|------|------|------|
+| `/` | → `/session` 리다이렉트 | 홈 탭 제거(2026-06-13) |
+| `/session` | Session | 기본 진입 |
+| `/history` | History | |
+| `/history/:id` | SessionDetail | |
+| `/library` | Library | |
+| `/settings` | Settings | |
+| `*` | → `/session` 리다이렉트 | |
 
-### 4.2 Active Session (핵심 화면)
-- [+ 운동 추가] 버튼 상단 → 검색 모달 (카테고리 + 텍스트 검색)
-  - 검색 모달: 바텀시트 (높이 고정, 결과 수와 관계없이 검색바 위치 유지)
-- 운동 추가 시: **0세트**로 시작 (세트 추가 시 이전 세션 마지막 세트 값으로 자동 입력)
-- 새 운동은 목록 맨 위에 추가 (오래된 운동이 아래로)
-- 운동 카드: 2줄 세트 행 (1줄: `N세트 [✓] [×]`, 2줄: `[-] weight [+] [-] reps [+]`)
-- ✓ 체크 후 값 잠금 — 다시 눌러야 수정 가능
-- bodyweight: "체중+" 레이블 + 추가 하중 입력
-- cardio: 시간/거리/속도/경사 수동 입력
-- 휴식 타이머 자동 시작 (세트 완료 시만, 해제 시 안 켜짐)
-- 점진적 과부하 배너 (3회 연속 동일 무게 → +2.5kg 제안)
-- 날짜 변경: 헤더 날짜 탭 → 해당 날짜 세션 로드
-- [완료 ✓] 버튼: 세션 종료 → 소요시간 자동 계산 → 히스토리로 이동
-- 운동/세트 삭제 시 되돌리기 토스트 (5초 내 undo 가능)
-- 자동 저장: 운동 데이터 변경 시 Firestore에 즉시 동기화
-- **구현 상태:** ✅ 완료
-
-### 4.3 히스토리
-- 날짜 역순 목록 + 날짜 점프 (date picker)
-- 목록 카드: 날짜 + 소요시간만 표시 (운동 이름/메인 카테고리/종목·세트 요약 줄은 효용 낮아 제거, 2026-06-14)
-- 탭 → 상세 보기 + [수정] 버튼 (해당 날짜 운동탭으로 이동) + [삭제]
-- 세션 삭제 시 되돌리기 토스트 (5초 내 undo 가능, confirm 대화상자 제거)
-- **구현 상태:** ✅ 완료
-
-### 4.4 운동 라이브러리
-- 카테고리 탭 + 검색바
-- 기본 48개 운동 (가슴/등/어깨/팔/하체/복근/유산소)
-- 커스텀 운동 추가 (이름, 카테고리, 타입, MET)
-- 커스텀 운동 삭제 (기본 운동은 삭제 불가)
-- **구현 상태:** ✅ 완료
-
-### 4.5 점진적 과부하
-- 3회 연속 동일 무게 완료 → +2.5kg 제안 배너
-- **구현 상태:** ✅ 완료
-
-### 4.6 설정
-- 계정 정보 (Google 프로필 사진, 이름, 이메일) + 로그아웃
-- 체중 (kg), 기본 휴식 타이머 (초) — localStorage 수동 저장
-- 운동 목록 관리 링크 (→ 라이브러리)
-- **구현 상태:** ✅ 완료
+**하단 탭(Layout):** `운동(/session)` · `기록(/history)` · `설정(/settings)` 3개.
+- 활성 탭 `text-blue-400`, 비활성 `text-zinc-500`.
+- 라이브러리(`/library`)는 탭 없음 — 설정에서 진입.
 
 ---
 
-## 5. 칼로리 계산
+## 6. 화면별 명세 + 와이어프레임
 
+> 공통: 다크 배경 `bg-zinc-950`, 콘텐츠 `max-w-lg mx-auto p-4`, 하단 네비 높이만큼 `pb`.
+
+### 6.0 Login (`/` 미로그인)
 ```
-kcal = MET × 체중(kg) × (시간(분) / 60)
+┌─────────────────────────────┐
+│                             │
+│          Workout            │  ← 3xl bold white
+│          운동 기록           │  ← zinc-500
+│                             │
+│  ┌───────────────────────┐  │
+│  │ [G] Google로 로그인     │  │  ← 흰 버튼, 구글 로고 SVG
+│  └───────────────────────┘  │
+│       (로그인 중...)         │  ← loading 시
+│       에러 메시지(빨강)       │  ← popup-blocked 등
+└─────────────────────────────┘
 ```
-- 시간 입력 + 체중 설정 시 자동 계산
+- `signInWithPopup`. `popup-closed-by-user`는 무시(에러 미표시), `popup-blocked`는 안내, 기타는 일반 실패 메시지.
+
+### 6.1 Session — Active Session (핵심) `/session`
+```
+┌──────────────────────────────────────┐
+│ 오늘                          [완료 ✓] │  ← 운동 있을 때만 완료 버튼
+│ 2026년 6월 14일 ⌄                       │  ← 날짜(점선밑줄). 탭하면 date picker
+│                                        │     (max=오늘). 다른날 = "다른 날 기록"
+│ (동기화 실패 시 빨간 배너)               │
+│ ┌────────────────────────────────────┐│
+│ │      + 운동 추가  (점선 테두리)        ││  ← 탭 → 운동추가 바텀시트
+│ └────────────────────────────────────┘│
+│  위 버튼을 눌러 운동을 추가하세요         │  ← 비었을 때
+│ ┌────────────────────────────────────┐│
+│ │ 벤치프레스                        ×  ││  ← 운동 카드 (최신이 위)
+│ │ 가슴                                ││
+│ │ [파란 배너: 최근 3회 80kg... +2.5kg] ││  ← 점진적 과부하 제안(조건부)
+│ │ 1세트            [✓]  [×]           ││  ← 세트행 1줄
+│ │ [-2.5] 80 kg [+2.5] [-1] 10 회 [+1] ││  ← 세트행 2줄 (StepperInput ×2)
+│ │ 2세트 ...                           ││
+│ │            + 세트 추가               ││
+│ └────────────────────────────────────┘│
+│              (휴식 타이머 오버레이)       │  ← 세트 완료 시 하단 떠오름
+│              (되돌리기 토스트)           │  ← 삭제 시
+└──────────────────────────────────────┘
+```
+**동작 명세**
+- **운동 추가:** [+ 운동 추가] → 바텀시트(`h-[80vh]` 고정). 상단 검색 input(**autoFocus 없음** — 키보드 자동 노출 방지, 2026-06-14), 카테고리 칩(전체+7), 운동 리스트. 기본 카테고리 = 현재 세션 메인 카테고리 → 없으면 과거 세션 메인 → 없으면 '전체'. 이미 추가된 운동은 흐리게 + "추가됨". Escape/배경 탭으로 닫기, Tab 포커스 트랩.
+- **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 위**에 추가(cardio는 빈 기록 1개 자동 생성).
+- **세트 추가:** 첫 세트면 **과거 세션의 마지막 세트 값**을 기본값으로(getLastSession), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10.
+- **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
+- **bodyweight:** "체중+" 레이블 + added_weight 스테퍼(step 2.5) + reps.
+- **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
+- **삭제:** 세트/운동 ×버튼 → 즉시 제거 + UndoToast(5초). 되돌리기 시 원위치 복원.
+- **자동 저장:** sessionExercises 변경 시 `upsertSession`(duration null) → AppContext 500ms 디바운스 → Firestore. 단 빈 세션(길이 0)은 저장 안 함.
+- **날짜 변경:** 헤더 date input 변경 → 해당 날짜 세션 로드(없으면 빈 배열). 날짜 전환 중엔 auto-save 스킵(`isDateChanging`).
+- **완료(✓):** 오늘 세션이면 sessionStorage 시작시각으로 `duration_min` 계산(최소 1분), 제거. `upsertSession` 후 `/history` 이동.
+
+### 6.2 History — 기록 목록 `/history`
+```
+┌──────────────────────────────────────┐
+│ 운동 기록            [📅 2026-06-14]   │  ← 날짜 점프 picker(세션 있을 때만)
+│ ┌────────────────────────────────────┐│
+│ │ 2026년 6월 13일 (토)          가슴   ││  ← 왼:날짜  오른:그날 메인 카테고리
+│ └────────────────────────────────────┘│     (2026-06-14: 시간→카테고리로 변경)
+│ ┌────────────────────────────────────┐│
+│ │ 2026년 6월 11일 (목)          하체   ││
+│ └────────────────────────────────────┘│
+│  아직 기록이 없어요                      │  ← 비었을 때
+│              (되돌리기 토스트)           │  ← 상세에서 삭제 후 진입 시
+└──────────────────────────────────────┘
+```
+- 날짜 역순. 카드는 **날짜 + 그날 메인 카테고리**만 표시(운동이름 나열/세트수 요약 줄은 효용 낮아 제거, 2026-06-14).
+- 메인 카테고리 = `getMainCategory` (없으면 오른쪽 빈칸).
+- 카드 탭 → `/history/:id`. date picker 변경 → 해당 날짜 카드로 부드럽게 스크롤(`cardRefs`).
+- 세션 삭제 후 `/history`로 돌아올 때 `location.state.undoSession`으로 5초 되돌리기.
+
+### 6.3 SessionDetail — 기록 상세 `/history/:id`
+```
+┌──────────────────────────────────────┐
+│ ←  2026년 6월 13일 (토)    [수정] [삭제] │
+│    65분                                │
+│ ┌────────────────────────────────────┐│
+│ │ 벤치프레스   가슴                     ││
+│ │ 1  80kg × 10회                  ✓   ││  ← done이면 초록 ✓
+│ │ 2  80kg × 10회                      ││
+│ └────────────────────────────────────┘│
+│ ┌────────────────────────────────────┐│
+│ │ 러닝머신   유산소                     ││  ← cardio: 2열 요약
+│ │ 시간 35분   거리 5.2km               ││
+│ │ 속도 8.5km/h  칼로리 338kcal         ││
+│ └────────────────────────────────────┘│
+└──────────────────────────────────────┘
+```
+- 세션 없으면 "세션을 찾을 수 없습니다" + 기록으로.
+- **수정:** `/session`에 `state.date` 전달 → 해당 날짜 편집.
+- **삭제:** `deleteSession` 즉시 + `/history`로 `state.undoSession` 전달(확인창 없음).
+- bodyweight: `체중+Nkg × M회`, weight: `Wkg × M회`.
+
+### 6.4 Library — 운동 목록/커스텀 `/library`
+```
+┌──────────────────────────────────────┐
+│ 운동 목록                     [+ 추가]  │
+│ (추가 폼: 이름 / 카테고리▼ / 타입▼       │  ← +추가 토글
+│         / cardio면 MET / [취소][추가])  │
+│ [🔍 운동 검색...]                       │
+│ [전체][가슴][등][어깨][팔][하체]...      │  ← 카테고리 칩 가로 스크롤
+│ ┌────────────────────────────────────┐│
+│ │ 벤치프레스  웨이트              가슴   ││  ← 기본: zinc-900
+│ ├────────────────────────────────────┤│
+│ │ 나만의운동 커스텀 웨이트      가슴  ×  ││  ← 커스텀: 파란 배경/테두리
+│ └────────────────────────────────────┘│     + "커스텀" 뱃지 + 삭제 ×
+└──────────────────────────────────────┘
+```
+- 목록은 이름 가나다순 정렬, 카테고리/검색 필터.
+- **커스텀 운동 시각 구별(2026-06-14):** `id.startsWith('custom-')`이면 `bg-blue-950/50 border border-blue-800/50` + 파란 "커스텀" 라벨 + 삭제(×) 버튼. **이 색상 구별은 라이브러리 화면에서만.** 운동 기록 추가(Session) 모달 리스트는 색 구별 없이 그대로.
+- 추가: 이름 필수. cardio일 때만 MET 입력(양수면 저장, 아니면 null). id=`custom-uuid`.
+- 기본 운동은 삭제 불가(× 없음).
+
+### 6.5 Settings `/settings`
+```
+┌──────────────────────────────────────┐
+│ 설정                                   │
+│ ┌─ 계정 ───────────────────────────┐  │
+│ │ (프로필사진) 이름 / 이메일          │  │
+│ │ [ 로그아웃 ]                       │  │
+│ └──────────────────────────────────┘  │
+│ ┌─ 기본 설정 ──────────────────────┐  │
+│ │ 휴식 타이머 (초)                   │  │  ← 체중 필드 제거됨(2026-06-14)
+│ │ [ 90 ]  (0이면 타이머 꺼짐)        │  │
+│ └──────────────────────────────────┘  │
+│ ┌─ 운동 목록 관리 ─────────────────┐  │
+│ │ 운동 목록 보기 / 커스텀 추가    →  │  │  → /library
+│ └──────────────────────────────────┘  │
+│ ┌─ 데이터 내보내기 ────────────────┐  │
+│ │ 전체 기록(N개 세션)을 .md로...     │  │
+│ │ [ 운동 기록 내보내기 (.md) ]       │  │
+│ └──────────────────────────────────┘  │
+│  (상태 메시지: 저장 완료 ✓ 등)          │
+│ [          저장          ]             │  ← 휴식 시간 localStorage 저장
+└──────────────────────────────────────┘
+```
+- 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md` 다운로드(Blob).
 
 ---
 
-## 6. Phase 계획
+## 7. 공통 컴포넌트
+
+### Layout
+- `<main>` 스크롤 컨테이너 + 하단 고정 `<nav>`(운동/기록/설정).
+- 경로 전환 시 스크롤 맨 위로. 단 `/session`은 스크롤 위치 보존(`scrollPositions` ref) — 운동 중 모달 닫기 등에서 위치 유지.
+
+### StepperInput
+- `[-step] [숫자 input] [+step]`. props: `value, onChange, step, unit, min=0, disabled`.
+- `onPointerDown`으로 즉시 반응. 외부 value 변경 시 비포커스 상태에서만 input 동기화(입력 중 방해 X). blur 시 빈/음수면 min으로 보정. 소수 누적오차 `toFixed(2)`.
+
+### RestTimer
+- 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. 1초 카운트다운(Session에서 setTimeout).
+- 0 도달 시 `navigator.vibrate([200,100,200])` 후 onDone. [건너뛰기] 버튼.
+
+### UndoToast
+- 5초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
+
+---
+
+## 8. 핵심 로직
+
+### 8.1 점진적 과부하 (`epley.js` → getProgressionSuggestion)
+- 해당 운동이 포함된 최근 3개 세션을 보고, 3회 모두 "완료된 세트의 마지막 무게"가 **동일**하면 `+2.5kg` 제안 배너.
+- 3세션 미만이거나 완료 세트 없거나 무게가 다르면 null.
+
+### 8.2 칼로리 (`calories.js` → calcCalories)
+```
+kcal = round( MET × 체중(kg) × (분/60) )
+```
+- 인자 중 null/0 이하 있으면 null. 체중은 `storage.getBodyWeight()`(기본 70).
+
+### 8.3 메인 카테고리 (`sessionUtils.js` → getMainCategory)
+- 세션 내 운동들의 카테고리 빈도 최다를 반환. 동률이면 **먼저 등장한** 카테고리. 운동 없으면 null.
+- 사용처: History 카드 우측, Session 추가 모달 기본 카테고리.
+
+### 8.4 이전 값 자동 입력 (`AppContext.getLastSession`)
+- `(exerciseId, excludeDate)` → 그 운동을 포함하는, 오늘이 아닌 가장 최근 세션. 첫 세트 기본값 채울 때 사용.
+
+### 8.5 자동 저장 / 디바운스 (`AppContext`)
+- state 변경 → 500ms 디바운스 후 `saveWorkoutData`. 로드 직후 1회는 `justLoadedRef`로 스킵(빈 데이터 덮어쓰기 방지). 에러 시 `syncError` 세팅(화면 빨간 배너).
+
+### 8.6 소요시간
+- 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. 완료 시 `(now-start)/60000` 반올림(최소 1분). 다른 날 편집은 duration 계산 안 함.
+
+---
+
+## 9. 기본 운동 목록 (`exercises.js`, 48개 / 7카테고리)
+
+- **가슴(7):** 벤치프레스, 인클라인 벤치프레스, 디클라인 벤치프레스, 덤벨 플라이, 케이블 크로스오버, 딥스(bw), 푸쉬업(bw)
+- **등(7):** 풀업(bw), 랫풀다운, 시티드 로우, 원암 덤벨 로우, 데드리프트, 티바 로우, 케이블 로우
+- **어깨(6):** 오버헤드프레스, 덤벨 숄더프레스, 사이드 레터럴 레이즈, 프론트 레이즈, 페이스풀, 업라이트 로우
+- **팔(7):** 바벨 컬, 덤벨 컬, 해머 컬, 프리처 컬, 트라이셉스 푸시다운, 오버헤드 트라이셉스 익스텐션, 스컬 크러셔
+- **하체(8):** 스쿼트, 레그프레스, 런지, 레그 익스텐션, 레그 컬, 힙 어브덕션, 카프 레이즈, 루마니안 데드리프트
+- **복근(6):** 크런치(bw), 레그 레이즈(bw), 플랭크(bw), 케이블 크런치, 행잉 레그 레이즈(bw), 복근 롤러(bw)
+- **유산소(7, MET):** 러닝머신8.3, 자전거8.0, 로잉머신7.0, 일립티컬5.0, 줄넘기10.0, 걷기3.5, 스텝퍼9.0
+- `CATEGORIES = ['가슴','등','어깨','팔','하체','복근','유산소']`
+
+---
+
+## 10. 디자인 시스템
+
+- **테마:** 다크 고정. 배경 `zinc-950/900/800`, 텍스트 `white/zinc-300/400/500/600`.
+- **포인트 컬러:** 파랑 `blue-600`(주요 버튼/활성), `blue-400`(강조 텍스트/링크), `blue-500`(진행 바).
+- **상태색:** 성공 `green-600/500`, 위험/삭제 `red-400/500`, 에러 배너 `red-900/30 + red-800`.
+- **커스텀 운동(라이브러리 전용):** `bg-blue-950/50 + border-blue-800/50`.
+- **모양:** 카드 `rounded-2xl`, 칩/작은요소 `rounded-xl/full`. 모달은 바텀시트(`rounded-t-2xl mt-auto`).
+- **인터랙션:** 모바일이라 hover 대신 `active:` 사용. 가로 스크롤 칩 `no-scrollbar`.
+- **애니메이션:** `animate-slide-up`(토스트), `animate-pulse`(스켈레톤/동기화).
+- **접근성:** 모달 `role="dialog" aria-modal`, Escape 닫기 + Tab 포커스 트랩, 아이콘 버튼 `aria-label`, 세트 완료 `aria-pressed`.
+
+---
+
+## 11. Phase 계획
 
 ### ✅ Phase 1 — MVP
-- [x] 웨이트 + 유산소 기록
-- [x] Firebase Auth (Google 로그인)
-- [x] Firestore 자동 동기화
-- [x] 유산소 수동 기록 (시간/거리/속도/경사)
-- [x] PWA
+- [x] 웨이트 + 유산소 기록 / Firebase Auth / Firestore 자동 동기화 / 유산소 수동 기록 / PWA
 
 ### ✅ Phase 2 — 점진적 과부하
-- [x] 점진적 과부하 알림 (+2.5kg 제안)
+- [x] +2.5kg 제안 배너
 
 ---
 
-## 7. Out of Scope
+## 12. Out of Scope (의도적 제외)
 
 - 다중 사용자 / 소셜 기능
 - 분석 차트 / 통계
 - 바코드 / 외부 DB 운동 검색
 - 알림 / 리마인더
-- InBody / 체성분 분석 (제거됨)
-- Epley 1RM 표시 (제거됨)
-- Gemini Vision API 사진 인식 (제거됨)
+- InBody / 체성분 분석 (과거 제거)
+- Epley 1RM 표시 (과거 제거)
+- Gemini Vision API 사진 인식 (과거 제거)
+- 홈 화면 / 카테고리 기반 운동 시작 모달 (2026-06-13 제거)
+- 체중 설정 UI (2026-06-14 제거 — 칼로리는 기본 70kg)
 
 ---
 
-## 8. 유지보수 이력
+## 13. 유지보수 이력
 
 - Phase 1~2 구현 완료
 - InBody, Gemini Vision, Epley 1RM 표시 등 불필요 기능 제거 후 운동 기록에 집중
 - 유지보수 13회 세션 수행: 63개 항목 검수 (23 pass / 20 fixed / 20 reported)
 - ESLint 경고 전체 해결, 접근성 개선 (키보드 포커스 트랩, aria 속성 등)
-- 2026-06-13: 홈 탭 삭제 (기록 탭과 역할 중복). 기본 진입을 운동 탭으로 변경, 카테고리 기반 시작 모달 및 관련 유틸(getLatestCategoryExerciseIds) 제거
-- 2026-06-14: 기록 탭 목록 카드 간소화 — 운동 이름 나열 줄 + 메인 카테고리/종목·세트 요약 줄 제거 (날짜·소요시간만 유지)
+- 2026-06-13: 홈 탭 삭제(기록 탭과 역할 중복). 기본 진입을 운동 탭으로 변경, 카테고리 기반 시작 모달 및 관련 유틸(getLatestCategoryExerciseIds) 제거
+- 2026-06-14: 기록 탭 목록 카드 간소화 — 운동 이름/요약 줄 제거
+- 2026-06-14: 운동 추가 모달 자동 포커스 제거 / 기록 카드 우측에 그날 메인 카테고리 표시 / 설정 체중 필드 제거 / 라이브러리 커스텀 운동 색상·뱃지 구별(라이브러리 한정)
+- 2026-06-14: SPEC.md를 재구성 수준(와이어프레임 포함)으로 전면 보강
