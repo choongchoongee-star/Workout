@@ -2,13 +2,12 @@ import { useCallback, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate, localTodayStr } from '../lib/dateUtils'
-import { getMainCategory } from '../lib/sessionUtils'
 import UndoToast from '../components/UndoToast'
 
 export default function History() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { sessions, exercises, upsertSession } = useApp()
+  const { sessions, upsertSession } = useApp()
   const [jumpDate, setJumpDate] = useState(() => localTodayStr())
   const cardRefs = useRef({})
 
@@ -54,40 +53,21 @@ export default function History() {
         <p className="text-zinc-600 text-sm text-center py-12">아직 기록이 없어요</p>
       ) : (
         <div className="space-y-2">
-          {sessions.map(session => {
-            const sessionExercises = session.exercises ?? []
-            const totalSets = sessionExercises.reduce((sum, e) => sum + (e.sets?.length || 0), 0)
-            const allCardio = sessionExercises.length > 0 &&
-              sessionExercises.every(e => exercises.find(ex => ex.id === e.exerciseId)?.type === 'cardio')
-            const names = sessionExercises
-              .map(e => exercises.find(ex => ex.id === e.exerciseId)?.name || e.exerciseId)
-              .slice(0, 3)
-            const mainCategory = getMainCategory(sessionExercises, exercises)
-
-            return (
-              <button
-                key={session.id}
-                ref={el => { cardRefs.current[session.date] = el }}
-                onClick={() => navigate(`/history/${session.id}`)}
-                className="w-full bg-zinc-900 rounded-xl p-4 text-left active:bg-zinc-800"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-white font-medium">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</span>
-                  <span className="text-zinc-500 text-sm">
-                    {session.duration_min ? `${session.duration_min}분` : ''}
-                  </span>
-                </div>
-                <p className="text-zinc-400 text-sm">
-                  {names.join(' · ')}{sessionExercises.length > 3 ? ` +${sessionExercises.length - 3}` : ''}
-                </p>
-                <p className="text-zinc-600 text-xs mt-1">
-                  {mainCategory && <span className="text-blue-400">메인: {mainCategory}</span>}
-                  {mainCategory && ' · '}
-                  {sessionExercises.length}종목 · {totalSets}{allCardio ? '기록' : '세트'}
-                </p>
-              </button>
-            )
-          })}
+          {sessions.map(session => (
+            <button
+              key={session.id}
+              ref={el => { cardRefs.current[session.date] = el }}
+              onClick={() => navigate(`/history/${session.id}`)}
+              className="w-full bg-zinc-900 rounded-xl p-4 text-left active:bg-zinc-800"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-white font-medium">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</span>
+                <span className="text-zinc-500 text-sm">
+                  {session.duration_min ? `${session.duration_min}분` : ''}
+                </span>
+              </div>
+            </button>
+          ))}
         </div>
       )}
 
