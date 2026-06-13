@@ -18,7 +18,6 @@ function Field({ label, hint, children }) {
 export default function Settings() {
   const { user, logout } = useAuth()
   const { sessions, exercises } = useApp()
-  const [bodyWeight, setBodyWeight] = useState(String(storage.getBodyWeight()))
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [status, setStatus] = useState({})
 
@@ -39,8 +38,6 @@ export default function Settings() {
   }
 
   function save() {
-    const bw = parseFloat(bodyWeight)
-    if (!isNaN(bw) && bw > 0) storage.setBodyWeight(bw)
     const rs = parseInt(restSeconds, 10)
     if (!isNaN(rs) && rs >= 0) storage.setRestSeconds(rs)
     setStatus({ msg: '저장 완료 ✓', ok: true })
@@ -84,15 +81,6 @@ export default function Settings() {
       {/* Body settings */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
         <h2 className="text-zinc-300 font-medium mb-4">기본 설정</h2>
-        <Field label="체중 (kg)" hint="유산소 칼로리 자동계산에 사용됩니다">
-          <input
-            type="number"
-            value={bodyWeight}
-            onChange={e => setBodyWeight(e.target.value)}
-            className={inputCls}
-            placeholder="70"
-          />
-        </Field>
         <Field label="휴식 타이머 (초)" hint="0으로 설정하면 휴식 타이머가 꺼집니다">
           <input
             type="number"

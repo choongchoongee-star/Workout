@@ -77,7 +77,6 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
         </div>
         <div className="p-3 border-b border-zinc-800">
           <input
-            autoFocus
             type="text"
             placeholder="운동 검색..."
             value={query}

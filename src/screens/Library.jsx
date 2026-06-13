@@ -150,23 +150,32 @@ export default function Library() {
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
-        {loaded && filtered.map(ex => (
-          <div key={ex.id} className="flex items-center bg-zinc-900 rounded-xl px-4 py-3">
-            <div className="flex-1">
-              <span className="text-white text-sm">{ex.name}</span>
-              <span className="text-zinc-600 text-xs ml-2">{TYPE_LABELS[ex.type]}</span>
+        {loaded && filtered.map(ex => {
+          const isCustom = ex.id.startsWith('custom-')
+          return (
+            <div
+              key={ex.id}
+              className={`flex items-center rounded-xl px-4 py-3 ${
+                isCustom ? 'bg-blue-950/50 border border-blue-800/50' : 'bg-zinc-900'
+              }`}
+            >
+              <div className="flex-1">
+                <span className="text-white text-sm">{ex.name}</span>
+                {isCustom && <span className="text-blue-400 text-xs ml-2">커스텀</span>}
+                <span className="text-zinc-600 text-xs ml-2">{TYPE_LABELS[ex.type]}</span>
+              </div>
+              <span className="text-zinc-600 text-xs mr-3">{ex.category}</span>
+              {isCustom && (
+                <button
+                  onClick={() => deleteExercise(ex.id)}
+                  className="text-zinc-700 active:text-red-400 text-lg px-1"
+                >
+                  ×
+                </button>
+              )}
             </div>
-            <span className="text-zinc-600 text-xs mr-3">{ex.category}</span>
-            {ex.id.startsWith('custom-') && (
-              <button
-                onClick={() => deleteExercise(ex.id)}
-                className="text-zinc-700 active:text-red-400 text-lg px-1"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
+          )
+        })}
         {loaded && filtered.length === 0 && (
           <p className="text-zinc-600 text-sm text-center py-8">검색 결과 없음</p>
         )}
