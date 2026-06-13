@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { AppProvider } from './context/AppContext'
 import Layout from './components/Layout'
 import Login from './screens/Login'
-import Home from './screens/Home'
 import Session from './screens/Session'
 import History from './screens/History'
 import SessionDetail from './screens/SessionDetail'
@@ -29,13 +28,13 @@ function AppRoutes() {
     <AppProvider>
       <Layout>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Navigate to="/session" replace />} />
           <Route path="/session" element={<Session />} />
           <Route path="/history" element={<History />} />
           <Route path="/history/:id" element={<SessionDetail />} />
           <Route path="/library" element={<Library />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/session" replace />} />
         </Routes>
       </Layout>
     </AppProvider>

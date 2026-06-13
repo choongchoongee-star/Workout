@@ -20,14 +20,3 @@ export function getMainCategory(sessionExercises, exercises) {
   }
   return best
 }
-
-export function getLatestCategoryExerciseIds(sessions, exercises, category, excludeDate = null) {
-  for (const s of sessions) {
-    if (excludeDate && s.date === excludeDate) continue
-    const ids = (s.exercises ?? [])
-      .filter(se => exercises.find(ex => ex.id === se.exerciseId)?.category === category)
-      .map(se => se.exerciseId)
-    if (ids.length > 0) return ids
-  }
-  return []
-}

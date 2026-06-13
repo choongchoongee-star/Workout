@@ -1,6 +1,6 @@
 # Workout Logger — 기획서
 
-> 마지막 업데이트: 2026-04-10
+> 마지막 업데이트: 2026-06-13
 > 현재 Phase: Phase 2 완료 (유지보수 완료)
 
 ---
@@ -20,9 +20,9 @@
 ```
 Workout/
 ├── src/
-│   ├── screens/           # 화면 컴포넌트 (Login, Home, Session, History, SessionDetail, Library, Settings)
+│   ├── screens/           # 화면 컴포넌트 (Login, Session, History, SessionDetail, Library, Settings)
 │   ├── components/        # 재사용 컴포넌트 (Layout, StepperInput, RestTimer, UndoToast)
-│   │                      # Layout: 하단 네비게이션 + 스크롤 리셋
+│   │                      # Layout: 하단 네비게이션(운동/기록/설정) + 스크롤 리셋
 │   ├── context/
 │   │   ├── AuthContext.jsx   # Firebase Google Auth 상태 관리
 │   │   └── AppContext.jsx    # 운동 데이터 상태 + Firestore 자동 동기화
@@ -95,9 +95,9 @@ Google 로그인 → Firebase Auth → uid 획득
 - 미로그인 시 모든 화면 차단 → 로그인 화면으로
 - **구현 상태:** ✅ 완료
 
-### 4.1 홈 화면
-- 오늘 날짜 + [오늘 운동 시작] 버튼 (기존 세션 있으면 "이어하기"로 변경)
-- 최근 5개 세션 요약 (날짜, 운동 이름 최대 3개, 세트 수, 시간)
+### 4.1 진입 / 네비게이션
+- 하단 탭: 운동 / 기록 / 설정 (홈 탭 제거됨 — 기록 탭과 역할 중복으로 2026-06-13 삭제)
+- 기본 경로 `/` 및 알 수 없는 경로 → 운동(`/session`) 탭으로 리다이렉트
 - **구현 상태:** ✅ 완료
 
 ### 4.2 Active Session (핵심 화면)
@@ -183,3 +183,4 @@ kcal = MET × 체중(kg) × (시간(분) / 60)
 - InBody, Gemini Vision, Epley 1RM 표시 등 불필요 기능 제거 후 운동 기록에 집중
 - 유지보수 13회 세션 수행: 63개 항목 검수 (23 pass / 20 fixed / 20 reported)
 - ESLint 경고 전체 해결, 접근성 개선 (키보드 포커스 트랩, aria 속성 등)
+- 2026-06-13: 홈 탭 삭제 (기록 탭과 역할 중복). 기본 진입을 운동 탭으로 변경, 카테고리 기반 시작 모달 및 관련 유틸(getLatestCategoryExerciseIds) 제거

@@ -3,16 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom'
 
 const NAV = [
   {
-    to: '/',
-    label: '홈',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
-        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-        <path d="M9 21V12h6v9" />
-      </svg>
-    ),
-  },
-  {
     to: '/session',
     label: '운동',
     icon: (
@@ -74,7 +64,6 @@ export default function Layout({ children }) {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
                 isActive ? 'text-blue-400' : 'text-zinc-500'

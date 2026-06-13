@@ -253,26 +253,14 @@ export default function Session() {
   const realToday = localTodayStr()
 
   const initialDate = location.state?.date ?? realToday
-  const presetExerciseIds = location.state?.presetExerciseIds ?? null
   const [sessionDate, setSessionDate] = useState(initialDate)
   const [sessionExercises, setSessionExercises] = useState(() => {
     const existing = sessions.find(s => s.id === initialDate)
     if (existing?.exercises?.length) return deepClone(existing.exercises)
-    if (presetExerciseIds?.length) {
-      return presetExerciseIds.map(id => ({ exerciseId: id, sets: [] }))
-    }
     return []
   })
   const isDateChanging = useRef(false)
   const didMount = useRef(false)
-
-  // 마운트 후 location.state 소비 (새로고침 시 재시드 방지)
-  useEffect(() => {
-    if (presetExerciseIds) {
-      window.history.replaceState({}, '')
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // 날짜가 바뀌면 해당 날짜 세션 로드 (첫 마운트 제외 — 초기 state는 lazy init이 처리)
   useEffect(() => {
