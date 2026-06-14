@@ -262,6 +262,9 @@ export default function Session() {
   // 세트 추가 시 새 세트가 보이도록 스크롤하기 위한 ref
   const addSetBtnRefs = useRef({})
   const pendingScrollExIdx = useRef(null)
+  // 운동 추가 시 새 운동 카드가 보이도록 스크롤하기 위한 ref
+  const exerciseCardRefs = useRef({})
+  const pendingScrollCardIdx = useRef(null)
 
   // 날짜가 바뀌면 해당 날짜 세션 로드 (첫 마운트 제외 — 초기 state는 lazy init이 처리)
   useEffect(() => {
@@ -320,6 +323,14 @@ export default function Session() {
     addSetBtnRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [sessionExercises])
 
+  // 운동 추가 후 새 운동 카드가 화면에 보이도록 스크롤
+  useEffect(() => {
+    const idx = pendingScrollCardIdx.current
+    if (idx == null) return
+    pendingScrollCardIdx.current = null
+    exerciseCardRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [sessionExercises])
+
   // Rest timer countdown
   useEffect(() => {
     if (!restTimer.active || restTimer.remaining <= 0) {
@@ -341,6 +352,8 @@ export default function Session() {
   function addExercise(ex) {
     // 카디오는 단일 기록이라 빈 배열로 두면 폼이 없어지므로 그대로 한 개 생성
     const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
+    // 새 운동은 목록 맨 아래에 추가되므로 추가 후 그 카드로 스크롤
+    pendingScrollCardIdx.current = sessionExercises.length
     setSessionExercises(prev => [...prev, { exerciseId: ex.id, sets }])
     setShowModal(false)
   }
@@ -482,7 +495,11 @@ export default function Session() {
           const progression = !isCardio ? getProgressionSuggestion(sessions, se.exerciseId, sessionDate) : null
 
           return (
-            <div key={exIdx} className="bg-zinc-900 rounded-2xl p-4">
+            <div
+              key={exIdx}
+              ref={el => { exerciseCardRefs.current[exIdx] = el }}
+              className="bg-zinc-900 rounded-2xl p-4"
+            >
               <div className="flex items-center justify-between mb-1">
                 <div className="min-w-0 flex-1 mr-2">
                   <h3 className="text-white font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
