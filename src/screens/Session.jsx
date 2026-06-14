@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
 import { calcCalories } from '../lib/calories'
@@ -246,7 +246,6 @@ function CardioForm({ record, exercise, onUpdate }) {
 }
 
 export default function Session() {
-  const navigate = useNavigate()
   const location = useLocation()
   const { exercises, sessions, upsertSession, getLastSession, syncError, loaded } = useApp()
   const realToday = localTodayStr()
@@ -260,6 +259,9 @@ export default function Session() {
   })
   const isDateChanging = useRef(false)
   const didMount = useRef(false)
+  // 세트 추가 시 새 세트가 보이도록 스크롤하기 위한 ref
+  const addSetBtnRefs = useRef({})
+  const pendingScrollExIdx = useRef(null)
 
   // 날짜가 바뀌면 해당 날짜 세션 로드 (첫 마운트 제외 — 초기 state는 lazy init이 처리)
   useEffect(() => {
@@ -294,11 +296,29 @@ export default function Session() {
   const [undoData, setUndoData] = useState(null)
 
   // Auto-save in-progress session to context on every change
+  // 완료 버튼 제거(2026-06-14) → 자동저장 시 오늘 세션의 소요시간도 함께 계산해 보존
   useEffect(() => {
     if (isDateChanging.current) return
     if (sessionExercises.length === 0) return
-    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: null })
-  }, [sessionExercises, sessionDate, upsertSession])
+    let durationMin = null
+    if (sessionDate === realToday) {
+      try {
+        const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10)
+        if (startTime) durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
+      } catch {
+        durationMin = null
+      }
+    }
+    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: durationMin })
+  }, [sessionExercises, sessionDate, upsertSession, realToday, startTimeKey])
+
+  // 세트 추가 후 새 세트(= 해당 운동의 '세트 추가' 버튼 영역)가 화면에 보이도록 스크롤
+  useEffect(() => {
+    const idx = pendingScrollExIdx.current
+    if (idx == null) return
+    pendingScrollExIdx.current = null
+    addSetBtnRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [sessionExercises])
 
   // Rest timer countdown
   useEffect(() => {
@@ -349,6 +369,7 @@ export default function Session() {
       }
       return copy
     })
+    pendingScrollExIdx.current = exIdx
   }
 
   function updateSet(exIdx, setIdx, field, value) {
@@ -422,22 +443,6 @@ export default function Session() {
     setUndoData(null)
   }, [])
 
-  function finishSession() {
-    let durationMin = null
-    if (sessionDate === realToday) {
-      try {
-        const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10) || Date.now()
-        durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
-        sessionStorage.removeItem(startTimeKey)
-      } catch {
-        durationMin = null
-      }
-    }
-
-    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: durationMin })
-    navigate('/history')
-  }
-
   return (
     <div className="p-4 max-w-lg mx-auto pb-8">
       {/* Header */}
@@ -457,14 +462,6 @@ export default function Session() {
             />
           </div>
         </div>
-        {sessionExercises.length > 0 && (
-          <button
-            onClick={finishSession}
-            className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl active:bg-blue-700"
-          >
-            완료 ✓
-          </button>
-        )}
       </div>
 
       {syncError && (
@@ -473,15 +470,8 @@ export default function Session() {
         </div>
       )}
 
-      <button
-        onClick={() => setShowModal(true)}
-        className="w-full mb-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
-      >
-        + 운동 추가
-      </button>
-
       {sessionExercises.length === 0 && (
-        <p className="text-zinc-600 text-sm text-center mt-2">위 버튼을 눌러 운동을 추가하세요</p>
+        <p className="text-zinc-600 text-sm text-center mt-2 mb-3">아래 버튼을 눌러 운동을 추가하세요</p>
       )}
 
       {/* Exercise cards */}
@@ -533,6 +523,7 @@ export default function Session() {
                     />
                   ))}
                   <button
+                    ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
                     className="w-full text-zinc-500 text-sm py-2 mt-1 rounded-lg active:text-zinc-300 active:bg-zinc-800 transition-colors"
                   >
@@ -544,6 +535,13 @@ export default function Session() {
           )
         })}
       </div>
+
+      <button
+        onClick={() => setShowModal(true)}
+        className="w-full mt-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
+      >
+        + 운동 추가
+      </button>
 
       {restTimer.active && (
         <RestTimer
