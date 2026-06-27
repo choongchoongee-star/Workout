@@ -7,7 +7,6 @@ import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import UndoToast from '../components/UndoToast'
 import { CATEGORIES } from '../data/exercises'
-import { getProgressionSuggestion } from '../lib/epley'
 import { localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
 
@@ -492,7 +491,6 @@ export default function Session() {
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
-          const progression = !isCardio ? getProgressionSuggestion(sessions, se.exerciseId, sessionDate) : null
 
           return (
             <div
@@ -513,13 +511,6 @@ export default function Session() {
                   ×
                 </button>
               </div>
-              {/* Progression suggestion */}
-              {progression && (
-                <div className="bg-blue-900/30 border border-blue-800/50 rounded-lg px-3 py-1.5 mb-2 text-xs text-blue-300">
-                  {progression.message}
-                </div>
-              )}
-
               {isCardio ? (
                 <CardioForm
                   record={se.sets[0] ?? newCardioRecord()}

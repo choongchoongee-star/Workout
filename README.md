@@ -76,24 +76,25 @@ src/
 │   ├── firestore.js          # Firestore load/save (users/{uid}/data/workout)
 │   ├── storage.js            # localStorage (체중, 휴식 시간)
 │   ├── calories.js           # MET 칼로리 계산
-│   ├── epley.js              # 점진적 과부하 제안 (3회 연속 동일 무게 감지)
+│   ├── sessionUtils.js       # 그날 메인 카테고리 계산 (getMainCategory)
+│   ├── exportUtils.js        # 기록 Markdown 내보내기
 │   └── dateUtils.js          # 날짜 포맷 유틸
 ├── context/
 │   ├── AuthContext.jsx        # Firebase Google Auth 상태 관리
 │   └── AppContext.jsx         # 운동 데이터 상태 + Firestore 자동 동기화
 ├── components/
-│   ├── Layout.jsx             # 하단 네비게이션 (홈/운동/기록/설정)
+│   ├── Layout.jsx             # 하단 네비게이션 (운동/기록/무게/설정)
 │   ├── StepperInput.jsx       # [-] 값 [+] 스테퍼 입력
 │   ├── RestTimer.jsx          # 휴식 타이머 (원형 프로그레스)
 │   └── UndoToast.jsx          # 삭제 되돌리기 토스트 (5초)
 └── screens/
     ├── Login.jsx              # Google 로그인
-    ├── Home.jsx               # 메인화면 (오늘 운동 시작/이어하기 + 최근 5개 기록)
     ├── Session.jsx            # 운동 기록 (핵심 화면)
     ├── History.jsx            # 기록 목록 (날짜 역순 + 날짜 점프)
     ├── SessionDetail.jsx      # 기록 상세 (수정/삭제)
+    ├── Weight.jsx             # 무게 탭 (운동별 과거 세트 연속 조회)
     ├── Library.jsx            # 운동 목록 관리 (검색/카테고리/커스텀 추가)
-    └── Settings.jsx           # 설정 (계정, 체중, 휴식 타이머)
+    └── Settings.jsx           # 설정 (계정, 휴식 타이머)
 ```
 
 ## 보안

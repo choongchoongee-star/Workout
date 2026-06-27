@@ -22,6 +22,15 @@ const NAV = [
     ),
   },
   {
+    to: '/weight',
+    label: '무게',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
+        <path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     to: '/settings',
     label: '설정',
     icon: (
