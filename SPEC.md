@@ -1,6 +1,6 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-06-14
+> 마지막 업데이트: 2026-08-21
 > 현재 Phase: Phase 3 (무게 탭) 완료 — 유지보수 단계
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
@@ -119,6 +119,9 @@ Google 로그인 → Firebase Auth → uid 획득
 로그인 시 AppProvider가 Firestore에서 1회 로드
   users/{uid}/data/workout → { exercises[], sessions[] }
   (문서 없으면 exercises=null→기본48개, sessions=[])
+  ├ 로드 중: 자식 화면 마운트 보류 + 전체 화면 로딩 표시
+  ├ 성공: 데이터를 반영하고 loaded=true, syncing=false
+  └ 실패: 빈 데이터로 대체하지 않고 오류 + [다시 시도] 표시
 
 운동 데이터 변경 → reducer state 갱신 → 500ms 디바운스 후 Firestore에 setDoc
   (로드 직후 첫 실행은 justLoadedRef로 스킵 — 빈 데이터 덮어쓰기 방지)
@@ -160,7 +163,7 @@ Google 로그인 → Firebase Auth → uid 획득
   "exercises": [ SessionExercise, ... ], "duration_min": 65 }
 ```
 - `id` = `date` = `YYYY-MM-DD` (로컬 기준, `localTodayStr()`)
-- `duration_min`: 완료 시 자동 계산. 진행 중 자동저장 시엔 null
+- `duration_min`: 오늘 세션은 변경 사항을 자동 저장할 때 sessionStorage 시작 시각으로 계산(최소 1분). 다른 날짜를 편집할 때는 null
 
 ### 4.4 SessionExercise
 ```json
@@ -193,6 +196,8 @@ Google 로그인 → Firebase Auth → uid 획득
 - `user === undefined` → 전체 화면 스피너
 - `user === null` → `<Login/>`
 - 로그인됨 → `<AppProvider><Layout><Routes>...`
+- AppProvider 데이터 로드 중 → Layout/Routes를 아직 마운트하지 않고 전체 화면 로딩 표시
+- AppProvider 데이터 로드 실패 → 빈 기록 화면 대신 오류와 [다시 시도] 표시
 
 | 경로 | 화면 | 비고 |
 |------|------|------|
@@ -200,7 +205,7 @@ Google 로그인 → Firebase Auth → uid 획득
 | `/session` | Session | 기본 진입 |
 | `/history` | History | |
 | `/history/:id` | SessionDetail | |
-| `/weight` | Weight | 무게 탭 (2026-06-14 신설) |
+| `/weight` | Weight | 무게 탭 (2026-06-28 신설) |
 | `/library` | Library | |
 | `/settings` | Settings | |
 | `*` | → `/session` 리다이렉트 | |
@@ -284,6 +289,7 @@ Google 로그인 → Firebase Auth → uid 획득
 - 메인 카테고리 = `getMainCategory` (없으면 오른쪽 빈칸).
 - 카드 탭 → `/history/:id`. date picker 변경 → 해당 날짜 카드로 부드럽게 스크롤(`cardRefs`).
 - 세션 삭제 후 `/history`로 돌아올 때 `location.state.undoSession`으로 5초 되돌리기.
+- 저장 동기화 실패 시 기록 목록 위에 네트워크 확인 배너 표시.
 
 ### 6.3 SessionDetail — 기록 상세 `/history/:id`
 ```
@@ -307,7 +313,7 @@ Google 로그인 → Firebase Auth → uid 획득
 - **삭제:** `deleteSession` 즉시 + `/history`로 `state.undoSession` 전달(확인창 없음).
 - bodyweight: `체중+Nkg × M회`, weight: `Wkg × M회`.
 
-### 6.4 Weight — 무게 탭 `/weight` (2026-06-14 신설)
+### 6.4 Weight — 무게 탭 `/weight` (2026-06-28 신설)
 **목표:** 한 운동의 과거 세트(무게·횟수)를 날짜 클릭 없이 **연속 스크롤**로 한눈에 확인.
 
 **(a) 운동 선택 화면 (selected = null)**
@@ -417,7 +423,7 @@ Google 로그인 → Firebase Auth → uid 획득
 ## 8. 핵심 로직
 
 ### 8.1 (제거됨) 점진적 과부하 제안
-- 과거 "3회 연속 동일 무게 → +2.5kg 올려보세요" 배너 + `epley.js`는 **2026-06-14 제거**.
+- 과거 "3회 연속 동일 무게 → +2.5kg 올려보세요" 배너 + `epley.js`는 **2026-06-28 제거**.
 - 대신 **이전 값 자동 입력(8.4)** 으로 마지막 무게를 첫 세트 기본값에 넣어주는 기능만 유지.
 
 ### 8.2 칼로리 (`calories.js` → calcCalories)
@@ -434,7 +440,11 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - `(exerciseId, excludeDate)` → 그 운동을 포함하는, 오늘이 아닌 가장 최근 세션. 첫 세트 기본값 채울 때 사용.
 
 ### 8.5 자동 저장 / 디바운스 (`AppContext`)
-- state 변경 → 500ms 디바운스 후 `saveWorkoutData`. 로드 직후 1회는 `justLoadedRef`로 스킵(빈 데이터 덮어쓰기 방지). 에러 시 `syncError` 세팅(화면 빨간 배너).
+- 인증 복원 후 `LOAD_START`로 원격 데이터를 읽으며, 완료 전에는 Session/History 등 자식 화면을 마운트하지 않는다. 따라서 오늘 화면이 초기 빈 `sessions`를 캡처하거나 사용자가 로딩 중 빈 상태를 편집하는 일을 막는다.
+- 로드 성공 시 데이터와 함께 `loaded=true`, `syncing=false`로 전환한다. 개발 모드 이중 실행이나 사용자 전환 뒤 늦게 도착한 응답은 effect cleanup의 `cancelled` 플래그로 무시한다.
+- 로드 실패 시 빈 배열로 대체하지 않고 `LOAD_ERROR`로 진입한다. 기존 원격 기록을 빈 데이터로 오인·덮어쓰지 않도록 편집 화면 대신 오류와 [다시 시도]를 표시한다.
+- 정상 로드 직후 첫 저장 effect는 `justLoadedRef`로 1회 스킵한다. 이후 state 변경은 500ms 디바운스 후 `saveWorkoutData`로 전체 문서를 저장한다.
+- 저장 실패는 `syncError`로 보존하며 Session·History·Library 화면에 빨간 동기화 오류 배너를 표시한다(화면별 안내 문구는 다름). 다음 동기화 시작 시 오류를 초기화한다.
 
 ### 8.6 소요시간
 - 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장(디바운스)마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
@@ -473,10 +483,10 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - [x] 웨이트 + 유산소 기록 / Firebase Auth / Firestore 자동 동기화 / 유산소 수동 기록 / PWA
 
 ### ✅ Phase 2 — 점진적 과부하 (이후 롤백)
-- [x] +2.5kg 제안 배너 → **2026-06-14 제거** (이전 값 자동 입력만 유지)
+- [x] +2.5kg 제안 배너 → **2026-06-28 제거** (이전 값 자동 입력만 유지)
 
 ### ✅ Phase 3 — 무게 탭
-- [x] 운동별 과거 세트 연속 조회 화면 (2026-06-14)
+- [x] 운동별 과거 세트 연속 조회 화면 (2026-06-28)
 
 ---
 
@@ -491,7 +501,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - Gemini Vision API 사진 인식 (과거 제거)
 - 홈 화면 / 카테고리 기반 운동 시작 모달 (2026-06-13 제거)
 - 체중 설정 UI (2026-06-14 제거 — 칼로리는 기본 70kg)
-- 점진적 과부하(+2.5kg) 제안 배너 (2026-06-14 제거)
+- 점진적 과부하(+2.5kg) 제안 배너 (2026-06-28 제거)
 
 ---
 
@@ -507,4 +517,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-06-14: SPEC.md를 재구성 수준(와이어프레임 포함)으로 전면 보강
 - 2026-06-14: 운동 탭 UX 3종 — 세트 추가 시 새 세트로 자동 스크롤 / [+ 운동 추가] 버튼 상단→하단 이동 / [완료] 버튼 제거(자동저장이 소요시간까지 처리하도록 이관)
 - 2026-06-14: 운동 추가 시에도 새 운동 카드로 자동 스크롤 (SPEC '맨 위' 표현을 실제 동작인 '맨 아래'로 정정)
-- 2026-06-14: **무게 탭 신설**(운동/기록/무게/설정 4탭). 운동 선택 → 과거 세트를 날짜별로 연속 스크롤 조회(클릭 없이). 점진적 과부하 제안 배너 + epley.js 제거(이전 값 자동 입력은 유지)
+- 2026-06-28: **무게 탭 신설**(운동/기록/무게/설정 4탭). 운동 선택 → 과거 세트를 날짜별로 연속 스크롤 조회(클릭 없이). 점진적 과부하 제안 배너 + epley.js 제거(이전 값 자동 입력은 유지)
+- 2026-08-21: 앱 시작 시 Firestore 데이터 로드가 끝날 때까지 편집 화면 마운트를 보류. 로드 실패를 빈 기록으로 대체하지 않고 재시도 화면을 표시하며, 늦게 도착한 비동기 응답을 무시하도록 보강. 성공 시 동기화 상태 정상 종료 및 History 저장 오류 배너 추가.

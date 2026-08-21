@@ -8,7 +8,7 @@ import UndoToast from '../components/UndoToast'
 export default function History() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { sessions, exercises, upsertSession } = useApp()
+  const { sessions, exercises, upsertSession, syncError } = useApp()
   const [jumpDate, setJumpDate] = useState(() => localTodayStr())
   const cardRefs = useRef({})
 
@@ -49,6 +49,12 @@ export default function History() {
           />
         )}
       </div>
+
+      {syncError && (
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
+          데이터 저장에 실패했습니다. 네트워크를 확인해주세요.
+        </div>
+      )}
 
       {sessions.length === 0 ? (
         <p className="text-zinc-600 text-sm text-center py-12">아직 기록이 없어요</p>

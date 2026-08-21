@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef, useState } from 'react'
 import { DEFAULT_EXERCISES } from '../data/exercises'
 import { loadWorkoutData, saveWorkoutData } from '../lib/firestore'
 import { useAuth } from './AuthContext'
@@ -15,13 +15,21 @@ const initialState = {
 
 function reducer(state, action) {
   switch (action.type) {
+    case 'LOAD_START':
+      return { ...state, loaded: false, syncing: true, syncError: null }
+
     case 'LOAD_DATA':
       return {
         ...state,
         exercises: action.exercises,
         sessions: action.sessions,
         loaded: true,
+        syncing: false,
+        syncError: null,
       }
+
+    case 'LOAD_ERROR':
+      return { ...state, loaded: false, syncing: false, syncError: action.error }
 
     case 'SYNC_START':
       return { ...state, syncing: true, syncError: null }
@@ -58,6 +66,7 @@ function reducer(state, action) {
 export function AppProvider({ children }) {
   const { user } = useAuth()
   const [state, dispatch] = useReducer(reducer, initialState)
+  const [loadAttempt, setLoadAttempt] = useState(0)
   // Firestore에서 막 로드한 직후엔 동일 데이터를 다시 저장하지 않도록 플래그
   const justLoadedRef = useRef(false)
 
@@ -67,9 +76,12 @@ export function AppProvider({ children }) {
       dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [] })
       return
     }
-    dispatch({ type: 'SYNC_START' })
+
+    let cancelled = false
+    dispatch({ type: 'LOAD_START' })
     loadWorkoutData(user.uid)
       .then(data => {
+        if (cancelled) return
         justLoadedRef.current = true
         dispatch({
           type: 'LOAD_DATA',
@@ -78,11 +90,13 @@ export function AppProvider({ children }) {
         })
       })
       .catch(err => {
-        dispatch({ type: 'SYNC_ERROR', error: err.message })
-        justLoadedRef.current = true // 에러 fallback도 auto-save 건너뜀 (빈 데이터 덮어씌움 방지)
-        dispatch({ type: 'LOAD_DATA', exercises: DEFAULT_EXERCISES, sessions: [] })
+        if (cancelled) return
+        // 조회 실패를 빈 데이터로 취급하면 이후 저장이 기존 기록을 덮을 수 있다.
+        dispatch({ type: 'LOAD_ERROR', error: err.message })
       })
-  }, [user])
+
+    return () => { cancelled = true }
+  }, [user, loadAttempt])
 
   const persist = useCallback(async (exercises, sessions) => {
     if (!user) return
@@ -117,6 +131,33 @@ export function AppProvider({ children }) {
       s.exercises?.some(e => e.exerciseId === exerciseId)
     ) ?? null
   }, [state.sessions])
+
+  // 원격 데이터가 준비되기 전에 Session 화면이 빈 sessions로 초기화되지 않도록
+  // 자식 화면 전체의 마운트를 보류한다.
+  if (!state.loaded) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        {state.syncError ? (
+          <div className="text-center max-w-sm">
+            <p className="text-white font-semibold">운동 기록을 불러오지 못했습니다</p>
+            <p className="text-zinc-500 text-sm mt-2">네트워크를 확인한 뒤 다시 시도해주세요.</p>
+            <button
+              type="button"
+              onClick={() => setLoadAttempt(attempt => attempt + 1)}
+              className="mt-5 bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm active:bg-blue-500"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : (
+          <div className="text-center">
+            <div className="w-8 h-8 mx-auto border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
+            <p className="text-zinc-500 text-sm mt-3">운동 기록 불러오는 중...</p>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <AppContext.Provider value={{
