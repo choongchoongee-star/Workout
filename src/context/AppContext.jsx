@@ -11,6 +11,7 @@ const initialState = {
   sessions: [],
   syncing: false,
   syncError: null,
+  recoveryNotice: null,
   loaded: false,
 }
 
@@ -27,6 +28,9 @@ function reducer(state, action) {
         loaded: true,
         syncing: false,
         syncError: null,
+        recoveryNotice: action.recoveredFromBackup
+          ? 'Your workouts were recovered from the last safe backup.'
+          : null,
       }
 
     case 'LOAD_ERROR':
@@ -40,6 +44,9 @@ function reducer(state, action) {
 
     case 'SYNC_ERROR':
       return { ...state, syncing: false, syncError: action.error }
+
+    case 'DISMISS_RECOVERY_NOTICE':
+      return { ...state, recoveryNotice: null }
 
     case 'UPSERT_SESSION': {
       const exists = state.sessions.findIndex(s => s.id === action.session.id)
@@ -78,13 +85,15 @@ export function AppProvider({ children }) {
     let cancelled = false
     dispatch({ type: 'LOAD_START' })
     loadLocalWorkoutData()
-      .then(data => {
+      .then(result => {
         if (cancelled) return
+        const data = result.data
         justLoadedRef.current = true
         dispatch({
           type: 'LOAD_DATA',
           exercises: mergeDefaultExercises(data?.exercises ?? []),
           sessions: data?.sessions ?? [],
+          recoveredFromBackup: result.recoveredFromBackup,
         })
       })
       .catch(err => {
@@ -128,6 +137,7 @@ export function AppProvider({ children }) {
     return plan
   }, [state])
   const retrySave = useCallback(() => persist(state.exercises, state.sessions), [persist, state.exercises, state.sessions])
+  const dismissRecoveryNotice = useCallback(() => dispatch({ type: 'DISMISS_RECOVERY_NOTICE' }), [])
   const getLastSession = useCallback((exerciseId, excludeDate = null) => {
     return state.sessions.find(s =>
       s.date !== excludeDate &&
@@ -172,6 +182,7 @@ export function AppProvider({ children }) {
       getLastSession,
       importWorkoutData,
       retrySave,
+      dismissRecoveryNotice,
     }}>
       {children}
     </AppContext.Provider>

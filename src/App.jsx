@@ -7,6 +7,7 @@ import SessionDetail from './screens/SessionDetail'
 import Weight from './screens/Weight'
 import Library from './screens/Library'
 import Settings from './screens/Settings'
+import Privacy from './screens/Privacy'
 
 function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ function AppRoutes() {
           <Route path="/weight" element={<Weight />} />
           <Route path="/library" element={<Library />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<Navigate to="/session" replace />} />
         </Routes>
       </Layout>

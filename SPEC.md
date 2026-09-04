@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-04
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Xcode 기기 검증 대기
+> 마지막 업데이트: 2026-09-05
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 설정·실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -26,7 +26,7 @@
 - **react-router-dom v7** (`BrowserRouter`, `basename="/Workout"`)
 - **Capacitor v8** — iOS 네이티브 셸, Filesystem, Local Notifications, Share
 - **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
-- 아이콘 생성: `sharp` (`generate-icons.mjs`)
+- 앱 아이콘: 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512 아이콘
 
 ### vite.config.js 핵심
 ```js
@@ -60,7 +60,8 @@ mode !== 'capacitor' && VitePWA({
 - 라이브 반영은 **수동으로 `npm run deploy`** 실행 → `dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
 - PWA 서비스워커(`autoUpdate`)가 새 빌드를 백그라운드 갱신하므로, 배포 후 기기에서는 앱 재실행 1~2회 또는 잠깐의 지연 후 반영됨.
-- iOS 앱은 `npm run ios:sync` 후 `ios/App/App.xcodeproj`를 macOS/Xcode에서 빌드·서명한다. 앱 ID 기본값은 `com.choongchoongeestar.workout`이다.
+- iOS 앱은 `npm run ios:sync` 후 `ios/App/App.xcodeproj`를 빌드한다. App Store용 원격 빌드·서명은 Capacitor/SPM에 맞춘 EAS Custom Build를 사용할 예정이며, 설정과 실기기 체크리스트가 준비된 뒤에만 실행한다. 앱 ID 기본값은 `com.choongchoongeestar.workout`이다.
+- iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
 - 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 
 ---
@@ -114,6 +115,7 @@ Workout/
 ```
 앱 시작 → AppProvider가 기기 로컬 데이터에서 1회 로드
   iOS: Directory.Data/workout-data.json
+       + workout-data.backup.json (직전 정상본)
   Web/PWA: localStorage[wl_workout_data_v1]
   (파일/키가 없으면 기본61개, sessions=[])
   ├ 로드 중: 자식 화면 마운트 보류 + 전체 화면 로딩 표시
@@ -121,6 +123,8 @@ Workout/
   └ 실패: 빈 데이터로 대체하지 않고 오류 + [다시 시도] 표시
 
 운동 데이터 변경 → reducer state 갱신 → 500ms 디바운스 후 전체 JSON 저장
+  pending 파일 쓰기/검증 → 기존 정상 파일을 backup으로 보존 → 주 파일 쓰기/재검증
+  시작 시 주 파일이 손상되면 backup을 검증해 자동 복원하고 사용자에게 알림
   (로드 직후 첫 실행은 justLoadedRef로 스킵 — 빈 데이터 덮어쓰기 방지)
 
 설정값(휴식 시간) → localStorage (수동 저장)
@@ -142,7 +146,8 @@ Workout/
   "sessions":  [ Session, ... ]     // 날짜 역순 정렬 유지
 }
 ```
-- iOS는 `@capacitor/filesystem`의 `Directory.Data/workout-data.json`에 UTF-8 JSON으로 저장한다. 웹/PWA는 같은 JSON을 `localStorage[wl_workout_data_v1]`에 저장한다.
+- iOS는 `@capacitor/filesystem`의 `Directory.Data/workout-data.json`에 UTF-8 JSON으로 저장한다. 저장 전 `workout-data.pending.json`을 검증하고 직전 정상 상태를 `workout-data.backup.json`에 유지한다. 웹/PWA도 main/pending/backup localStorage 키로 같은 절차를 적용한다.
+- 주 저장소가 누락되거나 손상되고 정상 백업이 있으면 백업을 주 저장소로 복원한다. 복구 후 앱 상단에 `Your workouts were recovered from the last safe backup.`을 표시한다.
 - 파일이 없을 때만 새 사용자로 처리한다. JSON이 손상되거나 배열 구조가 아니면 빈 데이터로 덮어쓰지 않고 로드 오류와 재시도를 표시한다.
 - 기기 간 자동 동기화는 없다. 앱 삭제·기기 분실에 대비한 이식 수단은 Markdown 백업이다.
 
@@ -205,6 +210,7 @@ Workout/
 | `/weight` | Weight | 무게 탭 (2026-06-28 신설) |
 | `/library` | Library | |
 | `/settings` | Settings | |
+| `/privacy` | Privacy Policy | Settings에서 진입하는 앱 내 영문 개인정보처리방침 |
 | `*` | → `/session` 리다이렉트 | |
 
 **하단 탭(Layout):** `Workout(/session)` · `History(/history)` · `Progress(/weight)` · `Settings(/settings)` 4개.
@@ -376,10 +382,12 @@ Workout/
 └──────────────────────────────────────┘
 ```
 - 영문 UI 섹션: `Preferences`, `Exercise library`, `Backup / Restore`. 계정·로그아웃 UI는 없다.
+- Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청하고, 거부 상태에서는 iPhone Settings의 알림 경로를 안내한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
 - 병합: 앱은 날짜별 한 세션만 허용하므로 기존 날짜는 절대 덮어쓰지 않고 누락된 날짜만 추가한다. 같은 파일을 반복 가져오면 변경이 없다. 저장 실패 시 `Retry save`를 표시한다.
 - 호환: 새 JSON 메타데이터가 있으면 `done`, 모든 세트 값, 운동 ID/type/MET를 복원한다. 이전 한국어 보고서 형식도 읽지만 파일에 없던 `done`은 `false`로, 커스텀 MET는 복원 불가로 안내한다. 손상된 메타데이터는 구형 파서로 우회하지 않고 전체 가져오기를 거부한다.
+- Privacy 섹션에서 앱 내 `/privacy` 정책으로 이동한다. 공개 App Store용 정책 URL은 `https://choongchoongee-star.github.io/Workout/privacy/`이며, 데이터 미수집·기기 내 저장·사용자 선택 백업 공유·로컬 알림·삭제 정책을 명시한다.
 
 ---
 
@@ -396,7 +404,7 @@ Workout/
 ### RestTimer
 - 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. [Skip] 버튼.
 - 시작할 때 `endsAt = Date.now() + restSeconds * 1000`을 저장하고, `getRemainingSeconds(endsAt)`로 표시 시간을 계산한다. 250ms 폴링 외에 `visibilitychange`, `focus`, `pageshow`에서도 즉시 다시 계산하므로 브라우저가 백그라운드 타이머를 중단해도 경과 시간이 밀리지 않는다.
-- iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 알림 ID `1101`을 예약한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 알림 권한을 요청한다.
+- iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 알림 ID `1101`을 예약한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 또는 Settings의 `Enable alerts`에서 알림 권한을 요청한다.
 - [Skip]은 예약을 취소한다. 새 타이머는 같은 ID의 이전 예약을 취소·교체하며 generation 값으로 비동기 권한 요청 경합을 막는다. 네이티브 예약이 성공한 경우 타이머 종료 effect는 Web Audio를 중복 재생하지 않는다.
 - 웹/PWA에서는 Web Audio로 0.25초 톤을 1회 재생하고, 오디오 시작이 실패하면 지원 브라우저에서 250ms 진동을 1회 요청한다. 이는 브라우저를 떠나 있는 동안의 즉시 알림을 보장하지 않으며 iOS 앱의 네이티브 알림이 정식 동작이다.
 
@@ -438,6 +446,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - `ios/App/App.xcodeproj`는 Capacitor v8로 생성했으며 앱 번들에 `dist` 웹 자산을 포함한다. 원격 사이트를 불러오는 단순 WebView가 아니다.
 - `@capacitor/filesystem`, `@capacitor/local-notifications`, `@capacitor/share`를 Swift Package Manager 프로젝트에 연결한다. `npm run ios:sync`가 iOS용 상대경로 빌드와 플러그인/자산 동기화를 수행한다.
 - `PrivacyInfo.xcprivacy`를 App target의 Copy Bundle Resources에 포함하고 Filesystem의 file timestamp API 사용 이유 `C617.1`을 선언한다. 수집 데이터와 추적은 없음으로 선언한다.
+- iOS AppIcon은 불투명 RGB 1024×1024 정사각형 자산이며 시스템 마스크용 모서리 여백이나 투명 영역을 포함하지 않는다. 앱은 iPhone 전용·세로 방향으로 고정한다.
 - iOS 빌드는 PWA 서비스워커를 포함하지 않는다. 앱 UI와 데이터 접근은 오프라인으로 동작하며 로그인 화면이나 Firebase SDK가 없다.
 - Windows에서는 Xcode 빌드와 서명 검증을 수행할 수 없다. macOS에서 Xcode로 앱 팀·서명·최종 bundle identifier를 확인하고 시뮬레이터와 실제 기기에서 알림 권한, 백그라운드 알림, 파일 가져오기/공유를 검증해야 한다.
 
@@ -483,7 +492,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 ### ✅ Phase 4 — 로컬 전용 iOS 앱
 - [x] Firebase·Google 로그인 제거 / 기기 파일 자동 저장 / Capacitor Xcode 프로젝트 / 백그라운드 로컬 알림 / iOS 공유 시트 백업
-- [ ] macOS/Xcode에서 서명, 시뮬레이터·실기기 검증, App Store 메타데이터와 제출
+- [x] iPhone 전용 세로 고정 / 정식 불투명 아이콘 / 알림 권한 Settings / 손상 시 로컬 백업 복구 / 개인정보처리방침
+- [ ] EAS Custom Build 설정, 시뮬레이터·실기기 검증, App Store 메타데이터와 제출
 
 ---
 
@@ -522,3 +532,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-04: 프로젝트 전용 `workout-maintenance` 스킬 추가. 구현 작업 종료 시 SPEC 동기화, 검증, 민감 파일 제외, 커밋·`master` 푸시와 원격 해시 확인을 필수 절차로 지정한다. GitHub Pages 배포는 별도 작업으로 유지한다.
 - 2026-09-04: 스테퍼 숫자 탭 시 전체 선택해 즉시 덮어쓰도록 개선. 휴식 타이머를 절대 종료 시각 기준으로 바꿔 백그라운드 복귀 오차를 제거하고, 종료 1회 소리와 오디오 실패 시 1회 진동을 추가했다. iOS 앱은 단순 WebView 대신 Capacitor 네이티브 셸과 서버 없는 로컬 알림을 후속 방향으로 결정했다.
 - 2026-09-04: Capacitor v8 iOS Xcode 프로젝트로 전환. Firebase SDK·Google 로그인·계정 UI를 제거하고 iOS 앱 전용 JSON 파일에 자동 저장하도록 변경했다. 휴식 시작 시 iOS 로컬 알림을 예약해 앱이 백그라운드여도 종료 순간 시스템이 알리며, Markdown 백업은 네이티브 공유 시트를 사용한다.
+- 2026-09-05: 파란 덤벨 기반의 불투명 정식 AppIcon으로 교체하고 iOS target을 iPhone 전용·세로 방향으로 고정했다. Settings에 휴식 알림 권한 상태와 요청/거부 안내를 추가했다.
+- 2026-09-05: pending 검증과 직전 정상 backup을 이용한 로컬 데이터 자동 복구를 추가했다. 앱 내 영문 개인정보처리방침과 GitHub Pages 공개 정책 페이지를 추가하고, 원격 iOS 빌드는 준비 완료 후 EAS Custom Build로 실행하도록 배포 계획을 갱신했다.

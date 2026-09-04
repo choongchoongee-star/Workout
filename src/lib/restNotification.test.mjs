@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { cancelRestNotification, notifyRestComplete, scheduleRestNotification } from './restNotification.js'
+import {
+  cancelRestNotification,
+  getRestNotificationPermission,
+  notifyRestComplete,
+  requestRestNotificationPermission,
+  scheduleRestNotification,
+} from './restNotification.js'
 
 function audioContext() {
   const calls = { start: 0, stop: 0 }
@@ -70,4 +76,15 @@ test('schedules and cancels the iOS system notification at the deadline', async 
 
   await cancelRestNotification({ isNativePlatform: () => true, notifications })
   assert.equal(calls.cancelled, 2)
+})
+
+test('reports and requests the native notification permission for Settings', async () => {
+  const notifications = {
+    checkPermissions: async () => ({ display: 'prompt' }),
+    requestPermissions: async () => ({ display: 'granted' }),
+  }
+  const options = { isNativePlatform: () => true, notifications }
+
+  assert.equal(await getRestNotificationPermission(options), 'prompt')
+  assert.equal(await requestRestNotificationPermission(options), 'granted')
 })

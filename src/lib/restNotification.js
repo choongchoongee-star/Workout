@@ -30,6 +30,32 @@ export function prepareRestNotification(createContext = createBrowserAudioContex
   }
 }
 
+export async function getRestNotificationPermission({
+  isNativePlatform = () => Capacitor.isNativePlatform(),
+  notifications = LocalNotifications,
+} = {}) {
+  if (!isNativePlatform()) return 'web'
+  try {
+    const permission = await notifications.checkPermissions()
+    return permission.display || 'prompt'
+  } catch {
+    return 'unavailable'
+  }
+}
+
+export async function requestRestNotificationPermission({
+  isNativePlatform = () => Capacitor.isNativePlatform(),
+  notifications = LocalNotifications,
+} = {}) {
+  if (!isNativePlatform()) return 'web'
+  try {
+    const permission = await notifications.requestPermissions()
+    return permission.display || 'denied'
+  } catch {
+    return 'unavailable'
+  }
+}
+
 export function playRestTone(context) {
   const now = context.currentTime
   const oscillator = context.createOscillator()

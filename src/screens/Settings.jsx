@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { storage } from '../lib/storage'
 import { useApp } from '../context/AppContext'
 import { buildMarkdown, exportFilename } from '../lib/exportUtils'
 import { exportWorkoutFile } from '../lib/workoutFileExport'
 import { MAX_IMPORT_BYTES, parseWorkoutMarkdown, planWorkoutImport } from '../lib/importUtils'
+import { getRestNotificationPermission, requestRestNotificationPermission } from '../lib/restNotification'
 
 function Field({ label, hint, children }) {
   return (
@@ -24,8 +25,30 @@ export default function Settings() {
   const [importError, setImportError] = useState('')
   const [importResult, setImportResult] = useState('')
   const [reading, setReading] = useState(false)
+  const [notificationPermission, setNotificationPermission] = useState('checking')
   const fileInputRef = useRef(null)
   const importPlan = importFile ? planWorkoutImport({ sessions, exercises }, importFile.data) : null
+
+  useEffect(() => {
+    let cancelled = false
+    const refresh = async () => {
+      const permission = await getRestNotificationPermission()
+      if (!cancelled) setNotificationPermission(permission)
+    }
+    void refresh()
+    document.addEventListener('visibilitychange', refresh)
+    window.addEventListener('focus', refresh)
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [])
+
+  async function enableRestAlerts() {
+    setNotificationPermission('checking')
+    setNotificationPermission(await requestRestNotificationPermission())
+  }
 
   async function handleImportFile(event) {
     const file = event.target.files?.[0]
@@ -97,6 +120,32 @@ export default function Settings() {
             placeholder="90"
           />
         </Field>
+        <div className="border-t border-zinc-800 pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-zinc-300 text-sm font-medium">Rest timer alerts</p>
+              <p className="text-zinc-600 text-xs mt-1">Alerts at the end of a rest period, including while the app is in the background.</p>
+            </div>
+            <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs ${
+              notificationPermission === 'granted'
+                ? 'bg-green-900/40 text-green-300'
+                : 'bg-zinc-800 text-zinc-400'
+            }`}>
+              {notificationPermission === 'granted' ? 'Enabled' : notificationPermission === 'checking' ? 'Checking…' : notificationPermission === 'web' ? 'iPhone only' : 'Disabled'}
+            </span>
+          </div>
+          {(notificationPermission === 'prompt' || notificationPermission === 'prompt-with-rationale') && (
+            <button type="button" onClick={enableRestAlerts} className="mt-3 w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 active:bg-zinc-700">
+              Enable alerts
+            </button>
+          )}
+          {notificationPermission === 'denied' && (
+            <p className="mt-3 text-xs text-amber-300">Notifications are blocked. Open iPhone Settings → Apps → Workout Logger → Notifications to enable them.</p>
+          )}
+          {notificationPermission === 'unavailable' && (
+            <p className="mt-3 text-xs text-red-300">Notification status could not be checked. Try reopening Settings.</p>
+          )}
+        </div>
       </div>
 
       {/* Library link */}
@@ -174,6 +223,15 @@ export default function Settings() {
             <button type="button" onClick={retrySave} disabled={syncing} className="mt-2 underline disabled:opacity-50">Retry save</button>
           </div>
         )}
+      </div>
+
+      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
+        <h2 className="text-zinc-300 font-medium mb-3">Privacy</h2>
+        <p className="text-zinc-600 text-xs mb-3">Workout data stays on this device and is not sent to the developer.</p>
+        <Link to="/privacy" className="flex items-center justify-between text-sm text-zinc-300 active:text-white">
+          <span>Privacy Policy</span>
+          <span className="text-zinc-500">→</span>
+        </Link>
       </div>
 
       {/* Status message */}

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
 
 const NAV = [
   {
@@ -46,6 +47,7 @@ export default function Layout({ children }) {
   const mainRef = useRef(null)
   const scrollPositions = useRef({})
   const { pathname } = useLocation()
+  const { recoveryNotice, dismissRecoveryNotice } = useApp()
 
   useEffect(() => {
     const main = mainRef.current
@@ -66,6 +68,12 @@ export default function Layout({ children }) {
   return (
     <div className="flex flex-col h-full bg-zinc-950">
       <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        {recoveryNotice && (
+          <div role="status" className="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-amber-800 bg-amber-950/40 p-3 text-sm text-amber-200">
+            <p className="flex-1">{recoveryNotice}</p>
+            <button type="button" onClick={dismissRecoveryNotice} aria-label="Dismiss recovery message" className="text-amber-400">×</button>
+          </div>
+        )}
         {children}
       </main>
       <nav className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 flex pb-[env(safe-area-inset-bottom)]">
