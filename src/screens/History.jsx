@@ -39,7 +39,7 @@ export default function History() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-4 pt-2">
-        <h1 className="text-xl font-bold text-white">운동 기록</h1>
+        <h1 className="text-xl font-bold text-white">Workout history</h1>
         {sessions.length > 0 && (
           <input
             type="date"
@@ -52,12 +52,12 @@ export default function History() {
 
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          데이터 저장에 실패했습니다. 네트워크를 확인해주세요.
+          Could not save your data. Check your connection.
         </div>
       )}
 
       {sessions.length === 0 ? (
-        <p className="text-zinc-600 text-sm text-center py-12">아직 기록이 없어요</p>
+        <p className="text-zinc-600 text-sm text-center py-12">No workouts yet.</p>
       ) : (
         <div className="space-y-2">
           {sessions.map(session => {
@@ -83,7 +83,7 @@ export default function History() {
 
       {undoSession && (
         <UndoToast
-          message="세션이 삭제되었습니다"
+          message="Workout deleted"
           onUndo={handleUndoRestore}
           onDismiss={handleUndoDismiss}
         />

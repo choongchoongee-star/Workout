@@ -23,14 +23,14 @@ function deepClone(obj) {
 }
 
 // Search/Add exercise modal
-function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loaded = true, defaultCategory = '전체' }) {
+function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loaded = true, defaultCategory = 'All' }) {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState(defaultCategory)
   const modalRef = useRef(null)
 
-  const categories = ['전체', ...CATEGORIES]
+  const categories = ['All', ...CATEGORIES]
   const filtered = exercises.filter(e => {
-    const matchCat = activeCategory === '전체' || e.category === activeCategory
+    const matchCat = activeCategory === 'All' || e.category === activeCategory
     const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
   })
@@ -66,18 +66,18 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        aria-label="운동 추가"
+        aria-label="Add exercise"
         className="bg-zinc-900 rounded-t-2xl mt-auto h-[80vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h3 className="text-white font-semibold">운동 추가</h3>
-          <button onClick={onClose} aria-label="닫기" className="text-zinc-400 active:text-white p-1">✕</button>
+          <h3 className="text-white font-semibold">Add exercise</h3>
+          <button onClick={onClose} aria-label="Close" className="text-zinc-400 active:text-white p-1">✕</button>
         </div>
         <div className="p-3 border-b border-zinc-800">
           <input
             type="text"
-            placeholder="운동 검색..."
+            placeholder="Search exercises..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
@@ -114,14 +114,14 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
                 >
                   <span className="text-white">{ex.name}</span>
                   <div className="flex items-center gap-2">
-                    {alreadyAdded && <span className="text-zinc-500 text-xs">추가됨</span>}
+                    {alreadyAdded && <span className="text-zinc-500 text-xs">Added</span>}
                     <span className="text-zinc-500 text-xs">{ex.category}</span>
                   </div>
                 </button>
               )
             })
           ) : (
-            <p className="text-zinc-600 text-sm text-center py-8">검색 결과 없음</p>
+            <p className="text-zinc-600 text-sm text-center py-8">No exercises found.</p>
           )}
         </div>
       </div>
@@ -137,11 +137,11 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
   return (
     <div className={`py-2 border-b border-zinc-800/40 last:border-b-0 ${locked ? 'opacity-60' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-zinc-500 text-sm">{setIdx + 1}세트</span>
+        <span className="text-zinc-500 text-sm">Set {setIdx + 1}</span>
         <div className="flex-1" />
         <button
           onClick={onDone}
-          aria-label={locked ? '세트 완료 취소' : '세트 완료'}
+          aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'}
           aria-pressed={locked}
           className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
             locked
@@ -151,14 +151,14 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
         >
           ✓
         </button>
-        <button onClick={onRemove} aria-label="세트 삭제" className="text-zinc-700 active:text-red-400 px-1 text-lg">
+        <button onClick={onRemove} aria-label="Delete set" className="text-zinc-700 active:text-red-400 px-1 text-lg">
           ×
         </button>
       </div>
       <div className="flex items-center gap-3">
         {isBodyweight ? (
           <div className="flex items-center gap-2">
-            <span className="text-zinc-500 text-xs">체중+</span>
+            <span className="text-zinc-500 text-xs">BW +</span>
             <StepperInput
               value={set.added_weight ?? 0}
               onChange={v => onUpdate('added_weight', v)}
@@ -180,7 +180,7 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
           value={set.reps ?? 10}
           onChange={v => onUpdate('reps', v)}
           step={1}
-          unit="회"
+          unit="reps"
           disabled={locked}
         />
       </div>
@@ -208,10 +208,10 @@ function CardioForm({ record, exercise, onUpdate }) {
     <div className="space-y-3 py-2">
       <div className="grid grid-cols-2 gap-3">
         {[
-          { key: 'duration_min', label: '시간 (분)', placeholder: '35' },
-          { key: 'distance_km', label: '거리 (km)', placeholder: '5.2' },
-          { key: 'speed_kmh', label: '속도 (km/h)', placeholder: '8.5' },
-          { key: 'incline_pct', label: '경사 (%)', placeholder: '2.0' },
+          { key: 'duration_min', label: 'Duration (min)', placeholder: '35' },
+          { key: 'distance_km', label: 'Distance (km)', placeholder: '5.2' },
+          { key: 'speed_kmh', label: 'Speed (km/h)', placeholder: '8.5' },
+          { key: 'incline_pct', label: 'Incline (%)', placeholder: '2.0' },
         ].map(({ key, label, placeholder }) => (
           <div key={key}>
             <label className="text-zinc-500 text-xs block mb-1">{label}</label>
@@ -229,12 +229,12 @@ function CardioForm({ record, exercise, onUpdate }) {
       </div>
       <div>
         <label className="text-zinc-500 text-xs block mb-1">
-          칼로리 (kcal){record.calories && record.duration_min ? ' — 자동계산됨' : (!exercise?.met ? ' — 수동 입력' : '')}
+          Calories (kcal){record.calories && record.duration_min ? ' — estimated automatically' : (!exercise?.met ? ' — manual entry' : '')}
         </label>
         <input
           type="number"
           min="0"
-          placeholder="칼로리"
+          placeholder="Calories"
           value={record.calories ?? ''}
           onChange={e => onUpdate('calories', e.target.value === '' ? null : parseInt(e.target.value, 10))}
           className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -419,7 +419,7 @@ export default function Session() {
       return copy
     })
 
-    setUndoData({ type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} ${setIdx + 1}세트` })
+    setUndoData({ type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} — set ${setIdx + 1}` })
   }
 
   function removeExercise(exIdx) {
@@ -460,10 +460,10 @@ export default function Session() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pt-2">
         <div>
-          <p className="text-zinc-400 text-sm">{sessionDate === realToday ? '오늘' : '다른 날 기록'}</p>
+          <p className="text-zinc-400 text-sm">{sessionDate === realToday ? 'Today' : 'Past workout'}</p>
           <div className="relative">
             <p className="text-xl font-bold text-white pointer-events-none underline decoration-dotted decoration-zinc-600 underline-offset-4">
-              {(() => { const [y, m, d] = sessionDate.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) })()}
+              {(() => { const [y, m, d] = sessionDate.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) })()}
             </p>
             <input
               type="date"
@@ -478,12 +478,12 @@ export default function Session() {
 
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          데이터 저장에 실패했습니다. 네트워크를 확인해주세요.
+          Could not save your data. Check your connection.
         </div>
       )}
 
       {sessionExercises.length === 0 && (
-        <p className="text-zinc-600 text-sm text-center mt-2 mb-3">아래 버튼을 눌러 운동을 추가하세요</p>
+        <p className="text-zinc-600 text-sm text-center mt-2 mb-3">Tap below to add an exercise.</p>
       )}
 
       {/* Exercise cards */}
@@ -505,7 +505,7 @@ export default function Session() {
                 </div>
                 <button
                   onClick={() => removeExercise(exIdx)}
-                  aria-label="운동 삭제"
+                  aria-label="Delete exercise"
                   className="text-zinc-700 active:text-red-400 text-xl px-2"
                 >
                   ×
@@ -535,7 +535,7 @@ export default function Session() {
                     onClick={() => addSet(exIdx)}
                     className="w-full text-zinc-500 text-sm py-2 mt-1 rounded-lg active:text-zinc-300 active:bg-zinc-800 transition-colors"
                   >
-                    + 세트 추가
+                    + Add set
                   </button>
                 </>
               )}
@@ -548,7 +548,7 @@ export default function Session() {
         onClick={() => setShowModal(true)}
         className="w-full mt-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
       >
-        + 운동 추가
+        + Add exercise
       </button>
 
       {restTimer.active && (
@@ -562,7 +562,7 @@ export default function Session() {
 
       {undoData && (
         <UndoToast
-          message={`${undoData.name} 삭제됨`}
+          message={`${undoData.name} deleted`}
           onUndo={handleUndo}
           onDismiss={handleUndoDismiss}
         />
@@ -583,7 +583,7 @@ export default function Session() {
               const cat = getMainCategory(s.exercises, exercises)
               if (cat) return cat
             }
-            return '전체'
+            return 'All'
           })()}
         />
       )}

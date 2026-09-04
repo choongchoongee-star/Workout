@@ -7,31 +7,31 @@ import { formatDate } from '../lib/dateUtils'
 function summarizeSet(set, type) {
   if (type === 'cardio') {
     const parts = []
-    if (set.duration_min != null) parts.push(`${set.duration_min}분`)
+    if (set.duration_min != null) parts.push(`${set.duration_min} min`)
     if (set.distance_km != null) parts.push(`${set.distance_km}km`)
     if (set.speed_kmh != null) parts.push(`${set.speed_kmh}km/h`)
-    if (set.incline_pct != null) parts.push(`경사 ${set.incline_pct}%`)
+    if (set.incline_pct != null) parts.push(`Incline ${set.incline_pct}%`)
     if (set.calories != null) parts.push(`${set.calories}kcal`)
-    return parts.join(' · ') || '기록'
+    return parts.join(' · ') || 'History'
   }
   if (type === 'bodyweight') {
     const w = set.added_weight ? `+${set.added_weight}kg` : ''
-    return `체중${w} × ${set.reps ?? '?'}회`
+    return `Bodyweight${w} × ${set.reps ?? '?'} reps`
   }
-  return `${set.weight ?? '?'}kg × ${set.reps ?? '?'}회`
+  return `${set.weight ?? '?'}kg × ${set.reps ?? '?'} reps`
 }
 
 export default function Weight() {
   const { exercises, sessions, loaded } = useApp()
   const [selected, setSelected] = useState(null) // 선택된 exercise 객체 (null = 선택 화면)
   const [query, setQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('전체')
+  const [activeCategory, setActiveCategory] = useState('All')
 
-  const categories = ['전체', ...CATEGORIES]
+  const categories = ['All', ...CATEGORIES]
 
   // 선택 화면: 카테고리/검색 필터된 운동 목록
   const filtered = useMemo(() => exercises.filter(e => {
-    const matchCat = activeCategory === '전체' || e.category === activeCategory
+    const matchCat = activeCategory === 'All' || e.category === activeCategory
     const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
   }), [exercises, activeCategory, query])
@@ -55,7 +55,7 @@ export default function Weight() {
         <div className="flex items-center gap-3 mb-5 pt-2">
           <button
             onClick={() => setSelected(null)}
-            aria-label="다른 운동 선택"
+            aria-label="Choose another exercise"
             className="text-zinc-400 active:text-white text-lg"
           >
             ←
@@ -67,7 +67,7 @@ export default function Weight() {
         </div>
 
         {records.length === 0 ? (
-          <p className="text-zinc-600 text-sm text-center py-12">아직 이 운동의 기록이 없어요</p>
+          <p className="text-zinc-600 text-sm text-center py-12">No history for this exercise yet.</p>
         ) : (
           <div className="space-y-4">
             {records.map(({ date, sets }) => (
@@ -95,11 +95,11 @@ export default function Weight() {
   // ===== 운동 선택 화면 =====
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold text-white mb-4 pt-2">무게 기록</h1>
+      <h1 className="text-xl font-bold text-white mb-4 pt-2">Exercise history</h1>
 
       <input
         type="text"
-        placeholder="운동 검색..."
+        placeholder="Search exercises..."
         value={query}
         onChange={e => setQuery(e.target.value)}
         className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
@@ -136,7 +136,7 @@ export default function Weight() {
             </button>
           ))
         ) : (
-          <p className="text-zinc-600 text-sm text-center py-8">검색 결과 없음</p>
+          <p className="text-zinc-600 text-sm text-center py-8">No exercises found.</p>
         )}
       </div>
     </div>

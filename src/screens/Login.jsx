@@ -15,9 +15,9 @@ export default function Login() {
       if (err?.code === 'auth/popup-closed-by-user') {
         // 사용자가 팝업을 직접 닫음 — 에러 메시지 불필요
       } else if (err?.code === 'auth/popup-blocked') {
-        setError('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.')
+        setError('The sign-in popup was blocked. Allow popups and try again.')
       } else {
-        setError('로그인에 실패했습니다. 다시 시도해주세요.')
+        setError('Sign-in failed. Please try again.')
       }
     } finally {
       setLoading(false)
@@ -28,7 +28,7 @@ export default function Login() {
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-xs text-center">
         <h1 className="text-3xl font-bold text-white mb-2">Workout</h1>
-        <p className="text-zinc-500 text-sm mb-12">운동 기록</p>
+        <p className="text-zinc-500 text-sm mb-12">Workout history</p>
 
         <button
           onClick={handleGoogleLogin}
@@ -36,7 +36,7 @@ export default function Login() {
           className="w-full flex items-center justify-center gap-3 bg-white text-zinc-900 font-medium rounded-2xl py-4 active:bg-zinc-100 disabled:opacity-50"
         >
           {loading ? (
-            <span className="text-sm">로그인 중...</span>
+            <span className="text-sm">Signing in...</span>
           ) : (
             <>
               <svg width="20" height="20" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@ export default function Login() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              <span className="text-sm">Google로 로그인</span>
+              <span className="text-sm">Sign in with Google</span>
             </>
           )}
         </button>

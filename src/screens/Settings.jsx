@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { storage } from '../lib/storage'
 import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
 import { buildMarkdown, downloadTextFile, exportFilename } from '../lib/exportUtils'
+import { MAX_IMPORT_BYTES, parseWorkoutMarkdown, planWorkoutImport } from '../lib/importUtils'
 
 function Field({ label, hint, children }) {
   return (
@@ -17,22 +18,56 @@ function Field({ label, hint, children }) {
 
 export default function Settings() {
   const { user, logout } = useAuth()
-  const { sessions, exercises } = useApp()
+  const { sessions, exercises, importWorkoutData, syncing, syncError, retrySave } = useApp()
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [status, setStatus] = useState({})
+  const [importFile, setImportFile] = useState(null)
+  const [importError, setImportError] = useState('')
+  const [importResult, setImportResult] = useState('')
+  const [reading, setReading] = useState(false)
+  const fileInputRef = useRef(null)
+  const importPlan = importFile ? planWorkoutImport({ sessions, exercises }, importFile.data) : null
+
+  async function handleImportFile(event) {
+    const file = event.target.files?.[0]
+    event.target.value = '' // Allow selecting the same file again after cancel/error.
+    if (!file) return
+    setImportFile(null)
+    setImportError('')
+    setImportResult('')
+    setReading(true)
+    try {
+      if (!/\.md$/i.test(file.name)) throw new Error('Choose a .md file.')
+      if (file.size > MAX_IMPORT_BYTES) throw new Error('Choose a file smaller than 10 MB.')
+      const data = parseWorkoutMarkdown(await file.text(), exercises)
+      if (!data.sessions.length) throw new Error('There are no workouts to import.')
+      setImportFile({ name: file.name, data })
+    } catch (error) {
+      setImportError(error.message || 'Could not read the file. Please select it again.')
+    } finally {
+      setReading(false)
+    }
+  }
+
+  function handleConfirmImport() {
+    if (!importFile) return
+    const result = importWorkoutData(importFile.data)
+    setImportResult(`Sessions added: ${result.addedCount}. Existing dates skipped: ${result.skippedCount}.`)
+    setImportFile(null)
+  }
 
   function handleExport() {
     if (!sessions?.length) {
-      setStatus({ msg: '내보낼 기록이 없습니다', ok: false })
+      setStatus({ msg: 'There are no workouts to export.', ok: false })
       setTimeout(() => setStatus({}), 2000)
       return
     }
     try {
       downloadTextFile(buildMarkdown(sessions, exercises), exportFilename('md'), 'text/markdown;charset=utf-8')
-      setStatus({ msg: '내보내기 완료 ✓', ok: true })
+      setStatus({ msg: 'Export complete ✓', ok: true })
       setTimeout(() => setStatus({}), 2000)
     } catch {
-      setStatus({ msg: '내보내기에 실패했습니다', ok: false })
+      setStatus({ msg: 'Export failed.', ok: false })
       setTimeout(() => setStatus({}), 2000)
     }
   }
@@ -40,7 +75,7 @@ export default function Settings() {
   function save() {
     const rs = parseInt(restSeconds, 10)
     if (!isNaN(rs) && rs >= 0) storage.setRestSeconds(rs)
-    setStatus({ msg: '저장 완료 ✓', ok: true })
+    setStatus({ msg: 'Saved ✓', ok: true })
     setTimeout(() => setStatus({}), 2000)
   }
 
@@ -48,7 +83,7 @@ export default function Settings() {
     try {
       await logout()
     } catch {
-      setStatus({ msg: '로그아웃에 실패했습니다. 다시 시도해주세요.', ok: false })
+      setStatus({ msg: 'Sign-out failed. Please try again.', ok: false })
     }
   }
 
@@ -56,14 +91,14 @@ export default function Settings() {
 
   return (
     <div className="p-4 max-w-lg mx-auto pb-8">
-      <h1 className="text-xl font-bold text-white mb-6 pt-2">설정</h1>
+      <h1 className="text-xl font-bold text-white mb-6 pt-2">Settings</h1>
 
       {/* Account */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-3">계정</h2>
+        <h2 className="text-zinc-300 font-medium mb-3">Account</h2>
         <div className="flex items-center gap-3 mb-4">
           {user?.photoURL && (
-            <img src={user.photoURL} alt="프로필" className="w-10 h-10 rounded-full" />
+            <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full" />
           )}
           <div>
             <p className="text-white text-sm font-medium">{user?.displayName}</p>
@@ -74,14 +109,14 @@ export default function Settings() {
           onClick={handleLogout}
           className="w-full bg-zinc-700 text-zinc-200 text-sm rounded-xl py-2.5 active:bg-zinc-600"
         >
-          로그아웃
+          Sign out
         </button>
       </div>
 
       {/* Body settings */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-4">기본 설정</h2>
-        <Field label="휴식 타이머 (초)" hint="0으로 설정하면 휴식 타이머가 꺼집니다">
+        <h2 className="text-zinc-300 font-medium mb-4">Preferences</h2>
+        <Field label="Rest timer (seconds)" hint="Set to 0 to disable the rest timer.">
           <input
             type="number"
             min="0"
@@ -95,28 +130,79 @@ export default function Settings() {
 
       {/* Library link */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-3">운동 목록 관리</h2>
+        <h2 className="text-zinc-300 font-medium mb-3">Exercise library</h2>
         <Link
           to="/library"
           className="flex items-center justify-between text-sm text-zinc-300 active:text-white"
         >
-          <span>운동 목록 보기 / 커스텀 운동 추가</span>
+          <span>Browse exercises / Add a custom exercise</span>
           <span className="text-zinc-500">→</span>
         </Link>
       </div>
 
-      {/* Data export */}
+      {/* Data backup */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-1">데이터 내보내기</h2>
+        <h2 className="text-zinc-300 font-medium mb-1">Backup / Restore</h2>
         <p className="text-zinc-600 text-xs mb-3">
-          전체 운동 기록({sessions.length}개 세션)을 Markdown 파일로 다운로드합니다
+          Download all {sessions.length} workout sessions as a Markdown file.
         </p>
         <button
           onClick={handleExport}
           className="w-full bg-zinc-800 text-zinc-200 text-sm rounded-xl py-2.5 active:bg-zinc-700"
         >
-          운동 기록 내보내기 (.md)
+          Export workouts (.md)
         </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".md,text/markdown,text/plain"
+          aria-label="Markdown file to import"
+          onChange={handleImportFile}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={reading}
+          className="w-full mt-2 bg-zinc-800 text-zinc-200 text-sm rounded-xl py-2.5 active:bg-zinc-700 disabled:opacity-50"
+        >
+          {reading ? 'Reading file…' : 'Import workouts (.md)'}
+        </button>
+        <p className="text-zinc-400 text-xs mt-3">
+          Existing workouts are kept. Only missing dates are added and saved to your account automatically.
+        </p>
+        {importFile && (
+          <div className="mt-4 border border-zinc-700 rounded-xl p-3 space-y-3" aria-label="Import preview">
+            <p className="text-zinc-200 text-sm break-all">{importFile.name}</p>
+            <p className="text-zinc-300 text-sm">
+              Sessions to add: {importPlan.addedCount} · Dates to skip: {importPlan.skippedCount} · New exercises: {importPlan.exerciseCount}
+            </p>
+            {importFile.data.warnings.map(warning => (
+              <p key={warning} className="text-amber-300 text-xs">{warning}</p>
+            ))}
+            {importPlan.addedCount === 0 && <p className="text-zinc-400 text-sm">Every date already has a workout. There is nothing to add.</p>}
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setImportFile(null)} className="flex-1 bg-zinc-800 text-zinc-300 rounded-xl py-2.5 text-sm">Cancel</button>
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                disabled={!importPlan.addedCount}
+                className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm disabled:opacity-50"
+              >
+                Import
+              </button>
+            </div>
+          </div>
+        )}
+        {importError && <p role="alert" className="mt-3 text-red-300 text-sm">{importError}</p>}
+        {importResult && <p role="status" className="mt-3 text-green-300 text-sm">{importResult}</p>}
+        {syncing && <p role="status" className="mt-3 text-zinc-400 text-xs">Saving to your account…</p>}
+        {syncError && (
+          <div role="alert" className="mt-3 text-red-300 text-sm">
+            <p>Could not save to your account. Please retry before closing this screen.</p>
+            <button type="button" onClick={retrySave} disabled={syncing} className="mt-2 underline disabled:opacity-50">Retry save</button>
+          </div>
+        )}
       </div>
 
       {/* Status message */}
@@ -135,7 +221,7 @@ export default function Settings() {
         onClick={save}
         className="w-full bg-blue-600 text-white font-semibold rounded-2xl py-4 active:bg-blue-700"
       >
-        저장
+        Save
       </button>
     </div>
   )

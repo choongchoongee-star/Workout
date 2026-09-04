@@ -1,24 +1,25 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { CATEGORIES } from '../data/exercises'
+import { isDefaultExercise } from '../lib/exerciseLibrary'
 
-const TYPE_LABELS = { weight: '웨이트', bodyweight: '맨몸', cardio: '유산소' }
+const TYPE_LABELS = { weight: 'Weight', bodyweight: 'Bodyweight', cardio: 'Cardio' }
 
 export default function Library() {
   const { exercises, addExercise, deleteExercise, loaded, syncError } = useApp()
-  const [activeCategory, setActiveCategory] = useState('전체')
+  const [activeCategory, setActiveCategory] = useState('All')
   const [query, setQuery] = useState('')
   const [showAdd, setShowAdd] = useState(false)
-  const [form, setForm] = useState({ name: '', category: '가슴', type: 'weight', met: '' })
+  const [form, setForm] = useState({ name: '', category: 'Chest', type: 'weight', met: '' })
 
-  const categories = ['전체', ...CATEGORIES]
+  const categories = ['All', ...CATEGORIES]
   const filtered = exercises
     .filter(e => {
-      const matchCat = activeCategory === '전체' || e.category === activeCategory
+      const matchCat = activeCategory === 'All' || e.category === activeCategory
       const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
       return matchCat && matchQ
     })
-    .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+    .sort((a, b) => a.name.localeCompare(b.name, 'en'))
 
   function handleAdd() {
     if (!form.name.trim()) return
@@ -31,43 +32,43 @@ export default function Library() {
       type: form.type,
       met: form.type === 'cardio' && isFinite(metValue) && metValue > 0 ? metValue : null,
     })
-    setForm({ name: '', category: '가슴', type: 'weight', met: '' })
+    setForm({ name: '', category: 'Chest', type: 'weight', met: '' })
     setShowAdd(false)
   }
 
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-4 pt-2">
-        <h1 className="text-xl font-bold text-white">운동 목록</h1>
+        <h1 className="text-xl font-bold text-white">Exercises</h1>
         <button
           onClick={() => setShowAdd(s => !s)}
           className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-xl active:bg-blue-700"
         >
-          + 추가
+          + Add
         </button>
       </div>
 
       {/* Firestore load error warning */}
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          데이터를 불러오지 못했습니다. 커스텀 운동이 표시되지 않을 수 있습니다.
+          Could not load your data. Custom exercises may be missing.
         </div>
       )}
 
       {/* Add form */}
       {showAdd && (
         <div className="bg-zinc-900 rounded-2xl p-4 mb-4 space-y-3">
-          <h3 className="text-white font-medium">새 운동 추가</h3>
+          <h3 className="text-white font-medium">Add custom exercise</h3>
           <input
             type="text"
-            placeholder="운동 이름"
+            placeholder="Exercise name"
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
           />
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="text-zinc-500 text-xs block mb-1">카테고리</label>
+              <label className="text-zinc-500 text-xs block mb-1">Category</label>
               <select
                 value={form.category}
                 onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
@@ -77,25 +78,25 @@ export default function Library() {
               </select>
             </div>
             <div className="flex-1">
-              <label className="text-zinc-500 text-xs block mb-1">타입</label>
+              <label className="text-zinc-500 text-xs block mb-1">Type</label>
               <select
                 value={form.type}
                 onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                 className="w-full bg-zinc-800 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none"
               >
-                <option value="weight">웨이트</option>
-                <option value="bodyweight">맨몸</option>
-                <option value="cardio">유산소</option>
+                <option value="weight">Weight</option>
+                <option value="bodyweight">Bodyweight</option>
+                <option value="cardio">Cardio</option>
               </select>
             </div>
           </div>
           {form.type === 'cardio' && (
             <div>
-              <label className="text-zinc-500 text-xs block mb-1">MET 값 (칼로리 계산용)</label>
+              <label className="text-zinc-500 text-xs block mb-1">MET value (for calorie estimates)</label>
               <input
                 type="number"
                 step="0.1"
-                placeholder="예: 8.3"
+                placeholder="e.g. 8.3"
                 value={form.met}
                 onChange={e => setForm(f => ({ ...f, met: e.target.value }))}
                 className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
@@ -107,13 +108,13 @@ export default function Library() {
               onClick={() => setShowAdd(false)}
               className="flex-1 bg-zinc-800 text-zinc-300 rounded-xl py-2.5 text-sm active:bg-zinc-700"
             >
-              취소
+              Cancel
             </button>
             <button
               onClick={handleAdd}
               className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm active:bg-blue-700"
             >
-              추가
+              Add
             </button>
           </div>
         </div>
@@ -122,7 +123,7 @@ export default function Library() {
       {/* Search */}
       <input
         type="text"
-        placeholder="운동 검색..."
+        placeholder="Search exercises..."
         value={query}
         onChange={e => setQuery(e.target.value)}
         className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
@@ -151,7 +152,7 @@ export default function Library() {
           </div>
         )}
         {loaded && filtered.map(ex => {
-          const isCustom = ex.id.startsWith('custom-')
+          const isCustom = ex.id.startsWith('custom-') && !isDefaultExercise(ex)
           return (
             <div
               key={ex.id}
@@ -161,7 +162,7 @@ export default function Library() {
             >
               <div className="flex-1">
                 <span className="text-white text-sm">{ex.name}</span>
-                {isCustom && <span className="text-blue-400 text-xs ml-2">커스텀</span>}
+                {isCustom && <span className="text-blue-400 text-xs ml-2">Custom</span>}
                 <span className="text-zinc-600 text-xs ml-2">{TYPE_LABELS[ex.type]}</span>
               </div>
               <span className="text-zinc-600 text-xs mr-3">{ex.category}</span>
@@ -177,7 +178,7 @@ export default function Library() {
           )
         })}
         {loaded && filtered.length === 0 && (
-          <p className="text-zinc-600 text-sm text-center py-8">검색 결과 없음</p>
+          <p className="text-zinc-600 text-sm text-center py-8">No exercises found.</p>
         )}
       </div>
     </div>

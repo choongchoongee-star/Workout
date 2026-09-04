@@ -2,6 +2,8 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useRef, 
 import { DEFAULT_EXERCISES } from '../data/exercises'
 import { loadWorkoutData, saveWorkoutData } from '../lib/firestore'
 import { useAuth } from './AuthContext'
+import { planWorkoutImport } from '../lib/importUtils'
+import { mergeDefaultExercises } from '../lib/exerciseLibrary'
 
 const AppContext = createContext(null)
 
@@ -58,6 +60,9 @@ function reducer(state, action) {
     case 'DELETE_EXERCISE':
       return { ...state, exercises: state.exercises.filter(e => e.id !== action.id) }
 
+    case 'IMPORT_DATA':
+      return { ...state, exercises: action.plan.exercises, sessions: action.plan.sessions }
+
     default:
       return state
   }
@@ -85,7 +90,7 @@ export function AppProvider({ children }) {
         justLoadedRef.current = true
         dispatch({
           type: 'LOAD_DATA',
-          exercises: data.exercises ?? DEFAULT_EXERCISES,
+          exercises: mergeDefaultExercises(data.exercises ?? []),
           sessions: data.sessions ?? [],
         })
       })
@@ -125,6 +130,12 @@ export function AppProvider({ children }) {
   const deleteSession = useCallback((id) => dispatch({ type: 'DELETE_SESSION', id }), [])
   const addExercise = useCallback((exercise) => dispatch({ type: 'ADD_EXERCISE', exercise }), [])
   const deleteExercise = useCallback((id) => dispatch({ type: 'DELETE_EXERCISE', id }), [])
+  const importWorkoutData = useCallback((data) => {
+    const plan = planWorkoutImport(state, data)
+    if (plan.addedCount) dispatch({ type: 'IMPORT_DATA', plan })
+    return plan
+  }, [state])
+  const retrySave = useCallback(() => persist(state.exercises, state.sessions), [persist, state.exercises, state.sessions])
   const getLastSession = useCallback((exerciseId, excludeDate = null) => {
     return state.sessions.find(s =>
       s.date !== excludeDate &&
@@ -139,20 +150,20 @@ export function AppProvider({ children }) {
       <div className="min-h-screen bg-black flex items-center justify-center p-6">
         {state.syncError ? (
           <div className="text-center max-w-sm">
-            <p className="text-white font-semibold">운동 기록을 불러오지 못했습니다</p>
-            <p className="text-zinc-500 text-sm mt-2">네트워크를 확인한 뒤 다시 시도해주세요.</p>
+            <p className="text-white font-semibold">Could not load your workouts</p>
+            <p className="text-zinc-500 text-sm mt-2">Check your connection and try again.</p>
             <button
               type="button"
               onClick={() => setLoadAttempt(attempt => attempt + 1)}
               className="mt-5 bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm active:bg-blue-500"
             >
-              다시 시도
+              Try again
             </button>
           </div>
         ) : (
           <div className="text-center">
             <div className="w-8 h-8 mx-auto border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
-            <p className="text-zinc-500 text-sm mt-3">운동 기록 불러오는 중...</p>
+            <p className="text-zinc-500 text-sm mt-3">Loading workouts...</p>
           </div>
         )}
       </div>
@@ -167,6 +178,8 @@ export function AppProvider({ children }) {
       addExercise,
       deleteExercise,
       getLastSession,
+      importWorkoutData,
+      retrySave,
     }}>
       {children}
     </AppContext.Provider>

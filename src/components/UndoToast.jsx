@@ -38,7 +38,7 @@ export default function UndoToast({ message, onUndo, onDismiss, bottomOffset = '
             onClick={handleUndo}
             className="text-blue-400 text-sm font-semibold ml-4 flex-shrink-0 active:text-blue-300"
           >
-            되돌리기
+            Undo
           </button>
         </div>
         <div className="h-0.5 bg-zinc-700">

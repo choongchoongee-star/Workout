@@ -1,8 +1,10 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-08-21
+> 마지막 업데이트: 2026-09-04
 > 현재 Phase: Phase 3 (무게 탭) 완료 — 유지보수 단계
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
+
+> **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firestore 데이터와 2026-09-03 이전 한국어 Markdown 백업은 읽을 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
 
 ---
 
@@ -100,10 +102,12 @@ Workout/
 │   │   ├── calories.js       # MET 기반 칼로리 계산 (calcCalories)
 │   │   ├── sessionUtils.js   # getMainCategory (그날 메인 카테고리)
 │   │   ├── dateUtils.js      # localTodayStr, formatDate
-│   │   ├── exportUtils.js    # buildMarkdown, downloadTextFile, exportFilename
+│   │   ├── exportUtils.js    # 영문 Markdown + 복원용 JSON 메타데이터 생성
+│   │   ├── importUtils.js    # 신·구 Markdown 검증/파싱 + 중복 없는 병합 계획
+│   │   ├── exerciseLibrary.js # 기본 목록 병합 + 한국어 데이터 영문화
 │   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
-│   │   └── exercises.js      # DEFAULT_EXERCISES(48개), CATEGORIES(7개)
+│   │   └── exercises.js      # DEFAULT_EXERCISES(61개), 영문 카테고리 + 한국어 호환 별칭
 │   └── ...
 ├── .env                      # Firebase config (git 제외)
 ├── public/                   # PWA 아이콘(icon-192/512.png), manifest 산출물
@@ -118,7 +122,7 @@ Google 로그인 → Firebase Auth → uid 획득
 
 로그인 시 AppProvider가 Firestore에서 1회 로드
   users/{uid}/data/workout → { exercises[], sessions[] }
-  (문서 없으면 exercises=null→기본48개, sessions=[])
+  (문서 없으면 exercises=null→기본61개, sessions=[])
   ├ 로드 중: 자식 화면 마운트 보류 + 전체 화면 로딩 표시
   ├ 성공: 데이터를 반영하고 loaded=true, syncing=false
   └ 실패: 빈 데이터로 대체하지 않고 오류 + [다시 시도] 표시
@@ -141,7 +145,7 @@ Google 로그인 → Firebase Auth → uid 획득
 ### 4.1 Firestore — `users/{uid}/data/workout` (단일 문서)
 ```json
 {
-  "exercises": [ Exercise, ... ],   // 기본48 + 커스텀
+  "exercises": [ Exercise, ... ],   // 기본61 + 커스텀
   "sessions":  [ Session, ... ]     // 날짜 역순 정렬 유지
 }
 ```
@@ -149,13 +153,13 @@ Google 로그인 → Firebase Auth → uid 획득
 
 ### 4.2 Exercise
 ```json
-{ "id": "bench-press", "name": "벤치프레스", "category": "가슴",
+{ "id": "bench-press", "name": "Bench Press", "category": "Chest",
   "type": "weight | bodyweight | cardio", "met": 8.3 }
 ```
 - `id`: 기본 운동은 고정 슬러그, 커스텀은 `custom-${crypto.randomUUID()}`
-- `category`: CATEGORIES 중 하나 (가슴/등/어깨/팔/하체/복근/유산소)
+- `category`: CATEGORIES 중 하나 (`Chest/Back/Shoulders/Arms/Legs/Core/Cardio`)
 - `met`: cardio 타입에만 존재 (칼로리 계산용). 그 외 타입은 필드 없음/null
-- 커스텀 판별: `id.startsWith('custom-')` → 라이브러리에서만 색상 구별 + 삭제 가능
+- 커스텀 판별: `id.startsWith('custom-')`이면서 영문 기본 운동 정의와 일치하지 않을 때만 라이브러리에서 색상 구별 + 삭제 가능. 과거 사용자가 추가했던 운동이 현재 기본 운동과 이름·카테고리·타입이 같으면 기존 ID를 유지한 채 기본 운동으로 승격한다.
 
 ### 4.3 Session (id === date, 1일 1세션)
 ```json
@@ -210,7 +214,7 @@ Google 로그인 → Firebase Auth → uid 획득
 | `/settings` | Settings | |
 | `*` | → `/session` 리다이렉트 | |
 
-**하단 탭(Layout):** `운동(/session)` · `기록(/history)` · `무게(/weight)` · `설정(/settings)` 4개.
+**하단 탭(Layout):** `Workout(/session)` · `History(/history)` · `Progress(/weight)` · `Settings(/settings)` 4개.
 - 활성 탭 `text-blue-400`, 비활성 `text-zinc-500`.
 - 라이브러리(`/library`)는 탭 없음 — 설정에서 진입.
 
@@ -397,7 +401,11 @@ Google 로그인 → Firebase Auth → uid 획득
 │ [          저장          ]             │  ← 휴식 시간 localStorage 저장
 └──────────────────────────────────────┘
 ```
-- 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md` 다운로드(Blob).
+- 영문 UI 섹션: `Account`, `Preferences`, `Exercise library`, `Backup / Restore`.
+- 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md` 다운로드(Blob). 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
+- 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
+- 병합: 앱은 날짜별 한 세션만 허용하므로 기존 날짜는 절대 덮어쓰지 않고 누락된 날짜만 추가한다. 같은 파일을 반복 가져오면 변경이 없다. 저장 실패 시 `Retry save`를 표시한다.
+- 호환: 새 JSON 메타데이터가 있으면 `done`, 모든 세트 값, 운동 ID/type/MET를 복원한다. 이전 한국어 보고서 형식도 읽지만 파일에 없던 `done`은 `false`로, 커스텀 MET는 복원 불가로 안내한다. 손상된 메타데이터는 구형 파서로 우회하지 않고 전체 가져오기를 거부한다.
 
 ---
 
@@ -451,16 +459,17 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 ---
 
-## 9. 기본 운동 목록 (`exercises.js`, 48개 / 7카테고리)
+## 9. 기본 운동 목록 (`exercises.js`, 61개 / 7카테고리)
 
-- **가슴(7):** 벤치프레스, 인클라인 벤치프레스, 디클라인 벤치프레스, 덤벨 플라이, 케이블 크로스오버, 딥스(bw), 푸쉬업(bw)
-- **등(7):** 풀업(bw), 랫풀다운, 시티드 로우, 원암 덤벨 로우, 데드리프트, 티바 로우, 케이블 로우
-- **어깨(6):** 오버헤드프레스, 덤벨 숄더프레스, 사이드 레터럴 레이즈, 프론트 레이즈, 페이스풀, 업라이트 로우
-- **팔(7):** 바벨 컬, 덤벨 컬, 해머 컬, 프리처 컬, 트라이셉스 푸시다운, 오버헤드 트라이셉스 익스텐션, 스컬 크러셔
-- **하체(8):** 스쿼트, 레그프레스, 런지, 레그 익스텐션, 레그 컬, 힙 어브덕션, 카프 레이즈, 루마니안 데드리프트
-- **복근(6):** 크런치(bw), 레그 레이즈(bw), 플랭크(bw), 케이블 크런치, 행잉 레그 레이즈(bw), 복근 롤러(bw)
-- **유산소(7, MET):** 러닝머신8.3, 자전거8.0, 로잉머신7.0, 일립티컬5.0, 줄넘기10.0, 걷기3.5, 스텝퍼9.0
-- `CATEGORIES = ['가슴','등','어깨','팔','하체','복근','유산소']`
+- **Chest(13):** Bench Press, Incline Bench Press, Decline Bench Press, Dumbbell Fly, Cable Crossover, Dips(bw), Push-up(bw), Pec Deck Fly, Cable Dips, Incline Dumbbell Press, Chest Press, Assisted Dip, Cable Chest Press
+- **Back(9):** Pull-up(bw), Lat Pulldown, Seated Row, One-arm Dumbbell Row, Deadlift, T-bar Row, Cable Row, Assisted Chin-up, Straight-arm Pulldown
+- **Shoulders(8):** Overhead Press, Dumbbell Shoulder Press, Lateral Raise, Front Raise, Face Pull, Upright Row, Shoulder Press, Reverse Pec Deck Fly
+- **Arms(8):** Barbell Curl, Dumbbell Curl, Hammer Curl, Preacher Curl, Triceps Pushdown, Overhead Triceps Extension, Skull Crusher, EZ-bar Curl
+- **Legs(9):** Squat, Leg Press, Lunge, Leg Extension, Leg Curl, Hip Abduction, Calf Raise, Romanian Deadlift, Thigh Abduction
+- **Core(7):** Crunch(bw), Leg Raise(bw), Plank(bw), Cable Crunch, Hanging Leg Raise(bw), Ab Wheel Rollout(bw), Back Extension
+- **Cardio(7, MET):** Treadmill 8.3, Cycling 8.0, Rowing Machine 7.0, Elliptical 5.0, Jump Rope 10.0, Walking 3.5, Stair Climber 9.0
+- `CATEGORIES = ['Chest','Back','Shoulders','Arms','Legs','Core','Cardio']`
+- `LEGACY_EXERCISE_NAMES`와 `LEGACY_CATEGORIES`는 한국어 저장 데이터/백업을 영문 기본 정의로 연결한다. ID만 같고 사용자가 이름을 임의 변경한 운동은 이름을 강제로 덮어쓰지 않는다.
 
 ---
 
@@ -519,3 +528,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-06-14: 운동 추가 시에도 새 운동 카드로 자동 스크롤 (SPEC '맨 위' 표현을 실제 동작인 '맨 아래'로 정정)
 - 2026-06-28: **무게 탭 신설**(운동/기록/무게/설정 4탭). 운동 선택 → 과거 세트를 날짜별로 연속 스크롤 조회(클릭 없이). 점진적 과부하 제안 배너 + epley.js 제거(이전 값 자동 입력은 유지)
 - 2026-08-21: 앱 시작 시 Firestore 데이터 로드가 끝날 때까지 편집 화면 마운트를 보류. 로드 실패를 빈 기록으로 대체하지 않고 재시도 화면을 표시하며, 늦게 도착한 비동기 응답을 무시하도록 보강. 성공 시 동기화 상태 정상 종료 및 History 저장 오류 배너 추가.
+- 2026-09-04: Markdown 가져오기 추가. 신규 백업은 숨은 JSON 메타데이터로 손실 없이 복원하며, 기존 한국어 내보내기 파일도 지원한다. 기존 날짜 보존, 미리보기, 중복 방지, 저장 재시도를 포함한다.
+- 2026-09-04: 사용자 백업에서 확인한 13종을 기본 운동으로 승격해 기본 목록을 61종으로 확장. 과거 커스텀 ID와 세션 참조를 유지한다.
+- 2026-09-04: 앱의 사용자 노출 언어, 날짜, 기본 운동·카테고리, 새 Markdown 형식을 영어로 전환. 기존 한국어 Firestore 데이터와 Markdown 백업은 로드/가져오기 시 영어 정의로 정규화한다.
+- 2026-09-04: 프로젝트 전용 `workout-maintenance` 스킬 추가. 구현 작업 종료 시 SPEC 동기화, 검증, 민감 파일 제외, 커밋·`master` 푸시와 원격 해시 확인을 필수 절차로 지정한다. GitHub Pages 배포는 별도 작업으로 유지한다.

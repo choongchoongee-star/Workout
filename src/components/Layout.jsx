@@ -4,7 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 const NAV = [
   {
     to: '/session',
-    label: '운동',
+    label: 'Workout',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
         <path d="M6.5 6.5h11M6.5 17.5h11M3 9h2v6H3zM19 9h2v6h-2z" strokeLinecap="round" />
@@ -13,7 +13,7 @@ const NAV = [
   },
   {
     to: '/history',
-    label: '기록',
+    label: 'History',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
         <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -23,7 +23,7 @@ const NAV = [
   },
   {
     to: '/weight',
-    label: '무게',
+    label: 'Progress',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
         <path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" strokeLinecap="round" />
@@ -32,7 +32,7 @@ const NAV = [
   },
   {
     to: '/settings',
-    label: '설정',
+    label: 'Settings',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6">
         <circle cx="12" cy="12" r="3" />
