@@ -6,6 +6,7 @@ import { buildMarkdown, exportFilename } from '../lib/exportUtils'
 import { exportWorkoutFile } from '../lib/workoutFileExport'
 import { MAX_IMPORT_BYTES, parseWorkoutMarkdown, planWorkoutImport } from '../lib/importUtils'
 import { getRestNotificationPermission, requestRestNotificationPermission } from '../lib/restNotification'
+import { openAppSettings } from '../lib/appSettings'
 
 function Field({ label, hint, children }) {
   return (
@@ -26,6 +27,7 @@ export default function Settings() {
   const [importResult, setImportResult] = useState('')
   const [reading, setReading] = useState(false)
   const [notificationPermission, setNotificationPermission] = useState('checking')
+  const [settingsError, setSettingsError] = useState('')
   const fileInputRef = useRef(null)
   const importPlan = importFile ? planWorkoutImport({ sessions, exercises }, importFile.data) : null
 
@@ -33,7 +35,10 @@ export default function Settings() {
     let cancelled = false
     const refresh = async () => {
       const permission = await getRestNotificationPermission()
-      if (!cancelled) setNotificationPermission(permission)
+      if (!cancelled) {
+        setNotificationPermission(permission)
+        setSettingsError('')
+      }
     }
     void refresh()
     document.addEventListener('visibilitychange', refresh)
@@ -46,8 +51,16 @@ export default function Settings() {
   }, [])
 
   async function enableRestAlerts() {
+    setSettingsError('')
     setNotificationPermission('checking')
     setNotificationPermission(await requestRestNotificationPermission())
+  }
+
+  async function handleOpenAppSettings() {
+    setSettingsError('')
+    if (!await openAppSettings()) {
+      setSettingsError('Could not open iPhone Settings. Open Settings → Apps → Workout Logger → Notifications.')
+    }
   }
 
   async function handleImportFile(event) {
@@ -140,8 +153,14 @@ export default function Settings() {
             </button>
           )}
           {notificationPermission === 'denied' && (
-            <p className="mt-3 text-xs text-amber-300">Notifications are blocked. Open iPhone Settings → Apps → Workout Logger → Notifications to enable them.</p>
+            <div className="mt-3">
+              <p className="text-xs text-amber-300">Notifications are blocked. Enable them in iPhone Settings to receive rest alerts.</p>
+              <button type="button" onClick={handleOpenAppSettings} className="mt-3 w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 active:bg-zinc-700">
+                Open iPhone Settings
+              </button>
+            </div>
           )}
+          {settingsError && <p role="alert" className="mt-3 text-xs text-red-300">{settingsError}</p>}
           {notificationPermission === 'unavailable' && (
             <p className="mt-3 text-xs text-red-300">Notification status could not be checked. Try reopening Settings.</p>
           )}

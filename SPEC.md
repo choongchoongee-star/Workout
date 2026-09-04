@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-05
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 설정·실기기 검증 대기
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 최초 EAS 빌드·실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -50,6 +50,7 @@ mode !== 'capacitor' && VitePWA({
 | `build:ios` | `vite build --mode capacitor` (상대 base, 서비스워커 제외) |
 | `ios:sync` | iOS 빌드 후 `cap sync ios` |
 | `ios:open` | macOS에서 Xcode 프로젝트 열기 |
+| `check:ios-release` | 번들 ID·버전·기기·방향·Scheme·EAS archive 절차의 일관성 검사 |
 | `lint` | `eslint .` |
 | `preview` | `vite preview` |
 | `icons` | `node generate-icons.mjs` (PWA 아이콘 생성) |
@@ -60,7 +61,9 @@ mode !== 'capacitor' && VitePWA({
 - 라이브 반영은 **수동으로 `npm run deploy`** 실행 → `dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
 - PWA 서비스워커(`autoUpdate`)가 새 빌드를 백그라운드 갱신하므로, 배포 후 기기에서는 앱 재실행 1~2회 또는 잠깐의 지연 후 반영됨.
-- iOS 앱은 `npm run ios:sync` 후 `ios/App/App.xcodeproj`를 빌드한다. App Store용 원격 빌드·서명은 Capacitor/SPM에 맞춘 EAS Custom Build를 사용할 예정이며, 설정과 실기기 체크리스트가 준비된 뒤에만 실행한다. 앱 ID 기본값은 `com.choongchoongeestar.workout`이다.
+- iOS 앱은 `npm run ios:sync` 후 `ios/App/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 `cap sync ios` 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
+- EAS 프로젝트는 `@choongchoongee/workout-logger`(project ID `ca086289-002e-40a4-a2ee-c11e84212f41`)에 연결되어 있다. `eas.json`의 production profile은 store 배포, 자동 build number 증가, `NPM_CONFIG_LEGACY_PEER_DEPS=true`를 사용한다. 실제 원격 빌드는 Apple 자격 증명과 실기기 체크 준비 후 최종 단계에서만 시작한다.
+- 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 초기 build number는 `1`이다. 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
 - 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 
@@ -100,11 +103,16 @@ Workout/
 │   │   ├── restTimer.js      # 절대 종료 시각 기반 남은 시간 계산
 │   │   ├── restNotification.js # 휴식 종료 1회 소리 + 재생 실패 시 진동
 │   │   ├── workoutFileExport.js # iOS 공유 시트 / 웹 다운로드 백업
+│   │   ├── appSettings.js    # 알림 거부 시 앱별 iPhone Settings 열기
 │   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
 │   │   └── exercises.js      # DEFAULT_EXERCISES(61개), 영문 카테고리 + 한국어 호환 별칭
 │   └── ...
-├── ios/                      # Capacitor Xcode 프로젝트 + 번들 웹 자산
+├── ios/                      # Capacitor Xcode 프로젝트 + 앱 설정 브리지 + 공유 App Scheme
+├── .eas/build/ios-production.yml # Capacitor/SPM용 EAS Custom Build
+├── app.json                  # EAS 프로젝트·iOS 제품 설정
+├── eas.json                  # production build/submit profile
+├── scripts/verify-ios-release.mjs # 원격 빌드 전 정적 release gate
 ├── capacitor.config.json     # 앱 ID, webDir, iOS 알림 표시 옵션
 ├── public/                   # PWA 아이콘(icon-192/512.png), manifest 산출물
 ├── generate-icons.mjs
@@ -382,7 +390,7 @@ Workout/
 └──────────────────────────────────────┘
 ```
 - 영문 UI 섹션: `Preferences`, `Exercise library`, `Backup / Restore`. 계정·로그아웃 UI는 없다.
-- Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청하고, 거부 상태에서는 iPhone Settings의 알림 경로를 안내한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
+- Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청한다. 거부 상태의 `Open iPhone Settings`는 Capacitor에 등록한 `AppSettingsPlugin`을 통해 `UIApplication.openSettingsURLString`을 열고, 실패하면 수동 경로를 표시한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
 - 병합: 앱은 날짜별 한 세션만 허용하므로 기존 날짜는 절대 덮어쓰지 않고 누락된 날짜만 추가한다. 같은 파일을 반복 가져오면 변경이 없다. 저장 실패 시 `Retry save`를 표시한다.
@@ -448,7 +456,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - `PrivacyInfo.xcprivacy`를 App target의 Copy Bundle Resources에 포함하고 Filesystem의 file timestamp API 사용 이유 `C617.1`을 선언한다. 수집 데이터와 추적은 없음으로 선언한다.
 - iOS AppIcon은 불투명 RGB 1024×1024 정사각형 자산이며 시스템 마스크용 모서리 여백이나 투명 영역을 포함하지 않는다. 앱은 iPhone 전용·세로 방향으로 고정한다.
 - iOS 빌드는 PWA 서비스워커를 포함하지 않는다. 앱 UI와 데이터 접근은 오프라인으로 동작하며 로그인 화면이나 Firebase SDK가 없다.
-- Windows에서는 Xcode 빌드와 서명 검증을 수행할 수 없다. macOS에서 Xcode로 앱 팀·서명·최종 bundle identifier를 확인하고 시뮬레이터와 실제 기기에서 알림 권한, 백그라운드 알림, 파일 가져오기/공유를 검증해야 한다.
+- 콘텐츠는 CSS `env(safe-area-inset-top)` 아래에서 시작하고, 하단 내비게이션과 휴식 타이머는 `env(safe-area-inset-bottom)`을 포함해 홈 인디케이터와 겹치지 않는다.
+- Windows에서는 Swift 컴파일, Xcode archive와 서명 검증을 수행할 수 없다. 최초 EAS 빌드에서 Swift 브리지와 SPM archive를 확인하고, 실제 iPhone에서 알림 권한·설정 바로가기·백그라운드 알림·safe area·파일 가져오기/공유를 검증해야 한다.
 
 ---
 
@@ -493,7 +502,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 ### ✅ Phase 4 — 로컬 전용 iOS 앱
 - [x] Firebase·Google 로그인 제거 / 기기 파일 자동 저장 / Capacitor Xcode 프로젝트 / 백그라운드 로컬 알림 / iOS 공유 시트 백업
 - [x] iPhone 전용 세로 고정 / 정식 불투명 아이콘 / 알림 권한 Settings / 손상 시 로컬 백업 복구 / 개인정보처리방침
-- [ ] EAS Custom Build 설정, 시뮬레이터·실기기 검증, App Store 메타데이터와 제출
+- [x] EAS 프로젝트 연결 / Capacitor-SPM Custom Build / 공유 Scheme / 출시 설정 정적 검사
+- [ ] 최초 EAS Release archive, 실기기 검증, App Store 메타데이터와 제출
 
 ---
 
@@ -534,3 +544,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-04: Capacitor v8 iOS Xcode 프로젝트로 전환. Firebase SDK·Google 로그인·계정 UI를 제거하고 iOS 앱 전용 JSON 파일에 자동 저장하도록 변경했다. 휴식 시작 시 iOS 로컬 알림을 예약해 앱이 백그라운드여도 종료 순간 시스템이 알리며, Markdown 백업은 네이티브 공유 시트를 사용한다.
 - 2026-09-05: 파란 덤벨 기반의 불투명 정식 AppIcon으로 교체하고 iOS target을 iPhone 전용·세로 방향으로 고정했다. Settings에 휴식 알림 권한 상태와 요청/거부 안내를 추가했다.
 - 2026-09-05: pending 검증과 직전 정상 backup을 이용한 로컬 데이터 자동 복구를 추가했다. 앱 내 영문 개인정보처리방침과 GitHub Pages 공개 정책 페이지를 추가하고, 원격 iOS 빌드는 준비 완료 후 EAS Custom Build로 실행하도록 배포 계획을 갱신했다.
+- 2026-09-05: EAS 프로젝트를 연결하고 Capacitor/SPM용 production Custom Build, 공유 App Scheme, 버전·번들·암호화 출시 설정 검사기를 추가했다. 알림 거부 시 앱별 iPhone Settings를 직접 여는 네이티브 브리지와 iPhone safe area 보정도 추가했다.

@@ -9,6 +9,7 @@
     "build:ios": "vite build --mode capacitor",
     "ios:sync": "npm run build:ios && cap sync ios",
     "ios:open": "cap open ios",
+    "check:ios-release": "node scripts/verify-ios-release.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "icons": "node generate-icons.mjs",

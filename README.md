@@ -40,9 +40,18 @@ Capacitor 앱 ID는 현재 `com.choongchoongeestar.workout`이다.
 ```bash
 npm run ios:sync   # iOS용 빌드 후 Xcode 프로젝트와 플러그인 동기화
 npm run ios:open   # macOS에서 Xcode 열기
+npm run check:ios-release # 번들 ID, 버전, Scheme, EAS 절차 등 출시 설정 검사
 ```
 
-Xcode 프로젝트는 `ios/App/App.xcodeproj`에 있다. iOS 대상은 iPhone 전용·세로 방향으로 고정되어 있다. App Store용 빌드와 서명은 EAS Custom Build의 macOS 환경을 사용할 예정이며, EAS 설정과 실기기 검증을 마치기 전에는 원격 빌드를 실행하지 않는다. Settings에서 알림 권한 상태를 확인하고 최초 권한을 요청할 수 있으며, 허용되면 `@capacitor/local-notifications`가 종료 시각의 로컬 알림을 예약한다. Filesystem 필수 이유 API는 App target의 `PrivacyInfo.xcprivacy`에 선언되어 있다.
+Xcode 프로젝트는 `ios/App/App.xcodeproj`에 있고 `App` Scheme은 공유되어 있다. iOS 대상은 iPhone 전용·세로 방향으로 고정되어 있으며 상·하단 safe area를 반영한다. App Store용 빌드와 서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM용 EAS Custom Build를 사용한다. EAS 프로젝트 `@choongchoongee/workout-logger`가 연결되어 있지만, 실기기 검증을 마치기 전에는 원격 빌드를 실행하지 않는다.
+
+Settings에서 알림 권한 상태를 확인하고 최초 권한을 요청할 수 있다. 거부된 경우 `Open iPhone Settings`가 이 앱의 시스템 설정 화면을 연다. 허용되면 `@capacitor/local-notifications`가 종료 시각의 로컬 알림을 예약한다. Filesystem 필수 이유 API는 App target의 `PrivacyInfo.xcprivacy`에 선언되어 있고, 비면제 암호화를 사용하지 않는다는 App Store 선언도 Info.plist와 EAS 앱 설정에 반영되어 있다.
+
+최종 준비 후 최초 원격 빌드는 아래 명령으로 시작한다. 이 명령은 Apple 서명 자격 증명과 App Store Connect 설정을 확인한 뒤에만 실행한다.
+
+```bash
+npx eas-cli@latest build --platform ios --profile production
+```
 
 개인정보처리방침은 앱의 Settings에서 확인할 수 있으며 공개 URL은 `https://choongchoongee-star.github.io/Workout/privacy/`이다.
 
