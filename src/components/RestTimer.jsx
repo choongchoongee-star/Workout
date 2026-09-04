@@ -1,16 +1,5 @@
-import { useEffect } from 'react'
-
-export default function RestTimer({ seconds, total, onDone, onSkip }) {
+export default function RestTimer({ seconds, total, onSkip }) {
   const pct = total > 0 ? (seconds / total) * 100 : 0
-
-  useEffect(() => {
-    if (seconds <= 0) {
-      if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200])
-      }
-      onDone?.()
-    }
-  }, [seconds, onDone])
 
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60

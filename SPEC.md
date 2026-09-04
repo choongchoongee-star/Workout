@@ -105,6 +105,8 @@ Workout/
 │   │   ├── exportUtils.js    # 영문 Markdown + 복원용 JSON 메타데이터 생성
 │   │   ├── importUtils.js    # 신·구 Markdown 검증/파싱 + 중복 없는 병합 계획
 │   │   ├── exerciseLibrary.js # 기본 목록 병합 + 한국어 데이터 영문화
+│   │   ├── restTimer.js      # 절대 종료 시각 기반 남은 시간 계산
+│   │   ├── restNotification.js # 휴식 종료 1회 소리 + 재생 실패 시 진동
 │   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
 │   │   └── exercises.js      # DEFAULT_EXERCISES(61개), 영문 카테고리 + 한국어 호환 별칭
@@ -268,6 +270,7 @@ Google 로그인 → Firebase Auth → uid 획득
 - **운동 추가:** [+ 운동 추가] 버튼은 **운동 목록 맨 아래**에 위치(2026-06-14 상단→하단 이동). 탭 → 바텀시트(`h-[80vh]` 고정). 상단 검색 input(**autoFocus 없음** — 키보드 자동 노출 방지, 2026-06-14), 카테고리 칩(전체+7), 운동 리스트. 기본 카테고리 = 현재 세션 메인 카테고리 → 없으면 과거 세션 메인 → 없으면 '전체'. 이미 추가된 운동은 흐리게 + "추가됨". Escape/배경 탭으로 닫기, Tab 포커스 트랩.
 - **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가(cardio는 빈 기록 1개 자동 생성). **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
 - **세트 추가:** 첫 세트면 **과거 세션의 마지막 세트 값**을 기본값으로(getLastSession), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
+- **숫자 덮어쓰기:** weight·added weight·reps 스테퍼의 숫자 input을 탭하거나 클릭하면 기존 값을 전체 선택한다. 이어서 숫자를 입력하면 기존 값을 따로 지우지 않고 바로 교체된다. 값을 바꾸지 않고 포커스만 벗어나면 원래 값은 유지한다.
 - **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
 - **bodyweight:** "체중+" 레이블 + added_weight 스테퍼(step 2.5) + reps.
 - **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
@@ -417,11 +420,13 @@ Google 로그인 → Firebase Auth → uid 획득
 
 ### StepperInput
 - `[-step] [숫자 input] [+step]`. props: `value, onChange, step, unit, min=0, disabled`.
-- `onPointerDown`으로 즉시 반응. 외부 value 변경 시 비포커스 상태에서만 input 동기화(입력 중 방해 X). blur 시 빈/음수면 min으로 보정. 소수 누적오차 `toFixed(2)`.
+- `onPointerDown`으로 즉시 반응. 숫자 input은 focus/click 때 현재 값을 전체 선택해 다음 입력이 기존 값을 교체한다. 외부 value 변경 시 비포커스 상태에서만 input 동기화(입력 중 방해 X). blur 시 빈/음수면 min으로 보정. 소수 누적오차 `toFixed(2)`.
 
 ### RestTimer
-- 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. 1초 카운트다운(Session에서 setTimeout).
-- 0 도달 시 `navigator.vibrate([200,100,200])` 후 onDone. [건너뛰기] 버튼.
+- 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. [Skip] 버튼.
+- 시작할 때 `endsAt = Date.now() + restSeconds * 1000`을 저장하고, `getRemainingSeconds(endsAt)`로 표시 시간을 계산한다. 250ms 폴링 외에 `visibilitychange`, `focus`, `pageshow`에서도 즉시 다시 계산하므로 브라우저가 백그라운드 타이머를 중단해도 경과 시간이 밀리지 않는다.
+- 종료 시 Web Audio로 0.25초 톤을 정확히 1회 재생한다. 세트 완료 탭 시 AudioContext를 미리 준비해 모바일의 사용자 제스처 제한을 완화한다. 오디오 재생을 시작할 수 없으면 지원 브라우저에서 250ms 진동을 정확히 1회 요청한다. 같은 `endsAt`은 ref로 중복 알림하지 않는다.
+- 웹 API는 iPhone의 물리 무음 스위치 상태를 판별할 수 없고 iOS Safari는 vibration API도 제공하지 않으므로, PWA에서 "무음이면 진동"을 보장할 수는 없다. 이 보장은 아래 iOS 네이티브 셸 단계에서 로컬 알림으로 구현한다.
 
 ### UndoToast
 - 5초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
@@ -456,6 +461,13 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 ### 8.6 소요시간
 - 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장(디바운스)마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
+
+### 8.7 iOS 앱 전환 검토
+- 현재 React/Vite 코드를 유지한 채 iOS 컨테이너를 추가하는 **Capacitor 기반 네이티브 셸**을 우선 후보로 한다. 단순 원격 `WKWebView` 래퍼는 자바스크립트 정지 문제를 해결하지 못하고 App Store의 최소 기능 심사 위험도 있으므로 선택하지 않는다.
+- 네이티브 단계에서는 휴식 시작 시 `UNTimeIntervalNotificationTrigger`로 로컬 알림을 예약하고, [Skip] 또는 새 타이머 시작 시 기존 요청을 취소/교체한다. iOS가 앱의 백그라운드·중단 상태에서도 전달하며 별도 알림 서버가 필요 없다.
+- 앱 번들에 웹 자산을 포함해 운동 기록과 Markdown 가져오기/내보내기는 오프라인에서 동작하도록 한다. 네이티브 기능은 로컬 휴식 알림, 파일 선택·공유, 햅틱처럼 앱 목적과 직접 연결된 기능부터 추가한다.
+- App Store 제출 전에는 현재 Google 단독 로그인을 재검토한다. 제3자 로그인을 주 계정 인증에 쓰는 앱은 App Review Guideline 4.8의 동등한 로그인 옵션 요건을 충족해야 하며, 계정 생성 지원 시 앱 내 계정 삭제도 제공해야 한다.
+- **결정:** 현 단계에서는 PWA 코드의 타이머 정확도와 전면 알림을 먼저 개선했다. iOS 제출 작업을 시작할 때 Capacitor 셸과 로컬 알림 브리지를 별도 구현한다.
 
 ---
 
@@ -504,7 +516,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 다중 사용자 / 소셜 기능
 - 분석 차트 / 통계
 - 바코드 / 외부 DB 운동 검색
-- 알림 / 리마인더
+- 서버 기반 푸시 알림 / 운동 리마인더 (휴식 종료 전면 알림은 제공, 네이티브 로컬 알림은 iOS 셸 단계)
 - InBody / 체성분 분석 (과거 제거)
 - Epley 1RM 표시 (과거 제거)
 - Gemini Vision API 사진 인식 (과거 제거)
@@ -532,3 +544,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-04: 사용자 백업에서 확인한 13종을 기본 운동으로 승격해 기본 목록을 61종으로 확장. 과거 커스텀 ID와 세션 참조를 유지한다.
 - 2026-09-04: 앱의 사용자 노출 언어, 날짜, 기본 운동·카테고리, 새 Markdown 형식을 영어로 전환. 기존 한국어 Firestore 데이터와 Markdown 백업은 로드/가져오기 시 영어 정의로 정규화한다.
 - 2026-09-04: 프로젝트 전용 `workout-maintenance` 스킬 추가. 구현 작업 종료 시 SPEC 동기화, 검증, 민감 파일 제외, 커밋·`master` 푸시와 원격 해시 확인을 필수 절차로 지정한다. GitHub Pages 배포는 별도 작업으로 유지한다.
+- 2026-09-04: 스테퍼 숫자 탭 시 전체 선택해 즉시 덮어쓰도록 개선. 휴식 타이머를 절대 종료 시각 기준으로 바꿔 백그라운드 복귀 오차를 제거하고, 종료 1회 소리와 오디오 실패 시 1회 진동을 추가했다. iOS 앱은 단순 WebView 대신 Capacitor 네이티브 셸과 서버 없는 로컬 알림을 후속 방향으로 결정했다.

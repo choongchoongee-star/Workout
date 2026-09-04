@@ -9,6 +9,8 @@ import UndoToast from '../components/UndoToast'
 import { CATEGORIES } from '../data/exercises'
 import { localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
+import { getRemainingSeconds } from '../lib/restTimer'
+import { notifyRestComplete, prepareRestNotification } from '../lib/restNotification'
 
 function newWeightSet(weight = 20, reps = 10) {
   return { weight, reps, done: false }
@@ -294,7 +296,8 @@ export default function Session() {
   }, [sessionDate, realToday, startTimeKey])
 
   const [showModal, setShowModal] = useState(false)
-  const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90 })
+  const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90, endsAt: null })
+  const notifiedRestEndRef = useRef(null)
   const [undoData, setUndoData] = useState(null)
 
   // Auto-save in-progress session to context on every change
@@ -330,22 +333,46 @@ export default function Session() {
     exerciseCardRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [sessionExercises])
 
-  // Rest timer countdown
+  // Recalculate from the absolute deadline so background timer throttling cannot lose time.
   useEffect(() => {
-    if (!restTimer.active || restTimer.remaining <= 0) {
-      if (restTimer.active) setRestTimer(t => ({ ...t, active: false }))
-      return
+    if (!restTimer.active || !restTimer.endsAt) return
+    const endsAt = restTimer.endsAt
+
+    function updateRemaining() {
+      const remaining = getRemainingSeconds(endsAt)
+      if (remaining <= 0) {
+        if (notifiedRestEndRef.current !== endsAt) {
+          notifiedRestEndRef.current = endsAt
+          void notifyRestComplete()
+        }
+        setRestTimer(t => t.active && t.endsAt === endsAt
+          ? { ...t, active: false, remaining: 0 }
+          : t)
+        return
+      }
+      setRestTimer(t => t.active && t.endsAt === endsAt && t.remaining !== remaining
+        ? { ...t, remaining }
+        : t)
     }
-    const id = setTimeout(() => {
-      setRestTimer(t => ({ ...t, remaining: t.remaining - 1 }))
-    }, 1000)
-    return () => clearTimeout(id)
-  }, [restTimer.active, restTimer.remaining])
+
+    updateRemaining()
+    const id = window.setInterval(updateRemaining, 250)
+    document.addEventListener('visibilitychange', updateRemaining)
+    window.addEventListener('focus', updateRemaining)
+    window.addEventListener('pageshow', updateRemaining)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', updateRemaining)
+      window.removeEventListener('focus', updateRemaining)
+      window.removeEventListener('pageshow', updateRemaining)
+    }
+  }, [restTimer.active, restTimer.endsAt])
 
   function startRestTimer() {
     const secs = storage.getRestSeconds()
     if (secs <= 0) return
-    setRestTimer({ active: true, remaining: secs, total: secs })
+    prepareRestNotification()
+    setRestTimer({ active: true, remaining: secs, total: secs, endsAt: Date.now() + secs * 1000 })
   }
 
   function addExercise(ex) {
@@ -555,7 +582,6 @@ export default function Session() {
         <RestTimer
           seconds={restTimer.remaining}
           total={restTimer.total}
-          onDone={() => setRestTimer(t => ({ ...t, active: false }))}
           onSkip={() => setRestTimer(t => ({ ...t, active: false }))}
         />
       )}

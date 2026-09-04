@@ -45,6 +45,8 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
           type="number"
           defaultValue={value}
           disabled={disabled}
+          onFocus={e => e.currentTarget.select()}
+          onClick={e => e.currentTarget.select()}
           onChange={e => {
             const v = parseFloat(e.target.value)
             if (!isNaN(v) && v >= min) onChange(v)
