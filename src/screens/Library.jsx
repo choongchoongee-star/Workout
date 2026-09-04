@@ -48,10 +48,10 @@ export default function Library() {
         </button>
       </div>
 
-      {/* Firestore load error warning */}
+      {/* Local file save error warning */}
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          Could not load your data. Custom exercises may be missing.
+          Could not save your exercise library on this device.
         </div>
       )}
 

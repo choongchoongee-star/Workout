@@ -1,0 +1,10 @@
+{
+  "appId": "com.choongchoongeestar.workout",
+  "appName": "Workout Logger",
+  "webDir": "dist",
+  "plugins": {
+    "LocalNotifications": {
+      "presentationOptions": ["sound", "banner", "list"]
+    }
+  }
+}

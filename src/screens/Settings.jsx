@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { storage } from '../lib/storage'
-import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
-import { buildMarkdown, downloadTextFile, exportFilename } from '../lib/exportUtils'
+import { buildMarkdown, exportFilename } from '../lib/exportUtils'
+import { exportWorkoutFile } from '../lib/workoutFileExport'
 import { MAX_IMPORT_BYTES, parseWorkoutMarkdown, planWorkoutImport } from '../lib/importUtils'
 
 function Field({ label, hint, children }) {
@@ -17,7 +17,6 @@ function Field({ label, hint, children }) {
 }
 
 export default function Settings() {
-  const { user, logout } = useAuth()
   const { sessions, exercises, importWorkoutData, syncing, syncError, retrySave } = useApp()
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [status, setStatus] = useState({})
@@ -56,14 +55,14 @@ export default function Settings() {
     setImportFile(null)
   }
 
-  function handleExport() {
+  async function handleExport() {
     if (!sessions?.length) {
       setStatus({ msg: 'There are no workouts to export.', ok: false })
       setTimeout(() => setStatus({}), 2000)
       return
     }
     try {
-      downloadTextFile(buildMarkdown(sessions, exercises), exportFilename('md'), 'text/markdown;charset=utf-8')
+      await exportWorkoutFile(buildMarkdown(sessions, exercises), exportFilename('md'))
       setStatus({ msg: 'Export complete ✓', ok: true })
       setTimeout(() => setStatus({}), 2000)
     } catch {
@@ -79,39 +78,11 @@ export default function Settings() {
     setTimeout(() => setStatus({}), 2000)
   }
 
-  async function handleLogout() {
-    try {
-      await logout()
-    } catch {
-      setStatus({ msg: 'Sign-out failed. Please try again.', ok: false })
-    }
-  }
-
   const inputCls = "w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
 
   return (
     <div className="p-4 max-w-lg mx-auto pb-8">
       <h1 className="text-xl font-bold text-white mb-6 pt-2">Settings</h1>
-
-      {/* Account */}
-      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-3">Account</h2>
-        <div className="flex items-center gap-3 mb-4">
-          {user?.photoURL && (
-            <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full" />
-          )}
-          <div>
-            <p className="text-white text-sm font-medium">{user?.displayName}</p>
-            <p className="text-zinc-500 text-xs">{user?.email}</p>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="w-full bg-zinc-700 text-zinc-200 text-sm rounded-xl py-2.5 active:bg-zinc-600"
-        >
-          Sign out
-        </button>
-      </div>
 
       {/* Body settings */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
@@ -169,7 +140,7 @@ export default function Settings() {
           {reading ? 'Reading file…' : 'Import workouts (.md)'}
         </button>
         <p className="text-zinc-400 text-xs mt-3">
-          Existing workouts are kept. Only missing dates are added and saved to your account automatically.
+          Existing workouts are kept. Only missing dates are added and saved on this device automatically.
         </p>
         {importFile && (
           <div className="mt-4 border border-zinc-700 rounded-xl p-3 space-y-3" aria-label="Import preview">
@@ -196,10 +167,10 @@ export default function Settings() {
         )}
         {importError && <p role="alert" className="mt-3 text-red-300 text-sm">{importError}</p>}
         {importResult && <p role="status" className="mt-3 text-green-300 text-sm">{importResult}</p>}
-        {syncing && <p role="status" className="mt-3 text-zinc-400 text-xs">Saving to your account…</p>}
+        {syncing && <p role="status" className="mt-3 text-zinc-400 text-xs">Saving on this device…</p>}
         {syncError && (
           <div role="alert" className="mt-3 text-red-300 text-sm">
-            <p>Could not save to your account. Please retry before closing this screen.</p>
+            <p>Could not save on this device. Please retry before closing this screen.</p>
             <button type="button" onClick={retrySave} disabled={syncing} className="mt-2 underline disabled:opacity-50">Retry save</button>
           </div>
         )}

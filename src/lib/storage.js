@@ -1,4 +1,4 @@
-// localStorage helpers — 설정값과 API 키 전용 (운동 데이터는 Firestore에 저장)
+// localStorage helpers for lightweight device settings.
 
 const KEYS = {
   BODY_WEIGHT: 'wl_body_weight',

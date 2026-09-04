@@ -52,7 +52,7 @@ export default function History() {
 
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          Could not save your data. Check your connection.
+          Could not save your workout on this device.
         </div>
       )}
 

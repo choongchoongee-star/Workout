@@ -1,106 +1,53 @@
 # Workout Logger
 
-개인용 운동 기록 PWA. GitHub Pages 배포, Firebase로 인증 및 데이터 동기화.
+개인용 운동 기록 앱. React 화면을 Capacitor iOS 앱에 포함하며 계정이나 데이터 서버 없이 기기 내부에 기록을 저장한다. 브라우저/PWA 빌드는 개발과 GitHub Pages 미리보기를 위해 유지한다.
 
 ## 주요 기능
 
-- **운동 기록** — 웨이트(세트/무게/횟수), 맨몸(체중+추가하중/횟수), 유산소(시간/거리/속도/경사/칼로리)
-- **이전 값 자동 입력** — 첫 세트 추가 시 과거 마지막 세트의 무게·횟수를 기본값으로 사용
-- **휴식 타이머** — 세트 완료 체크 시 자동 시작, 원형 프로그레스 + 바이브레이션
-- **무게 기록 조회** — 운동을 선택해 날짜별 과거 세트를 한 화면에서 연속 조회
-- **되돌리기** — 운동/세트/세션 삭제 후 5초 내 undo 가능
-- **칼로리 자동계산** — MET 공식 (유산소 운동, 시간 + 체중 입력 시)
-- **날짜 변경** — 헤더 날짜 탭으로 과거 날짜 세션 조회/수정
-- **기록 내보내기** — 전체 운동 기록을 Markdown 파일로 다운로드
-- **PWA** — 홈화면 설치, 앱처럼 동작
-- **Firebase 동기화** — Google 로그인 후 기기 간 동일 데이터, 초기 로드 실패 시 안전한 재시도
+- 웨이트·맨몸·유산소 운동 기록과 자동 저장
+- 이전 세트 값 재사용 및 숫자 탭 후 즉시 덮어쓰기
+- 앱이 백그라운드여도 iOS가 전달하는 휴식 종료 로컬 알림
+- 운동별 과거 기록과 날짜별 기록 조회
+- 커스텀 운동 관리
+- Markdown 전체 백업 내보내기·가져오기
+- 로그인, Firebase, 별도 백엔드 서버 없음
 
-## 기술 스택
+## 데이터 저장
 
-- React 19 + Vite 8 + Tailwind CSS v4
-- Firebase Auth (Google 로그인) + Firestore (데이터 저장)
-- vite-plugin-pwa (PWA)
-- GitHub Pages (배포)
+- iOS: 앱 전용 `Directory.Data/workout-data.json`
+- 브라우저 개발/PWA: `localStorage`의 `wl_workout_data_v1`
+- 휴식 시간 같은 가벼운 설정: `localStorage`
+- 백업: Settings의 `Export workouts (.md)`로 Files 또는 공유 시트에 저장
 
-## 시작하기
-
-### 1. Firebase 설정
-
-`.env` 파일에 Firebase 프로젝트 설정값 입력:
-
-```env
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-```
-
-### 2. GitHub Pages 배포
-
-저장소 → Settings → Pages → Branch: `gh-pages` → Save
-
-배포 URL: `https://<username>.github.io/Workout/`
-
-### 3. 앱 초기 설정
-
-앱 접속 → Google 로그인 → **설정** 탭:
-
-| 항목 | 설명 |
-|------|------|
-| 휴식 타이머 (초) | 세트 완료 시 자동 시작 타이머 기본값 |
-
-유산소 칼로리 계산의 체중은 별도 설정 UI 없이 로컬 저장값 또는 기본값 70kg을 사용합니다.
-
-### 4. PWA 설치
-
-브라우저 주소창 → "홈 화면에 추가" → 앱처럼 사용
+서버 동기화가 없으므로 앱 삭제나 기기 분실에 대비해 Markdown 백업을 별도로 보관해야 한다. 기존 Firebase 기록은 자동 이전하지 않으며, 이전에 내보낸 `.md` 파일을 Settings에서 가져온다.
 
 ## 개발
 
 ```bash
-npm install
-npm run dev        # 개발 서버
-npm run build      # 프로덕션 빌드
-npm run deploy     # GitHub Pages 배포 (gh-pages)
-npm run lint       # ESLint
-npm run icons      # PWA 아이콘 재생성 (sharp 필요)
+npm install --legacy-peer-deps
+npm run dev
+node --test src/lib/*.test.mjs
+npm run lint
+npm run build
 ```
 
-## 프로젝트 구조
+기존 Vite 8과 `@tailwindcss/vite`의 peer 범위 차이 때문에 의존성 설치에는 `--legacy-peer-deps`를 사용한다.
 
-```
-src/
-├── data/exercises.js         # 기본 운동 목록 (48개, 7카테고리)
-├── lib/
-│   ├── firebase.js           # Firebase 초기화 (auth, db)
-│   ├── firestore.js          # Firestore load/save (users/{uid}/data/workout)
-│   ├── storage.js            # localStorage (칼로리 계산용 체중값, 휴식 시간)
-│   ├── calories.js           # MET 칼로리 계산
-│   ├── sessionUtils.js       # 그날 메인 카테고리 계산 (getMainCategory)
-│   ├── exportUtils.js        # 기록 Markdown 내보내기
-│   └── dateUtils.js          # 날짜 포맷 유틸
-├── context/
-│   ├── AuthContext.jsx        # Firebase Google Auth 상태 관리
-│   └── AppContext.jsx         # 운동 데이터 상태 + Firestore 자동 동기화
-├── components/
-│   ├── Layout.jsx             # 하단 네비게이션 (운동/기록/무게/설정)
-│   ├── StepperInput.jsx       # [-] 값 [+] 스테퍼 입력
-│   ├── RestTimer.jsx          # 휴식 타이머 (원형 프로그레스)
-│   └── UndoToast.jsx          # 삭제 되돌리기 토스트 (5초)
-└── screens/
-    ├── Login.jsx              # Google 로그인
-    ├── Session.jsx            # 운동 기록 (핵심 화면)
-    ├── History.jsx            # 기록 목록 (날짜 역순 + 날짜 점프)
-    ├── SessionDetail.jsx      # 기록 상세 (수정/삭제)
-    ├── Weight.jsx             # 무게 탭 (운동별 과거 세트 연속 조회)
-    ├── Library.jsx            # 운동 목록 관리 (검색/카테고리/커스텀 추가)
-    └── Settings.jsx           # 설정 (계정, 휴식 타이머)
+## iOS
+
+Capacitor 앱 ID는 현재 `com.choongchoongeestar.workout`이다.
+
+```bash
+npm run ios:sync   # iOS용 빌드 후 Xcode 프로젝트와 플러그인 동기화
+npm run ios:open   # macOS에서 Xcode 열기
 ```
 
-## 보안
+Xcode 프로젝트는 `ios/App/App.xcodeproj`에 있다. 실제 빌드·서명·시뮬레이터/기기 검증·App Store 제출에는 macOS와 Xcode가 필요하다. 첫 휴식 타이머 시작 시 알림 권한을 요청하며, 허용되면 `@capacitor/local-notifications`가 종료 시각의 로컬 알림을 예약한다. Filesystem 필수 이유 API는 App target의 `PrivacyInfo.xcprivacy`에 선언되어 있다.
 
-- Firebase 설정은 `.env` 파일에 저장 (`.gitignore` 처리)
-- 칼로리 계산용 체중값과 휴식 시간은 `localStorage`에만 저장
-- Firestore 보안 규칙으로 `users/{uid}` 하위만 본인 접근 가능
+## 웹 미리보기 배포
+
+```bash
+npm run deploy
+```
+
+`master` 푸시는 소스만 갱신한다. GitHub Pages 배포는 위 명령으로 `gh-pages` 브랜치에 별도로 수행한다.

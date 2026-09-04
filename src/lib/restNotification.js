@@ -1,4 +1,10 @@
+import { Capacitor } from '@capacitor/core'
+import { LocalNotifications } from '@capacitor/local-notifications'
+
+const REST_NOTIFICATION_ID = 1101
 let preparedAudioContext = null
+let nativeNotificationScheduled = false
+let scheduleGeneration = 0
 
 function createBrowserAudioContext() {
   if (typeof window === 'undefined') return null
@@ -39,11 +45,64 @@ export function playRestTone(context) {
   oscillator.stop(now + 0.25)
 }
 
+export async function scheduleRestNotification(endsAt, {
+  isNativePlatform = () => Capacitor.isNativePlatform(),
+  notifications = LocalNotifications,
+} = {}) {
+  if (!isNativePlatform()) return false
+  const generation = ++scheduleGeneration
+  nativeNotificationScheduled = false
+
+  try {
+    let permission = await notifications.checkPermissions()
+    if (permission.display === 'prompt') {
+      permission = await notifications.requestPermissions()
+    }
+    if (permission.display !== 'granted' || generation !== scheduleGeneration) return false
+
+    await notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] })
+    if (generation !== scheduleGeneration) return false
+    await notifications.schedule({
+      notifications: [{
+        id: REST_NOTIFICATION_ID,
+        title: 'Rest complete',
+        body: 'Time for your next set.',
+        schedule: { at: new Date(endsAt) },
+        sound: 'default',
+        foreground: true,
+      }],
+    })
+    nativeNotificationScheduled = generation === scheduleGeneration
+    return nativeNotificationScheduled
+  } catch {
+    nativeNotificationScheduled = false
+    return false
+  }
+}
+
+export async function cancelRestNotification({
+  isNativePlatform = () => Capacitor.isNativePlatform(),
+  notifications = LocalNotifications,
+} = {}) {
+  scheduleGeneration += 1
+  nativeNotificationScheduled = false
+  if (!isNativePlatform()) return
+  try {
+    await notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] })
+  } catch {
+    // A missing or already-delivered notification needs no further action.
+  }
+}
+
 export async function notifyRestComplete({
   context = preparedAudioContext,
   createContext = createBrowserAudioContext,
   vibrate = browserVibrate,
 } = {}) {
+  if (Capacitor.isNativePlatform() && nativeNotificationScheduled) {
+    nativeNotificationScheduled = false
+    return 'native'
+  }
   try {
     const audioContext = context || createContext()
     if (!audioContext) throw new Error('Web Audio is unavailable')

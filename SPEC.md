@@ -1,20 +1,20 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-04
-> 현재 Phase: Phase 3 (무게 탭) 완료 — 유지보수 단계
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Xcode 기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
-> **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firestore 데이터와 2026-09-03 이전 한국어 Markdown 백업은 읽을 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
+> **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
 
 ---
 
 ## 1. Overview
 
-- **목적:** 웨이트 + 유산소 운동 세션을 최소 마찰로 기록하는 개인용 PWA
+- **목적:** 웨이트 + 유산소 운동 세션을 최소 마찰로 기록하는 개인용 iOS 앱
 - **핵심 철학:** "운동 중에 빠르게 기록" — 탭 수 최소화, 자동 입력(이전 값 재사용), 자동 저장
-- **핵심 제약사항:** 정적 호스팅(GitHub Pages), 백엔드 서버 없음(Firebase BaaS만 사용), Google 계정 로그인 필수, 1일 1세션
+- **핵심 제약사항:** 로그인·백엔드 서버·원격 데이터 전송 없음, 기기 내 저장, 1일 1세션
 - **주요 사용자:** Charlie (단일 사용자, 개인용)
-- **플랫폼:** 모바일 우선 PWA (세로형, 폭 `max-w-lg` 중앙 정렬), 다크 테마 고정
+- **플랫폼:** Capacitor 기반 iOS 앱 우선. 동일 React 앱의 브라우저/PWA 빌드도 개발·미리보기용으로 유지. 세로형 `max-w-lg`, 다크 테마 고정
 
 ---
 
@@ -24,14 +24,14 @@
 - **React 19** + **Vite 8** (`@vitejs/plugin-react`)
 - **Tailwind CSS v4** (`@tailwindcss/vite` 플러그인 방식 — `tailwind.config` 없이 CSS-first)
 - **react-router-dom v7** (`BrowserRouter`, `basename="/Workout"`)
-- **Firebase v12** — Auth(Google) + Firestore
+- **Capacitor v8** — iOS 네이티브 셸, Filesystem, Local Notifications, Share
 - **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
 - 아이콘 생성: `sharp` (`generate-icons.mjs`)
 
 ### vite.config.js 핵심
 ```js
-base: '/Workout/',           // GitHub Pages 레포 경로
-VitePWA({
+base: mode === 'capacitor' ? './' : '/Workout/',
+mode !== 'capacitor' && VitePWA({
   registerType: 'autoUpdate',
   manifest: {
     name: 'Workout Logger', short_name: 'Workout',
@@ -47,6 +47,9 @@ VitePWA({
 |--------|------|
 | `dev` | `vite` (로컬 개발 서버) |
 | `build` | `vite build` (→ `dist/`) |
+| `build:ios` | `vite build --mode capacitor` (상대 base, 서비스워커 제외) |
+| `ios:sync` | iOS 빌드 후 `cap sync ios` |
+| `ios:open` | macOS에서 Xcode 프로젝트 열기 |
 | `lint` | `eslint .` |
 | `preview` | `vite preview` |
 | `icons` | `node generate-icons.mjs` (PWA 아이콘 생성) |
@@ -57,17 +60,8 @@ VitePWA({
 - 라이브 반영은 **수동으로 `npm run deploy`** 실행 → `dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
 - PWA 서비스워커(`autoUpdate`)가 새 빌드를 백그라운드 갱신하므로, 배포 후 기기에서는 앱 재실행 1~2회 또는 잠깐의 지연 후 반영됨.
-
-### 환경변수 (`.env`, git 제외)
-Firebase 설정값. `src/lib/firebase.js`가 `import.meta.env.VITE_*`로 읽어 `initializeApp` → `auth`, `db`, `googleProvider(GoogleAuthProvider)` export.
-```
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-```
+- iOS 앱은 `npm run ios:sync` 후 `ios/App/App.xcodeproj`를 macOS/Xcode에서 빌드·서명한다. 앱 ID 기본값은 `com.choongchoongeestar.workout`이다.
+- 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 
 ---
 
@@ -81,7 +75,6 @@ Workout/
 │   ├── App.jsx               # Provider + Router + 라우트 정의
 │   ├── index.css             # Tailwind import + 커스텀 애니메이션(animate-slide-up 등)
 │   ├── screens/              # 화면 컴포넌트
-│   │   ├── Login.jsx
 │   │   ├── Session.jsx       # Active Session (핵심 화면)
 │   │   ├── History.jsx       # 기록 목록
 │   │   ├── SessionDetail.jsx # 기록 상세
@@ -94,11 +87,9 @@ Workout/
 │   │   ├── RestTimer.jsx     # 휴식 타이머 (원형 진행 + 바)
 │   │   └── UndoToast.jsx     # 5초 되돌리기 토스트
 │   ├── context/
-│   │   ├── AuthContext.jsx   # Firebase Google Auth 상태
-│   │   └── AppContext.jsx    # 운동 데이터 상태 + Firestore 자동 동기화
+│   │   └── AppContext.jsx    # 운동 상태 + 기기 로컬 파일 자동 저장
 │   ├── lib/
-│   │   ├── firebase.js       # Firebase 초기화 (auth, db, googleProvider)
-│   │   ├── firestore.js      # load/save (users/{uid}/data/workout), undefined 새니타이즈
+│   │   ├── localWorkoutData.js # iOS 파일 / 웹 localStorage 영속화
 │   │   ├── calories.js       # MET 기반 칼로리 계산 (calcCalories)
 │   │   ├── sessionUtils.js   # getMainCategory (그날 메인 카테고리)
 │   │   ├── dateUtils.js      # localTodayStr, formatDate
@@ -107,11 +98,13 @@ Workout/
 │   │   ├── exerciseLibrary.js # 기본 목록 병합 + 한국어 데이터 영문화
 │   │   ├── restTimer.js      # 절대 종료 시각 기반 남은 시간 계산
 │   │   ├── restNotification.js # 휴식 종료 1회 소리 + 재생 실패 시 진동
+│   │   ├── workoutFileExport.js # iOS 공유 시트 / 웹 다운로드 백업
 │   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
 │   │   └── exercises.js      # DEFAULT_EXERCISES(61개), 영문 카테고리 + 한국어 호환 별칭
 │   └── ...
-├── .env                      # Firebase config (git 제외)
+├── ios/                      # Capacitor Xcode 프로젝트 + 번들 웹 자산
+├── capacitor.config.json     # 앱 ID, webDir, iOS 알림 표시 옵션
 ├── public/                   # PWA 아이콘(icon-192/512.png), manifest 산출물
 ├── generate-icons.mjs
 └── vite.config.js
@@ -119,17 +112,15 @@ Workout/
 
 ### 핵심 데이터 흐름
 ```
-Google 로그인 → Firebase Auth → uid 획득
-  └ AuthContext: user = undefined(로딩) | null(미로그인) | User(로그인)
-
-로그인 시 AppProvider가 Firestore에서 1회 로드
-  users/{uid}/data/workout → { exercises[], sessions[] }
-  (문서 없으면 exercises=null→기본61개, sessions=[])
+앱 시작 → AppProvider가 기기 로컬 데이터에서 1회 로드
+  iOS: Directory.Data/workout-data.json
+  Web/PWA: localStorage[wl_workout_data_v1]
+  (파일/키가 없으면 기본61개, sessions=[])
   ├ 로드 중: 자식 화면 마운트 보류 + 전체 화면 로딩 표시
   ├ 성공: 데이터를 반영하고 loaded=true, syncing=false
   └ 실패: 빈 데이터로 대체하지 않고 오류 + [다시 시도] 표시
 
-운동 데이터 변경 → reducer state 갱신 → 500ms 디바운스 후 Firestore에 setDoc
+운동 데이터 변경 → reducer state 갱신 → 500ms 디바운스 후 전체 JSON 저장
   (로드 직후 첫 실행은 justLoadedRef로 스킵 — 빈 데이터 덮어쓰기 방지)
 
 설정값(휴식 시간) → localStorage (수동 저장)
@@ -137,21 +128,23 @@ Google 로그인 → Firebase Auth → uid 획득
 ```
 
 ### 외부 의존성
-- Firebase Auth (Google 팝업 로그인)
-- Firebase Firestore (단일 문서에 전체 데이터 저장)
+- 런타임 서버 의존성 없음. iOS 네이티브 기능은 앱에 포함된 Capacitor 공식 플러그인만 사용한다.
 
 ---
 
 ## 4. 데이터 모델
 
-### 4.1 Firestore — `users/{uid}/data/workout` (단일 문서)
+### 4.1 기기 로컬 운동 파일
 ```json
 {
+  "version": 1,
   "exercises": [ Exercise, ... ],   // 기본61 + 커스텀
   "sessions":  [ Session, ... ]     // 날짜 역순 정렬 유지
 }
 ```
-- 저장 전 `undefined` 값을 재귀 제거(`sanitizeForFirestore`) — Firestore가 undefined 거부.
+- iOS는 `@capacitor/filesystem`의 `Directory.Data/workout-data.json`에 UTF-8 JSON으로 저장한다. 웹/PWA는 같은 JSON을 `localStorage[wl_workout_data_v1]`에 저장한다.
+- 파일이 없을 때만 새 사용자로 처리한다. JSON이 손상되거나 배열 구조가 아니면 빈 데이터로 덮어쓰지 않고 로드 오류와 재시도를 표시한다.
+- 기기 간 자동 동기화는 없다. 앱 삭제·기기 분실에 대비한 이식 수단은 Markdown 백업이다.
 
 ### 4.2 Exercise
 ```json
@@ -198,10 +191,8 @@ Google 로그인 → Firebase Auth → uid 획득
 
 ## 5. 네비게이션 / 라우팅
 
-`App.jsx` 구조: `<AuthProvider><BrowserRouter basename="/Workout"><AppRoutes/>`
-- `user === undefined` → 전체 화면 스피너
-- `user === null` → `<Login/>`
-- 로그인됨 → `<AppProvider><Layout><Routes>...`
+`App.jsx` 구조: `<BrowserRouter><AppProvider><Layout><Routes>...`
+- iOS 빌드 basename=`/`, 웹/PWA basename=`/Workout`.
 - AppProvider 데이터 로드 중 → Layout/Routes를 아직 마운트하지 않고 전체 화면 로딩 표시
 - AppProvider 데이터 로드 실패 → 빈 기록 화면 대신 오류와 [다시 시도] 표시
 
@@ -225,22 +216,6 @@ Google 로그인 → Firebase Auth → uid 획득
 ## 6. 화면별 명세 + 와이어프레임
 
 > 공통: 다크 배경 `bg-zinc-950`, 콘텐츠 `max-w-lg mx-auto p-4`, 하단 네비 높이만큼 `pb`.
-
-### 6.0 Login (`/` 미로그인)
-```
-┌─────────────────────────────┐
-│                             │
-│          Workout            │  ← 3xl bold white
-│          운동 기록           │  ← zinc-500
-│                             │
-│  ┌───────────────────────┐  │
-│  │ [G] Google로 로그인     │  │  ← 흰 버튼, 구글 로고 SVG
-│  └───────────────────────┘  │
-│       (로그인 중...)         │  ← loading 시
-│       에러 메시지(빨강)       │  ← popup-blocked 등
-└─────────────────────────────┘
-```
-- `signInWithPopup`. `popup-closed-by-user`는 무시(에러 미표시), `popup-blocked`는 안내, 기타는 일반 실패 메시지.
 
 ### 6.1 Session — Active Session (핵심) `/session`
 ```
@@ -275,7 +250,7 @@ Google 로그인 → Firebase Auth → uid 획득
 - **bodyweight:** "체중+" 레이블 + added_weight 스테퍼(step 2.5) + reps.
 - **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
 - **삭제:** 세트/운동 ×버튼 → 즉시 제거 + UndoToast(5초). 되돌리기 시 원위치 복원.
-- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → Firestore. 빈 세션(길이 0)은 저장 안 함. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
+- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 빈 세션(길이 0)은 저장 안 함. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
 - **날짜 변경:** 헤더 date input 변경 → 해당 날짜 세션 로드(없으면 빈 배열). 날짜 전환 중엔 auto-save 스킵(`isDateChanging`).
 
 ### 6.2 History — 기록 목록 `/history`
@@ -385,10 +360,6 @@ Google 로그인 → Firebase Auth → uid 획득
 ```
 ┌──────────────────────────────────────┐
 │ 설정                                   │
-│ ┌─ 계정 ───────────────────────────┐  │
-│ │ (프로필사진) 이름 / 이메일          │  │
-│ │ [ 로그아웃 ]                       │  │
-│ └──────────────────────────────────┘  │
 │ ┌─ 기본 설정 ──────────────────────┐  │
 │ │ 휴식 타이머 (초)                   │  │  ← 체중 필드 제거됨(2026-06-14)
 │ │ [ 90 ]  (0이면 타이머 꺼짐)        │  │
@@ -404,8 +375,8 @@ Google 로그인 → Firebase Auth → uid 획득
 │ [          저장          ]             │  ← 휴식 시간 localStorage 저장
 └──────────────────────────────────────┘
 ```
-- 영문 UI 섹션: `Account`, `Preferences`, `Exercise library`, `Backup / Restore`.
-- 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md` 다운로드(Blob). 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
+- 영문 UI 섹션: `Preferences`, `Exercise library`, `Backup / Restore`. 계정·로그아웃 UI는 없다.
+- 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
 - 병합: 앱은 날짜별 한 세션만 허용하므로 기존 날짜는 절대 덮어쓰지 않고 누락된 날짜만 추가한다. 같은 파일을 반복 가져오면 변경이 없다. 저장 실패 시 `Retry save`를 표시한다.
 - 호환: 새 JSON 메타데이터가 있으면 `done`, 모든 세트 값, 운동 ID/type/MET를 복원한다. 이전 한국어 보고서 형식도 읽지만 파일에 없던 `done`은 `false`로, 커스텀 MET는 복원 불가로 안내한다. 손상된 메타데이터는 구형 파서로 우회하지 않고 전체 가져오기를 거부한다.
@@ -425,8 +396,9 @@ Google 로그인 → Firebase Auth → uid 획득
 ### RestTimer
 - 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. [Skip] 버튼.
 - 시작할 때 `endsAt = Date.now() + restSeconds * 1000`을 저장하고, `getRemainingSeconds(endsAt)`로 표시 시간을 계산한다. 250ms 폴링 외에 `visibilitychange`, `focus`, `pageshow`에서도 즉시 다시 계산하므로 브라우저가 백그라운드 타이머를 중단해도 경과 시간이 밀리지 않는다.
-- 종료 시 Web Audio로 0.25초 톤을 정확히 1회 재생한다. 세트 완료 탭 시 AudioContext를 미리 준비해 모바일의 사용자 제스처 제한을 완화한다. 오디오 재생을 시작할 수 없으면 지원 브라우저에서 250ms 진동을 정확히 1회 요청한다. 같은 `endsAt`은 ref로 중복 알림하지 않는다.
-- 웹 API는 iPhone의 물리 무음 스위치 상태를 판별할 수 없고 iOS Safari는 vibration API도 제공하지 않으므로, PWA에서 "무음이면 진동"을 보장할 수는 없다. 이 보장은 아래 iOS 네이티브 셸 단계에서 로컬 알림으로 구현한다.
+- iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 알림 ID `1101`을 예약한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 알림 권한을 요청한다.
+- [Skip]은 예약을 취소한다. 새 타이머는 같은 ID의 이전 예약을 취소·교체하며 generation 값으로 비동기 권한 요청 경합을 막는다. 네이티브 예약이 성공한 경우 타이머 종료 effect는 Web Audio를 중복 재생하지 않는다.
+- 웹/PWA에서는 Web Audio로 0.25초 톤을 1회 재생하고, 오디오 시작이 실패하면 지원 브라우저에서 250ms 진동을 1회 요청한다. 이는 브라우저를 떠나 있는 동안의 즉시 알림을 보장하지 않으며 iOS 앱의 네이티브 알림이 정식 동작이다.
 
 ### UndoToast
 - 5초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
@@ -453,21 +425,21 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - `(exerciseId, excludeDate)` → 그 운동을 포함하는, 오늘이 아닌 가장 최근 세션. 첫 세트 기본값 채울 때 사용.
 
 ### 8.5 자동 저장 / 디바운스 (`AppContext`)
-- 인증 복원 후 `LOAD_START`로 원격 데이터를 읽으며, 완료 전에는 Session/History 등 자식 화면을 마운트하지 않는다. 따라서 오늘 화면이 초기 빈 `sessions`를 캡처하거나 사용자가 로딩 중 빈 상태를 편집하는 일을 막는다.
-- 로드 성공 시 데이터와 함께 `loaded=true`, `syncing=false`로 전환한다. 개발 모드 이중 실행이나 사용자 전환 뒤 늦게 도착한 응답은 effect cleanup의 `cancelled` 플래그로 무시한다.
-- 로드 실패 시 빈 배열로 대체하지 않고 `LOAD_ERROR`로 진입한다. 기존 원격 기록을 빈 데이터로 오인·덮어쓰지 않도록 편집 화면 대신 오류와 [다시 시도]를 표시한다.
-- 정상 로드 직후 첫 저장 effect는 `justLoadedRef`로 1회 스킵한다. 이후 state 변경은 500ms 디바운스 후 `saveWorkoutData`로 전체 문서를 저장한다.
-- 저장 실패는 `syncError`로 보존하며 Session·History·Library 화면에 빨간 동기화 오류 배너를 표시한다(화면별 안내 문구는 다름). 다음 동기화 시작 시 오류를 초기화한다.
+- `LOAD_START`로 로컬 JSON을 읽으며, 완료 전에는 Session/History 등 자식 화면을 마운트하지 않는다. 따라서 오늘 화면이 초기 빈 `sessions`를 캡처하거나 사용자가 로딩 중 빈 상태를 편집하는 일을 막는다.
+- 로드 성공 시 데이터와 함께 `loaded=true`, `syncing=false`로 전환한다. 개발 모드 이중 실행 뒤 늦게 도착한 응답은 effect cleanup의 `cancelled` 플래그로 무시한다.
+- 로드 실패 시 빈 배열로 대체하지 않고 `LOAD_ERROR`로 진입한다. 손상되었거나 읽을 수 없는 기존 파일을 빈 데이터로 덮어쓰지 않도록 편집 화면 대신 오류와 [Try again]을 표시한다.
+- 정상 로드 직후 첫 저장 effect는 `justLoadedRef`로 1회 스킵한다. 이후 state 변경은 500ms 디바운스 후 `saveLocalWorkoutData`로 전체 JSON을 저장한다.
+- 저장 실패는 `syncError`로 보존하며 Session·History·Library 화면에 기기 저장 오류 배너를 표시한다. 다음 저장 시작 시 오류를 초기화한다.
 
 ### 8.6 소요시간
 - 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장(디바운스)마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
 
-### 8.7 iOS 앱 전환 검토
-- 현재 React/Vite 코드를 유지한 채 iOS 컨테이너를 추가하는 **Capacitor 기반 네이티브 셸**을 우선 후보로 한다. 단순 원격 `WKWebView` 래퍼는 자바스크립트 정지 문제를 해결하지 못하고 App Store의 최소 기능 심사 위험도 있으므로 선택하지 않는다.
-- 네이티브 단계에서는 휴식 시작 시 `UNTimeIntervalNotificationTrigger`로 로컬 알림을 예약하고, [Skip] 또는 새 타이머 시작 시 기존 요청을 취소/교체한다. iOS가 앱의 백그라운드·중단 상태에서도 전달하며 별도 알림 서버가 필요 없다.
-- 앱 번들에 웹 자산을 포함해 운동 기록과 Markdown 가져오기/내보내기는 오프라인에서 동작하도록 한다. 네이티브 기능은 로컬 휴식 알림, 파일 선택·공유, 햅틱처럼 앱 목적과 직접 연결된 기능부터 추가한다.
-- App Store 제출 전에는 현재 Google 단독 로그인을 재검토한다. 제3자 로그인을 주 계정 인증에 쓰는 앱은 App Review Guideline 4.8의 동등한 로그인 옵션 요건을 충족해야 하며, 계정 생성 지원 시 앱 내 계정 삭제도 제공해야 한다.
-- **결정:** 현 단계에서는 PWA 코드의 타이머 정확도와 전면 알림을 먼저 개선했다. iOS 제출 작업을 시작할 때 Capacitor 셸과 로컬 알림 브리지를 별도 구현한다.
+### 8.7 iOS 네이티브 셸
+- `ios/App/App.xcodeproj`는 Capacitor v8로 생성했으며 앱 번들에 `dist` 웹 자산을 포함한다. 원격 사이트를 불러오는 단순 WebView가 아니다.
+- `@capacitor/filesystem`, `@capacitor/local-notifications`, `@capacitor/share`를 Swift Package Manager 프로젝트에 연결한다. `npm run ios:sync`가 iOS용 상대경로 빌드와 플러그인/자산 동기화를 수행한다.
+- `PrivacyInfo.xcprivacy`를 App target의 Copy Bundle Resources에 포함하고 Filesystem의 file timestamp API 사용 이유 `C617.1`을 선언한다. 수집 데이터와 추적은 없음으로 선언한다.
+- iOS 빌드는 PWA 서비스워커를 포함하지 않는다. 앱 UI와 데이터 접근은 오프라인으로 동작하며 로그인 화면이나 Firebase SDK가 없다.
+- Windows에서는 Xcode 빌드와 서명 검증을 수행할 수 없다. macOS에서 Xcode로 앱 팀·서명·최종 bundle identifier를 확인하고 시뮬레이터와 실제 기기에서 알림 권한, 백그라운드 알림, 파일 가져오기/공유를 검증해야 한다.
 
 ---
 
@@ -501,13 +473,17 @@ kcal = round( MET × 체중(kg) × (분/60) )
 ## 11. Phase 계획
 
 ### ✅ Phase 1 — MVP
-- [x] 웨이트 + 유산소 기록 / Firebase Auth / Firestore 자동 동기화 / 유산소 수동 기록 / PWA
+- [x] 웨이트 + 유산소 기록 / 유산소 수동 기록 / PWA
 
 ### ✅ Phase 2 — 점진적 과부하 (이후 롤백)
 - [x] +2.5kg 제안 배너 → **2026-06-28 제거** (이전 값 자동 입력만 유지)
 
 ### ✅ Phase 3 — 무게 탭
 - [x] 운동별 과거 세트 연속 조회 화면 (2026-06-28)
+
+### ✅ Phase 4 — 로컬 전용 iOS 앱
+- [x] Firebase·Google 로그인 제거 / 기기 파일 자동 저장 / Capacitor Xcode 프로젝트 / 백그라운드 로컬 알림 / iOS 공유 시트 백업
+- [ ] macOS/Xcode에서 서명, 시뮬레이터·실기기 검증, App Store 메타데이터와 제출
 
 ---
 
@@ -516,7 +492,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 다중 사용자 / 소셜 기능
 - 분석 차트 / 통계
 - 바코드 / 외부 DB 운동 검색
-- 서버 기반 푸시 알림 / 운동 리마인더 (휴식 종료 전면 알림은 제공, 네이티브 로컬 알림은 iOS 셸 단계)
+- 서버 기반 푸시 알림 / 운동 리마인더 (휴식 종료 로컬 알림은 제공)
 - InBody / 체성분 분석 (과거 제거)
 - Epley 1RM 표시 (과거 제거)
 - Gemini Vision API 사진 인식 (과거 제거)
@@ -545,3 +521,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-04: 앱의 사용자 노출 언어, 날짜, 기본 운동·카테고리, 새 Markdown 형식을 영어로 전환. 기존 한국어 Firestore 데이터와 Markdown 백업은 로드/가져오기 시 영어 정의로 정규화한다.
 - 2026-09-04: 프로젝트 전용 `workout-maintenance` 스킬 추가. 구현 작업 종료 시 SPEC 동기화, 검증, 민감 파일 제외, 커밋·`master` 푸시와 원격 해시 확인을 필수 절차로 지정한다. GitHub Pages 배포는 별도 작업으로 유지한다.
 - 2026-09-04: 스테퍼 숫자 탭 시 전체 선택해 즉시 덮어쓰도록 개선. 휴식 타이머를 절대 종료 시각 기준으로 바꿔 백그라운드 복귀 오차를 제거하고, 종료 1회 소리와 오디오 실패 시 1회 진동을 추가했다. iOS 앱은 단순 WebView 대신 Capacitor 네이티브 셸과 서버 없는 로컬 알림을 후속 방향으로 결정했다.
+- 2026-09-04: Capacitor v8 iOS Xcode 프로젝트로 전환. Firebase SDK·Google 로그인·계정 UI를 제거하고 iOS 앱 전용 JSON 파일에 자동 저장하도록 변경했다. 휴식 시작 시 iOS 로컬 알림을 예약해 앱이 백그라운드여도 종료 순간 시스템이 알리며, Markdown 백업은 네이티브 공유 시트를 사용한다.

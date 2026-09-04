@@ -10,7 +10,7 @@ import { CATEGORIES } from '../data/exercises'
 import { localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
 import { getRemainingSeconds } from '../lib/restTimer'
-import { notifyRestComplete, prepareRestNotification } from '../lib/restNotification'
+import { cancelRestNotification, notifyRestComplete, prepareRestNotification, scheduleRestNotification } from '../lib/restNotification'
 
 function newWeightSet(weight = 20, reps = 10) {
   return { weight, reps, done: false }
@@ -372,7 +372,14 @@ export default function Session() {
     const secs = storage.getRestSeconds()
     if (secs <= 0) return
     prepareRestNotification()
-    setRestTimer({ active: true, remaining: secs, total: secs, endsAt: Date.now() + secs * 1000 })
+    const endsAt = Date.now() + secs * 1000
+    void scheduleRestNotification(endsAt)
+    setRestTimer({ active: true, remaining: secs, total: secs, endsAt })
+  }
+
+  function skipRestTimer() {
+    void cancelRestNotification()
+    setRestTimer(t => ({ ...t, active: false }))
   }
 
   function addExercise(ex) {
@@ -505,7 +512,7 @@ export default function Session() {
 
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          Could not save your data. Check your connection.
+          Could not save your workout on this device.
         </div>
       )}
 
@@ -582,7 +589,7 @@ export default function Session() {
         <RestTimer
           seconds={restTimer.remaining}
           total={restTimer.total}
-          onSkip={() => setRestTimer(t => ({ ...t, active: false }))}
+          onSkip={skipRestTimer}
         />
       )}
 
