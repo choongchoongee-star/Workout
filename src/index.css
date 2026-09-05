@@ -1,24 +1,40 @@
 @import "tailwindcss";
 
-/* A restrained training-log palette, shared by every app screen. */
+/* User palette: forest, cream, peach and brown; shared by every app screen. */
 @theme {
-  --color-white: #eeeee7;
-  --color-zinc-950: #171916;
-  --color-zinc-900: #20231e;
-  --color-zinc-800: #2d312a;
-  --color-zinc-700: #454b40;
-  --color-zinc-600: #858b7d;
-  --color-zinc-500: #969d8d;
-  --color-zinc-400: #acb2a4;
-  --color-zinc-300: #c7cbbf;
-  --color-zinc-200: #daddd2;
-  --color-accent-300: #d2dfab;
-  --color-accent-400: #c2d68b;
-  --color-accent-500: #acc568;
-  --color-accent-600: #b4cc78;
-  --color-accent-700: #9bb55e;
-  --color-accent-800: #4d5d35;
-  --color-accent-950: #29311e;
+  --color-white: #1d4533;
+  --color-zinc-950: #f7eae0;
+  --color-zinc-900: #fcf4ee;
+  --color-zinc-800: #f9d2ba;
+  --color-zinc-700: #c5ac9e;
+  --color-zinc-600: #846657;
+  --color-zinc-500: #765b4d;
+  --color-zinc-400: #5e3122;
+  --color-zinc-300: #5e3122;
+  --color-zinc-200: #1d4533;
+  --color-accent-300: #153627;
+  --color-accent-400: #1d4533;
+  --color-accent-500: #2e5d47;
+  --color-accent-600: #1d4533;
+  --color-accent-700: #153627;
+  --color-accent-800: #51715a;
+  --color-accent-950: #dce4d9;
+  --color-green-300: #1d4533;
+  --color-green-400: #1d4533;
+  --color-green-500: #1d4533;
+  --color-green-600: #1d4533;
+  --color-green-800: #51715a;
+  --color-green-900: #dce4d9;
+  --color-red-300: #8a3228;
+  --color-red-400: #8a3228;
+  --color-red-500: #8a3228;
+  --color-red-800: #b7795f;
+  --color-red-900: #f9d2ba;
+  --color-amber-200: #5e3122;
+  --color-amber-300: #5e3122;
+  --color-amber-400: #5e3122;
+  --color-amber-800: #b7795f;
+  --color-amber-950: #f9d2ba;
   --radius-xl: 0.5rem;
   --radius-2xl: 0.75rem;
 }
@@ -32,7 +48,7 @@ html, body, #root {
 html {
   background-color: var(--color-zinc-950);
   color: var(--color-white);
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   font-family: system-ui, -apple-system, sans-serif;

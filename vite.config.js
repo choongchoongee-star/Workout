@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'Workout Logger',
         short_name: 'Workout',
-        theme_color: '#171916',
-        background_color: '#171916',
+        theme_color: '#f7eae0',
+        background_color: '#f7eae0',
         display: 'standalone',
         start_url: '/Workout/',
         icons: [

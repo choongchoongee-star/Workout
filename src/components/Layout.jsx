@@ -81,14 +81,14 @@ export default function Layout({ children }) {
         )}
         {children}
       </main>
-      <nav className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 flex pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-accent-600 border-t border-accent-700 flex pb-[env(safe-area-inset-bottom)]">
         {NAV.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
-                isActive ? 'text-accent-400' : 'text-zinc-500'
+                isActive ? 'text-zinc-800' : 'text-zinc-950/80'
               }`
             }
           >
