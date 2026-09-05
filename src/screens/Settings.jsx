@@ -194,22 +194,6 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-3">App updates</h2>
-        <p className="text-zinc-400 text-xs mb-3">Updates are downloaded in the background and applied the next time the app starts. Your workouts stay on this device.</p>
-        <button type="button" disabled={updateStatus === 'checking'} onClick={async () => {
-          setUpdateStatus('checking')
-          setUpdateStatus(await otaUpdater.check())
-        }} className="w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 disabled:opacity-50">Check for updates</button>
-        {updateStatus && <p role="status" className="mt-3 text-xs text-zinc-300">{{
-          checking: 'Checking for updates…', current: 'No new update is available.',
-          pending: 'Update ready. It will apply after you fully close and reopen the app.',
-          blocked: 'This update could not start safely. Your current version is kept.',
-          unavailable: 'Could not check for updates. You can keep using the app offline.',
-          web: 'Updates are available in the iPhone app.',
-        }[updateStatus]}</p>}
-      </div>
-
       {/* Data backup */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
         <h2 className="text-zinc-300 font-medium mb-1">Backup / Restore</h2>
@@ -273,6 +257,22 @@ export default function Settings() {
             <button type="button" onClick={retrySave} disabled={syncing} className="mt-2 underline disabled:opacity-50">Retry save</button>
           </div>
         )}
+      </div>
+
+      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
+        <h2 className="text-zinc-300 font-medium mb-3">App updates</h2>
+        <p className="text-zinc-400 text-xs mb-3">Updates are downloaded in the background and applied the next time the app starts. Your workouts stay on this device.</p>
+        <button type="button" disabled={updateStatus === 'checking'} onClick={async () => {
+          setUpdateStatus('checking')
+          setUpdateStatus(await otaUpdater.check())
+        }} className="w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 disabled:opacity-50">Check for updates</button>
+        {updateStatus && <p role="status" className="mt-3 text-xs text-zinc-300">{{
+          checking: 'Checking for updates…', current: 'No new update is available.',
+          pending: 'Update ready. It will apply after you fully close and reopen the app.',
+          blocked: 'This update could not start safely. Your current version is kept.',
+          unavailable: 'Could not check for updates. You can keep using the app offline.',
+          web: 'Updates are available in the iPhone app.',
+        }[updateStatus]}</p>}
       </div>
 
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">

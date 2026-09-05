@@ -408,7 +408,7 @@ Workout/
 │  (상태 메시지: 저장 완료 ✓ 등)          │
 └──────────────────────────────────────┘
 ```
-- 영문 UI 섹션: `Preferences`, `App updates`, `Backup / Restore`, `Privacy`. 계정·로그아웃 UI는 없다.
+- 영문 UI 섹션: `Preferences`, `Backup / Restore`, `App updates`, `Privacy`. 계정·로그아웃 UI는 없다.
 - `Weight unit`에서 kg/lbs를 선택하고 `Save preferences`로 휴식 시간과 함께 저장한다. 기기 설정 키는 `wl_weight_unit`, 기본값은 kg다. Workout 입력·History 상세·Progress 기록의 무게 표기에 적용하며, 본 문서의 kg 표기 예시는 기본 설정 기준이다. kg 증감은 2.5, lbs 증감은 5다. 기존 기록과 새 입력의 내부 저장 및 Markdown 백업은 kg를 유지하고 1 lb = 0.45359237 kg로 변환한다. 표시만 소수 둘째 자리까지 반올림하며 단위 설정 변경은 기록 데이터를 수정하지 않는다. 거리·속도 및 칼로리 계산 체중은 기존 단위를 유지한다. 변환은 `src/lib/weightUnits.js`, 변환·설정 저장 테스트는 `src/lib/weightUnits.test.mjs`에 정의한다.
 - Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청한다. 거부 상태의 `Open iPhone Settings`는 Capacitor에 등록한 `AppSettingsPlugin`을 통해 `UIApplication.openSettingsURLString`을 열고, 실패하면 수동 경로를 표시한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
@@ -614,3 +614,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 사용자 첨부 팔레트의 #1D4533·#F7EAE0·#F9D2BA·#5E3122를 앱 전체에 적용했다. 크림 배경·초록 본문/주요 버튼·살구 보조 배경·갈색 보조 글자로 전환하고, 하단 탭은 초록 배경/살구 선택 표시다. 밝은 배경에 맞게 상태색과 color-scheme, 웹 manifest를 갱신했다. 상시 ±와 33px 행을 유지하고 4개 너비의 10세트·직접 증감·조절창·삭제/Undo·lbs 저장·200% 글자 확대 및 설정 화면, lint·build를 검증했다. 이번 팔레트의 OTA는 아직 게시하지 않았다.
 
 - 2026-09-05: 한 운동 5세트가 화면의 약 80%를 쓰도록 행 높이를 확대하고 ±·완료·삭제를 최소 44×44px 클릭 영역으로 변경했다. 숫자는 24px, ±는 숫자 아래에 상시 표시하며 상자 배경 없이 구분선 목록을 유지한다. 휴지통을 ×로 교체하고 왼쪽 삭제/오른쪽 완료 배치를 유지했다. 4개 화면 크기의 약 80% 비율·첫 5세트 표시·버튼 크기, 직접 증감·보조 입력·삭제/Undo·lbs 저장·200% 확대, lint·build를 검증했다. OTA는 아직 게시하지 않았다.
+
+- 2026-09-05: Settings의 Backup / Restore를 App updates 위로 이동했다. 섹션 순서는 Preferences → Backup / Restore → App updates → Privacy다. 각 기능과 스타일은 유지한다.
