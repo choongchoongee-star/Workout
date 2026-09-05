@@ -6,9 +6,9 @@ const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 const [appConfigText, capacitorText, project, plist, scheme, customBuild] = await Promise.all([
   read('app.json'),
   read('capacitor.config.json'),
-  read('ios/App/App.xcodeproj/project.pbxproj'),
+  read('ios/App.xcodeproj/project.pbxproj'),
   read('ios/App/App/Info.plist'),
-  read('ios/App/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme'),
+  read('ios/App.xcodeproj/xcshareddata/xcschemes/App.xcscheme'),
   read('.eas/build/ios-production.yml'),
 ])
 

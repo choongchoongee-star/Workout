@@ -16,7 +16,7 @@
       "autoBlockRolledBackBundles": true,
       "autoDeleteBundles": true,
       "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtpOBD4D+Sp4Nj7bhtAtn\nCedasd7INTQKf7yF3MbHo8AnxH9dJdGp6sikDagqP9F3Tvk0U62+lQkzo9btjjtU\nHS0ZpREZZ9jxGmTcsfO7n2LODI+yrTIqcfladt+AoBFj9LCa7QGoFvXTa2Htdz5d\nm+gYt/J3mOF+A+NFwAEQW92CGomPjRqhc67nUNRY21eJap3eSe6W3ZpD5CsUcJ0y\nNwNRWiLi0F1P5BXcTa9noQedjjf011Boh1Lm/UFWy5BqRmLvlr13wSNWsYfh/7vR\nXkrCpU18J1e7u0C5S1fjZb9kPh56KZaAuCNDV7rt10f/poIbKl/CXB5UdF96Y74m\ncQIDAQAB\n-----END PUBLIC KEY-----\n",
-      "defaultChannel": "ios-3f47f8440f84dfa3"
+      "defaultChannel": "ios-beefaaa9cd2c01e7"
     }
   }
 }

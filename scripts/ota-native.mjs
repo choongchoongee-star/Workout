@@ -23,6 +23,6 @@ export async function nativeFingerprint() {
   if (config.plugins?.LiveUpdate) delete config.plugins.LiveUpdate.defaultChannel
   hash.update(JSON.stringify(config))
   hash.update((await readFile('ios/App/CapApp-SPM/Package.swift', 'utf8')).replaceAll('\r\n', '\n'))
-  hash.update((await readFile('ios/App/App.xcodeproj/project.pbxproj', 'utf8')).replaceAll('\r\n', '\n').replace(/CURRENT_PROJECT_VERSION = [^;]+;/g, 'CURRENT_PROJECT_VERSION = AUTO;'))
+  hash.update((await readFile('ios/App.xcodeproj/project.pbxproj', 'utf8')).replaceAll('\r\n', '\n').replace(/CURRENT_PROJECT_VERSION = [^;]+;/g, 'CURRENT_PROJECT_VERSION = AUTO;'))
   return `ios-${hash.digest('hex').slice(0, 16)}`
 }

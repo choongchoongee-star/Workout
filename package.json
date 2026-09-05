@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:ios": "vite build --mode capacitor",
-    "ios:sync": "npm run build:ios && cap sync ios",
-    "ios:open": "cap open ios",
+    "ios:sync": "npm run build:ios && node scripts/ios-project.mjs",
+    "ios:open": "node scripts/ios-project.mjs open",
     "check:ios-release": "node scripts/verify-ios-release.mjs",
     "ota:prepare": "node scripts/ota-prepare.mjs",
     "ota:publish": "gh-pages -d ota-release --dest ota --add",
@@ -33,7 +33,7 @@
     "vite-plugin-pwa": "^1.2.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.5.1",
+    "@capacitor/cli": "8.5.1",
     "@eslint/js": "^9.39.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

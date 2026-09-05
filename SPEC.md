@@ -65,12 +65,13 @@ mode !== 'capacitor' && VitePWA({
 - 공개 사이트 반영은 **수동으로 `npm run deploy`** 실행 → `site-dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙. 공개 루트는 `site/index.html`의 영문 iPhone 앱 소개·TestFlight 준비 상태·지원 링크이며 운동 기록 UI나 OTA 파일 링크를 표시하지 않는다. 개인정보처리방침은 `/privacy/`, OTA는 `/ota/<runtime>/`에 유지한다.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
 - 브라우저/PWA 운동 UI는 로컬 개발용이다. 공개 배포 시 기존 앱 JS/CSS·manifest·Workbox 파일을 제거하고 `site/sw.js`로 이전 서비스워커를 해제한다. 기존 브라우저의 localStorage 운동 기록은 삭제하지 않는다. 오프라인 캐시 사용자는 온라인 복귀 후 worker 갱신 시 안내 페이지로 전환된다.
-- iOS 앱은 `npm run ios:sync` 후 `ios/App/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 `cap sync ios` 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
+- iOS 앱은 `npm run ios:sync` 후 `ios/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 `cap sync ios` 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
 - EAS 프로젝트는 `@choongchoongee/workout-logger`(project ID `ca086289-002e-40a4-a2ee-c11e84212f41`)에 연결되어 있다. `eas.json`의 production profile은 store 배포, 자동 build number 증가, `NPM_CONFIG_LEGACY_PEER_DEPS=true`를 사용한다. 실제 원격 빌드는 Apple 자격 증명과 실기기 체크 준비 후 최종 단계에서만 시작한다.
 - 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 초기 build number는 `1`이다. 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
-- EAS production iOS profile에는 `scheme: App`을 명시한다. EAS 자동 Scheme 탐색은 Capacitor의 `ios/App/App.xcodeproj` 중첩 경로를 찾지 못한다.
-- 최초 EAS 실행 사전 검사에서 명시된 Scheme도 `ios/*.xcodeproj/xcshareddata/xcschemes/`에서 재검증하여 중단됨을 확인했다. EAS CLI 23.2.0은 현재 중첩된 Capacitor 배치를 그대로 처리하지 못하므로, 원격 빌드 전 프로젝트 배치 또는 빌드 도구의 호환 조정이 필요하다. 현재 `.ipa`와 원격 빌드 job은 생성되지 않았으며 TestFlight 제출도 미완료다. 기존 로컬 정적 검사는 EAS 전체 호환성을 보장하지 않는다.
+- EAS production iOS profile에는 `scheme: App`을 명시한다. 공유 Xcode 프로젝트는 EAS가 검색하는 `ios/App.xcodeproj`에 있으며 앱 소스는 `ios/App/App`, SPM은 `ios/App/CapApp-SPM`에 유지한다. pbxproj의 source group·Info.plist·debug config·SPM 상대 경로는 프로젝트 위치에 맞춘다.
+- `scripts/ios-project.mjs`는 고정한 Capacitor CLI 8.5.1의 config를 로드하고 Xcode 프로젝트 경로를 지정한 뒤 공식 copy/update 작업을 호출한다. 의존성 소스는 수정하지 않는다. 복사 실패는 중단하며 `npm run ios:sync` 및 `ios:open`은 이 adapter를 사용한다. 직접 `cap sync ios`는 기본 중첩 경로를 가정하므로 사용하지 않는다.
+- EAS CLI 23.2.0의 로컬 파서로 Scheme·Release 구성·target·bundle ID 해석을 검증했다. 실제 archive·서명·TestFlight 제출은 별도 실행 결과로 확인해야 한다. 프로젝트 경로 변경으로 OTA native runtime은 `ios-beefaaa9cd2c01e7`로 갱신했으며 기존 runtime OTA를 적용하지 않는다.
 - 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 - EAS 실행은 필요성이 확인된 경우에만 구체적인 작업을 설명하고 사용자 확인을 받은 뒤 진행한다. 읽기 전용 CLI 조회, 프로젝트 연결, 자격 증명, 빌드, TestFlight/App Store 제출, OTA 배포 및 동등한 API·대시보드 작업에도 적용한다. 로컬 설정 편집·검증과 GitHub 푸시는 별개다. 이 규칙은 `.agents/skills/workout-maintenance/SKILL.md`에 유지한다.
 
@@ -467,7 +468,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장(디바운스)마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
 
 ### 8.7 iOS 네이티브 셸
-- `ios/App/App.xcodeproj`는 Capacitor v8로 생성했으며 앱 번들에 `dist` 웹 자산을 포함한다. 원격 사이트를 불러오는 단순 WebView가 아니다.
+- `ios/App.xcodeproj`는 Capacitor v8로 생성했으며 앱 번들에 `dist` 웹 자산을 포함한다. 원격 사이트를 불러오는 단순 WebView가 아니다.
 - `@capacitor/filesystem`, `@capacitor/local-notifications`, `@capacitor/share`를 Swift Package Manager 프로젝트에 연결한다. `npm run ios:sync`가 iOS용 상대경로 빌드와 플러그인/자산 동기화를 수행한다.
 - `PrivacyInfo.xcprivacy`를 App target의 Copy Bundle Resources에 포함하고 Filesystem의 file timestamp API 사용 이유 `C617.1`을 선언한다. 수집 데이터와 추적은 없음으로 선언한다.
 - iOS AppIcon은 불투명 RGB 1024×1024 정사각형 자산이며 시스템 마스크용 모서리 여백이나 투명 영역을 포함하지 않는다. 앱은 iPhone 전용·세로 방향으로 고정한다.

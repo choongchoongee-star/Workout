@@ -37,13 +37,15 @@ npm run build
 
 Capacitor 앱 ID는 현재 `com.choongchoongeestar.workout`이다.
 
+EAS 호환성을 위해 Xcode 프로젝트는 `ios/App.xcodeproj`에 두고 앱 소스·SPM은 기존 폴더에 유지한다. `scripts/ios-project.mjs`가 Capacitor CLI 8.5.1에 이 경로를 지정하므로 아래 npm 명령을 사용하고 직접 `cap sync ios`는 실행하지 않는다. CLI 업그레이드 시 adapter를 검토해야 한다.
+
 ```bash
 npm run ios:sync   # iOS용 빌드 후 Xcode 프로젝트와 플러그인 동기화
 npm run ios:open   # macOS에서 Xcode 열기
 npm run check:ios-release # 번들 ID, 버전, Scheme, EAS 절차 등 출시 설정 검사
 ```
 
-Xcode 프로젝트는 `ios/App/App.xcodeproj`에 있고 `App` Scheme은 공유되어 있다. iOS 대상은 iPhone 전용·세로 방향으로 고정되어 있으며 상·하단 safe area를 반영한다. App Store용 빌드와 서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM용 EAS Custom Build를 사용한다. EAS 프로젝트 `@choongchoongee/workout-logger`가 연결되어 있지만, 실기기 검증을 마치기 전에는 원격 빌드를 실행하지 않는다.
+Xcode 프로젝트는 `ios/App.xcodeproj`에 있고 `App` Scheme은 공유되어 있다. iOS 대상은 iPhone 전용·세로 방향으로 고정되어 있으며 상·하단 safe area를 반영한다. App Store용 빌드와 서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM용 EAS Custom Build를 사용한다. EAS 프로젝트 `@choongchoongee/workout-logger`가 연결되어 있지만, 실기기 검증을 마치기 전에는 원격 빌드를 실행하지 않는다.
 
 Settings에서 알림 권한 상태를 확인하고 최초 권한을 요청할 수 있다. 거부된 경우 `Open iPhone Settings`가 이 앱의 시스템 설정 화면을 연다. 허용되면 `@capacitor/local-notifications`가 종료 시각의 로컬 알림을 예약한다. Filesystem 필수 이유 API는 App target의 `PrivacyInfo.xcprivacy`에 선언되어 있고, 비면제 암호화를 사용하지 않는다는 App Store 선언도 Info.plist와 EAS 앱 설정에 반영되어 있다.
 
