@@ -52,6 +52,15 @@ html {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   font-family: system-ui, -apple-system, sans-serif;
+  /* Keep one-finger scrolling, without pinch or double-tap page zoom. */
+  touch-action: pan-x pan-y;
+}
+
+/* iOS zooms focused fields below 16px; preserve larger number editors. */
+input.text-sm, input.text-xs,
+select.text-sm, select.text-xs,
+textarea.text-sm, textarea.text-xs {
+  font-size: max(1rem, 16px);
 }
 
 /* Hide number input spinners */
