@@ -1,11 +1,23 @@
 ---
 name: workout-maintenance
-description: Keep the Workout project's master specification, tested source, and GitHub master branch synchronized whenever product behavior, data models, screens, persistence, import/export, or deployment-relevant code changes.
+description: Keep Workout source, SPEC.md, and GitHub synchronized after implementation changes. Also apply before any EAS operation to enforce the user's necessity check and explicit approval requirement.
 ---
 
 # Workout maintenance
 
 Use this skill before finishing any implementation task in this repository.
+
+## EAS requires explicit user confirmation
+
+The user requires EAS to be used only when necessary and after confirmation for the concrete operation. This applies to EAS CLI commands, equivalent API or dashboard actions, and automated workflows, including read-only account/configuration checks, project linking, credentials, builds, submissions to TestFlight/App Store, and OTA publication.
+
+1. Complete authorized local preparation first: inspect or edit configuration files, implement code, and run local tests, lint, Vite builds, or Capacitor sync without invoking EAS. Reading official documentation also needs no EAS confirmation.
+2. Establish why an EAS operation is necessary now. If local inspection answers the question, do not invoke EAS.
+3. Before invoking EAS, describe the exact operation, its purpose, and whether it starts a build, changes remote state, publishes an update, or incurs known costs. Ask the user to confirm. Cite this skill's EAS rule as the source of the confirmation requirement.
+4. Execute only the approved operation or explicitly approved batch. An explicit request to run that exact operation counts as confirmation; general requests such as "implement it", "prepare TestFlight", or "keep GitHub current", and prior EAS use do not. Do not request confirmation again for the same already-authorized operation.
+5. If it fails, inspect local output first. A new build, submission, publication, or broader operation requires separate confirmation. Do not use another interface or automation to bypass this boundary.
+
+Routine GitHub commit/push authorization never authorizes EAS. The final goal is an iPhone app distributed through TestFlight and then the App Store; this goal does not itself authorize builds or submissions.
 
 ## Required closeout
 
