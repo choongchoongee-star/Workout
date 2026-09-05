@@ -11,7 +11,8 @@
       "node": "24.13.0",
       "autoIncrement": true,
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
       },
       "ios": {
         "image": "macos-tahoe-26.5-xcode-26.6",
