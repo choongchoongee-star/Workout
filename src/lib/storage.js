@@ -3,6 +3,7 @@
 const KEYS = {
   BODY_WEIGHT: 'wl_body_weight',
   REST_SECONDS: 'wl_rest_seconds',
+  WEIGHT_UNIT: 'wl_weight_unit',
 }
 
 /** Check localStorage availability (may be unavailable in private/incognito on some browsers) */
@@ -42,6 +43,8 @@ function safeFloat(raw, fallback) {
 
 export const storage = {
   isAvailable,
+  getWeightUnit: () => safeGet(KEYS.WEIGHT_UNIT) === 'lbs' ? 'lbs' : 'kg',
+  setWeightUnit: (v) => safeSet(KEYS.WEIGHT_UNIT, v === 'lbs' ? 'lbs' : 'kg'),
 
   getBodyWeight: () => safeFloat(safeGet(KEYS.BODY_WEIGHT), 70),
   setBodyWeight: (v) => safeSet(KEYS.BODY_WEIGHT, String(v)),

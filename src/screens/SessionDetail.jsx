@@ -1,8 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate } from '../lib/dateUtils'
+import { storage } from '../lib/storage'
+import { formatWeight } from '../lib/weightUnits'
 
 export default function SessionDetail() {
+  const unit = storage.getWeightUnit()
   const { id } = useParams()
   const navigate = useNavigate()
   const { sessions, exercises, deleteSession } = useApp()
@@ -78,10 +81,10 @@ export default function SessionDetail() {
                       <span className="text-zinc-600 w-4 text-right">{si + 1}</span>
                       {exercise?.type === 'bodyweight' ? (
                         <span className="text-zinc-300">
-                          {set.added_weight ?? 0}kg × {set.reps} reps
+                          {formatWeight(set.added_weight ?? 0, unit)} × {set.reps} reps
                         </span>
                       ) : (
-                        <span className="text-zinc-300">{set.weight ?? '?'}kg × {set.reps} reps</span>
+                        <span className="text-zinc-300">{formatWeight(set.weight, unit)} × {set.reps} reps</span>
                       )}
                       {set.done && <span className="text-green-500 text-xs ml-auto">✓</span>}
                     </div>

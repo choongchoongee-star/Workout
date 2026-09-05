@@ -277,8 +277,9 @@ Workout/
 - **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가(cardio는 빈 기록 1개 자동 생성). **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
 - **세트 추가:** 첫 세트면 **과거 세션의 마지막 세트 값**을 기본값으로(getLastSession), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
 - **숫자 덮어쓰기:** weight·added weight·reps 스테퍼의 숫자 input을 탭하거나 클릭하면 기존 값을 전체 선택한다. 이어서 숫자를 입력하면 기존 값을 따로 지우지 않고 바로 교체된다. 값을 바꾸지 않고 포커스만 벗어나면 원래 값은 유지한다.
+- **세트 행 밀도:** 일반 글자 크기에서 행 높이 약 69px. 상단에 세트 번호·`kg / reps` 또는 `lbs / reps`·완료·삭제를, 하단에 무게와 횟수 입력기를 고정 2열로 배치한다. 증감 버튼은 32px, 숫자는 16px이며 단위를 숫자 아래에 반복하지 않는다. 입력기를 세로로 쌓지 않는다. 320/375/390/430px 너비 × 667px 높이 브라우저에서 한 운동의 5세트가 하단 탭 위에 모두 보이며 가로 넘침이 없음을 검증했다. 키보드가 닫힌 기본 화면 기준이며 실기기 safe area와 확대 글자는 별도 확인 대상이다.
 - **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
-- **bodyweight:** added_weight 스테퍼(step 2.5, kg) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
+- **bodyweight:** added_weight 스테퍼(kg step 2.5 / lbs step 5) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
 - **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
 - **삭제:** 세트/운동 ×버튼 → 즉시 제거 + UndoToast(5초). 되돌리기 시 원위치 복원.
 - **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 빈 세션(길이 0)은 저장 안 함. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
@@ -407,6 +408,7 @@ Workout/
 └──────────────────────────────────────┘
 ```
 - 영문 UI 섹션: `Preferences`, `App updates`, `Backup / Restore`, `Privacy`. 계정·로그아웃 UI는 없다.
+- `Weight unit`에서 kg/lbs를 선택하고 `Save preferences`로 휴식 시간과 함께 저장한다. 기기 설정 키는 `wl_weight_unit`, 기본값은 kg다. Workout 입력·History 상세·Progress 기록의 무게 표기에 적용하며, 본 문서의 kg 표기 예시는 기본 설정 기준이다. kg 증감은 2.5, lbs 증감은 5다. 기존 기록과 새 입력의 내부 저장 및 Markdown 백업은 kg를 유지하고 1 lb = 0.45359237 kg로 변환한다. 표시만 소수 둘째 자리까지 반올림하며 단위 설정 변경은 기록 데이터를 수정하지 않는다. 거리·속도 및 칼로리 계산 체중은 기존 단위를 유지한다. 변환은 `src/lib/weightUnits.js`, 변환·설정 저장 테스트는 `src/lib/weightUnits.test.mjs`에 정의한다.
 - Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청한다. 거부 상태의 `Open iPhone Settings`는 Capacitor에 등록한 `AppSettingsPlugin`을 통해 `UIApplication.openSettingsURLString`을 열고, 실패하면 수동 경로를 표시한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
@@ -592,3 +594,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: iPhone Workout 세트 입력 줄이 카드 밖으로 넘치는 문제를 수정했다. 무게·횟수 입력기는 최소 9rem 반응형 grid로 배치하고 공간이 부족하면 세로로 전환한다. 각 입력기는 44px 증감 버튼과 min-width 0 숫자 영역을 사용하며 kg/reps 단위를 숫자 아래에 표시한다. lint·웹 빌드로 검증했으며 실제 iPhone 확인과 OTA 배포는 아직 수행하지 않았다.
 
 - 2026-09-05: 사용자 승인으로 Preferences 저장 버튼 이동과 Workout 입력기 넘침 수정 (`b57a661`)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `c8bd7b793c9b2b2497dfb2d6c8a6bc087c54f3cb19ed4b4ae71efd98eb94b1bb`, ZIP 381860 bytes. OTA 테스트 7개·native 호환 검사·공개 manifest 및 ZIP SHA-256/RSA 검증을 통과했다. 새 EAS 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 남아 있다.
+
+- 2026-09-05: Workout 세트 행을 약 69px로 축소했다. 번호·단위·완료·삭제 줄과 무게/횟수 고정 2열 입력을 사용해 작은 화면에서도 5세트를 표시한다. Preferences에 kg/lbs 선택을 추가하고 입력·History 상세·Progress에 환산 적용했다. 기존 기록 및 Markdown 백업의 kg 저장은 유지한다. 단위 변환·기기 설정을 포함한 테스트 39개, lint, build 및 브라우저 4개 너비의 레이아웃·증감·완료 잠금·lbs 저장/재로드를 검증했다. OTA 게시와 EAS 실행은 별도다.

@@ -4,9 +4,11 @@ import AddExerciseForm from '../components/AddExerciseForm'
 import { useApp } from '../context/AppContext'
 import { CATEGORIES } from '../data/exercises'
 import { formatDate } from '../lib/dateUtils'
+import { storage } from '../lib/storage'
+import { formatWeight } from '../lib/weightUnits'
 
 // 세트 한 줄 요약 (타입별)
-function summarizeSet(set, type) {
+function summarizeSet(set, type, unit) {
   if (type === 'cardio') {
     const parts = []
     if (set.duration_min != null) parts.push(`${set.duration_min} min`)
@@ -17,12 +19,13 @@ function summarizeSet(set, type) {
     return parts.join(' · ') || 'History'
   }
   if (type === 'bodyweight') {
-    return `${set.added_weight ?? 0}kg × ${set.reps ?? '?'} reps`
+    return `${formatWeight(set.added_weight ?? 0, unit)} × ${set.reps ?? '?'} reps`
   }
-  return `${set.weight ?? '?'}kg × ${set.reps ?? '?'} reps`
+  return `${formatWeight(set.weight, unit)} × ${set.reps ?? '?'} reps`
 }
 
 export default function Weight() {
+  const unit = storage.getWeightUnit()
   const { exercises, sessions, loaded, syncError } = useApp()
   const [selected, setSelected] = useState(null) // 선택된 exercise 객체 (null = 선택 화면)
   const [showAdd, setShowAdd] = useState(false)
@@ -81,7 +84,7 @@ export default function Weight() {
                   {sets.map((set, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm">
                       <span className="text-zinc-600 w-4 text-right flex-shrink-0">{i + 1}</span>
-                      <span className="text-zinc-200">{summarizeSet(set, selected.type)}</span>
+                      <span className="text-zinc-200">{summarizeSet(set, selected.type, unit)}</span>
                       {set.done && <span className="text-green-500 text-xs ml-auto">✓</span>}
                     </div>
                   ))}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
+import { displayWeight, storedWeight } from '../lib/weightUnits'
 import { calcCalories } from '../lib/calories'
 import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
@@ -133,19 +134,21 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
 
 // Single set row for weight/bodyweight exercise
 function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
+  const unit = storage.getWeightUnit()
   const isBodyweight = exerciseType === 'bodyweight'
   const locked = set.done
 
   return (
-    <div className={`py-2 border-b border-zinc-800/40 last:border-b-0 ${locked ? 'opacity-60' : ''}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-zinc-500 text-sm">Set {setIdx + 1}</span>
+    <div role="group" aria-label={`Set ${setIdx + 1}`} className={`py-1 border-b border-zinc-800/40 last:border-b-0 ${locked ? 'opacity-60' : ''}`}>
+      <div className="flex items-center gap-2">
+        <span className="text-zinc-500 text-xs">Set {setIdx + 1}</span>
+        <span className="text-zinc-500 text-xs">{unit} / reps</span>
         <div className="flex-1" />
         <button
           onClick={onDone}
           aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'}
           aria-pressed={locked}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+          className={`w-8 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors ${
             locked
               ? 'bg-green-600 text-white'
               : 'bg-zinc-800 text-zinc-400 active:bg-green-600 active:text-white'
@@ -153,27 +156,27 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
         >
           ✓
         </button>
-        <button onClick={onRemove} aria-label="Delete set" className="text-zinc-700 active:text-red-400 px-1 text-lg">
+        <button onClick={onRemove} aria-label="Delete set" className="text-zinc-500 active:text-red-400 w-7 h-7 text-lg">
           ×
         </button>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] items-center gap-3">
+      <div className="grid grid-cols-2 items-center gap-2">
         {isBodyweight ? (
           <div className="min-w-0">
             <StepperInput
-              value={set.added_weight ?? 0}
-              onChange={v => onUpdate('added_weight', v)}
-              step={2.5}
-              unit="kg"
+              value={displayWeight(set.added_weight ?? 0, unit)}
+              onChange={v => onUpdate('added_weight', storedWeight(v, unit))}
+              step={unit === 'lbs' ? 5 : 2.5}
+              unit={unit}
               disabled={locked}
             />
           </div>
         ) : (
           <StepperInput
-            value={set.weight ?? 20}
-            onChange={v => onUpdate('weight', v)}
-            step={2.5}
-            unit="kg"
+            value={displayWeight(set.weight ?? 20, unit)}
+            onChange={v => onUpdate('weight', storedWeight(v, unit))}
+            step={unit === 'lbs' ? 5 : 2.5}
+            unit={unit}
             disabled={locked}
           />
         )}

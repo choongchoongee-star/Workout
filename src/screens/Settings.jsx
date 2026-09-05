@@ -22,6 +22,7 @@ function Field({ label, hint, children }) {
 export default function Settings() {
   const { sessions, exercises, importWorkoutData, syncing, syncError, retrySave } = useApp()
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
+  const [weightUnit, setWeightUnit] = useState(storage.getWeightUnit)
   const [status, setStatus] = useState({})
   const [importFile, setImportFile] = useState(null)
   const [importError, setImportError] = useState('')
@@ -112,6 +113,7 @@ export default function Settings() {
   function save() {
     const rs = parseInt(restSeconds, 10)
     if (!isNaN(rs) && rs >= 0) storage.setRestSeconds(rs)
+    storage.setWeightUnit(weightUnit)
     setStatus({ msg: 'Saved ✓', ok: true, scope: 'preferences' })
     setTimeout(() => setStatus({}), 2000)
   }
@@ -125,6 +127,17 @@ export default function Settings() {
       {/* Body settings */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
         <h2 className="text-zinc-300 font-medium mb-4">Preferences</h2>
+        <Field label="Weight unit" hint="Used for workout entry and history. Existing weights are converted.">
+          <div role="group" aria-label="Weight unit" className="flex gap-2">
+            {['kg', 'lbs'].map(unit => (
+              <button key={unit} type="button" aria-pressed={weightUnit === unit}
+                onClick={() => setWeightUnit(unit)}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium ${weightUnit === unit ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                {unit}
+              </button>
+            ))}
+          </div>
+        </Field>
         <Field label="Rest timer (seconds)" hint="Set to 0 to disable the rest timer.">
           <input
             type="number"

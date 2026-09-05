@@ -29,21 +29,23 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-1">
+    <div className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-0.5">
       <button
         type="button"
-        onPointerDown={dec}
+        onClick={dec}
         disabled={disabled}
         aria-label={`Decrease ${unit || 'value'} by ${step}`}
-        className="w-11 h-11 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
       >
         -{step}
       </button>
 
-      <div className="flex min-w-0 flex-col items-center">
+      <div className="min-w-0">
         <input
           ref={inputRef}
           type="number"
+          inputMode="decimal"
+          step="any"
           aria-label={unit || 'Value'}
           defaultValue={value}
           disabled={disabled}
@@ -60,17 +62,16 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
               onChange(min)
             }
           }}
-          className="w-full min-w-0 text-center bg-transparent text-white text-lg font-semibold focus:outline-none disabled:opacity-40"
+          className="w-full min-w-0 h-8 px-0 text-center bg-transparent text-white text-base font-semibold tabular-nums focus:outline-none disabled:opacity-40"
         />
-        {unit && <span className="text-zinc-400 text-xs leading-4">{unit}</span>}
       </div>
 
       <button
         type="button"
-        onPointerDown={inc}
+        onClick={inc}
         disabled={disabled}
         aria-label={`Increase ${unit || 'value'} by ${step}`}
-        className="w-11 h-11 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
       >
         +{step}
       </button>
