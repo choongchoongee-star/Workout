@@ -584,3 +584,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 빌드 4의 EAS Submit `a8e1b355-f9a3-4c10-bac7-e325b5121335`가 성공해 App Store Connect 업로드를 완료했다. Apple 처리 완료·테스터 설치는 아직 확인하지 않았다. ASC 앱 ID `6808960698`을 eas.json에 저장했고, TestFlight 주소는 https://appstoreconnect.apple.com/apps/6808960698/testflight/ios 이다. 기존 이름 중복으로 EAS가 등록한 ASC 이름은 `Workout Logger (156938)`이며 정식 출시 전 최종 이름을 정해야 한다. 내부 테스트 그룹 `Team (Expo)`가 생성됐고 소유자 계정에 접근 권한이 설정됐다.
 
 - 2026-09-05: 커스텀 운동 추가를 Settings에서 Progress 우상단 + 버튼으로 이동했다. 기존 폼을 공유 컴포넌트로 추출했고 Progress에서 직접 추가·취소 및 운동 관리 화면 접근을 제공한다. 이번 UI 변경은 소스 반영이며 OTA 게시·EAS 빌드는 실행하지 않았다.
+
+- 2026-09-05: 사용자 승인으로 Progress + 커스텀 운동 추가 UI (`af1c6ae`)를 빌드 4 runtime `ios-edab217484237bd7`에 OTA 게시했다. bundle ID `6bf8277690f5641b7817c830de357f4bd4c7996912331d61a647b6dd45aebf03`, ZIP 381610 bytes. 공개 manifest·ZIP 응답 및 SHA-256·RSA 서명을 검증했다. iPhone Settings → Check for updates에서 다운로드 후 앱을 완전히 종료·재실행해 적용하며 실제 기기 적용 여부는 별도 확인한다. 새 EAS 빌드는 실행하지 않았다.
