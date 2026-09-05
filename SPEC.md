@@ -590,3 +590,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: Settings 하단의 전체 폭 Save 버튼을 Preferences 카드 내부 하단으로 이동했다. 구분선 아래 우측에 44px 이상 터치 영역의 작은 파란 `Save preferences` 버튼을 배치하고 저장 완료 문구도 버튼 옆에 표시한다. 저장 범위는 기존 휴식 시간 설정이며 백업·업데이트·Privacy와 분리된다. 소스 반영만 수행하며 이 변경의 OTA 배포는 별도 승인 후 진행한다.
 
 - 2026-09-05: iPhone Workout 세트 입력 줄이 카드 밖으로 넘치는 문제를 수정했다. 무게·횟수 입력기는 최소 9rem 반응형 grid로 배치하고 공간이 부족하면 세로로 전환한다. 각 입력기는 44px 증감 버튼과 min-width 0 숫자 영역을 사용하며 kg/reps 단위를 숫자 아래에 표시한다. lint·웹 빌드로 검증했으며 실제 iPhone 확인과 OTA 배포는 아직 수행하지 않았다.
+
+- 2026-09-05: 사용자 승인으로 Preferences 저장 버튼 이동과 Workout 입력기 넘침 수정 (`b57a661`)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `c8bd7b793c9b2b2497dfb2d6c8a6bc087c54f3cb19ed4b4ae71efd98eb94b1bb`, ZIP 381860 bytes. OTA 테스트 7개·native 호환 검사·공개 manifest 및 ZIP SHA-256/RSA 검증을 통과했다. 새 EAS 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 남아 있다.
