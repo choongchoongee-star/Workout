@@ -283,7 +283,7 @@ Workout/
 - **bodyweight:** added_weight 스테퍼(kg step 2.5 / lbs step 5) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
 - **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
 - **삭제:** 각 행 맨 왼쪽의 ×로 세트를 바로 삭제한다. 접근성 이름은 Delete set이며 완료 체크와 반대쪽에 상시 표시한다. 운동 전체 삭제는 제목 오른쪽 `Delete` 버튼이며 유산소에도 동일하다. 편집 모드나 숨겨진 삭제 버튼은 없다. 삭제 → 즉시 제거 + UndoToast(10초), 되돌리기 시 값·완료 상태·순서를 복원한다. `+ Add set`은 운동 목록 바로 아래의 얇은 텍스트 버튼이다.
-- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 빈 세션(길이 0)은 저장 안 함. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
+- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 마지막 운동 삭제로 운동 목록이 비면 `deleteSession(sessionDate)`로 해당 날짜 세션을 AppContext와 로컬 저장에서 제거한다. History 및 Workout 재진입 시 삭제 전 기록이 복원되지 않으며, Undo는 원래 운동을 다시 upsert한다. 날짜 전환으로 목록을 로드하는 동안에는 기존 자동 저장 방지 플래그를 유지한다. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
 - **날짜 변경:** 헤더 date input 변경 → 해당 날짜 세션 로드(없으면 빈 배열). 날짜 전환 중엔 auto-save 스킵(`isDateChanging`).
 
 ### 6.2 History — 기록 목록 `/history`
@@ -626,3 +626,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 페이지 줌 제한을 viewport와 touch-action으로 적용하고 작은 입력 필드 글자를 최소 16px로 조정했다. 60% 운동 영역·44px 상시 ±·일반 스크롤을 유지한다. 모바일 Chromium에서 핀치 후 1배 유지·터치 스크롤·입력 포커스, 4개 화면 크기와 기존 ±/dialog/Undo/단위 저장, lint·build를 검증했다. 실제 iPhone의 확대 동작 확인은 별도다. 네이티브 설정 변경과 OTA 게시는 수행하지 않았다.
 
 - 2026-09-06: 사용자 승인으로 화면 확대 방지 수정(c66b719)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `f63bca2c326b50692a1879bb68913d7da4b103055a1db04bb17c250ba7fc3004`, ZIP 383258 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build와 공개 manifest/ZIP SHA-256·RSA 서명 검증을 통과했다. Settings → Check for updates에서 다운로드 후 앱 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
+
+- 2026-09-06: Workout 마지막 운동 삭제 시 빈 목록의 자동 저장을 건너뛰어 탭 재진입 때 기록이 되살아나던 문제를 수정했다. 빈 날짜 세션은 삭제하고 Undo로 복원한다. `scripts/verify-session-deletion.mjs`는 Playwright와 실행 중인 Vite 서버로 부분/마지막 삭제·즉시 History 왕복·로컬 저장 및 재로드·과거/빈 날짜 전환·Undo를 검증한다. `PLAYWRIGHT_MODULE`로 Playwright 경로, `WORKOUT_URL`로 앱 기본 URL, `BROWSER_CHANNEL`로 브라우저를 지정할 수 있다. 기존 코드에서 마지막 삭제 후 기록이 남는 실패를 재현하고 수정본 통과를 확인했다. 로컬 저장 테스트 4개·lint·build도 통과했다. OTA 배포는 별도다.

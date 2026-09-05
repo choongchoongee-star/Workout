@@ -233,7 +233,7 @@ function CardioForm({ record, exercise, onUpdate }) {
 
 export default function Session() {
   const location = useLocation()
-  const { exercises, sessions, upsertSession, getLastSession, syncError, loaded } = useApp()
+  const { exercises, sessions, upsertSession, deleteSession, getLastSession, syncError, loaded } = useApp()
   const realToday = localTodayStr()
 
   const initialDate = location.state?.date ?? realToday
@@ -289,7 +289,12 @@ export default function Session() {
   // 완료 버튼 제거(2026-06-14) → 자동저장 시 오늘 세션의 소요시간도 함께 계산해 보존
   useEffect(() => {
     if (isDateChanging.current) return
-    if (sessionExercises.length === 0) return
+    // An empty list is also an edit: remove the saved session so it cannot
+    // reappear after navigation. Undo will upsert the restored exercises.
+    if (sessionExercises.length === 0) {
+      deleteSession(sessionDate)
+      return
+    }
     let durationMin = null
     if (sessionDate === realToday) {
       try {
@@ -300,7 +305,7 @@ export default function Session() {
       }
     }
     upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: durationMin })
-  }, [sessionExercises, sessionDate, upsertSession, realToday, startTimeKey])
+  }, [sessionExercises, sessionDate, upsertSession, deleteSession, realToday, startTimeKey])
 
   // 세트 추가 후 새 세트(= 해당 운동의 '세트 추가' 버튼 영역)가 화면에 보이도록 스크롤
   useEffect(() => {
