@@ -608,3 +608,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 읽기 중심의 운동 목록으로 단순화했다. 18px 숫자 버튼과 큰 조절 dialog로 반복 ±를 대체하고 Apply/Cancel 초안 처리를 추가했다. 삭제 버튼은 유지하면서 Undo를 10초로 늘리고 화면 확대 제한을 해제했다. 10세트·4개 화면 너비, 조절·적용·취소·유효성·Escape·완료 잠금·지연 Undo·lbs 재로드 및 200% 글자 상태를 검증했다. 테스트 39개·lint·build 통과. 실제 iPhone 사용성 확인과 앱 배포는 별도다.
 
 - 2026-09-05: 사용자 핵심 원칙에 따라 반복 ± 버튼을 모든 세트에 상시 복원했다. 즉시 증감·자동 저장을 유지하고 큰 숫자 dialog는 직접 입력 보조 기능으로 남겼다. 33px 행과 10세트 표시, 큰 글자·삭제/완료 분리·10초 Undo를 유지한다. 확대 시 표 내부 가로 스크롤로 숫자 버튼이 눌리지 않는 문제를 방지했다. 직접 kg/reps 증감, 기존 dialog/Undo/단위 저장, 4개 너비와 200% 글자 확대, lint·build를 검증했다. 원격 푸시 및 앱 배포는 별도다.
+
+- 2026-09-05: 사용자 승인으로 최종 디자인과 상시 ±·kg/lbs·큰 숫자 보조 입력·10초 Undo (715ed32)를 기존 iOS runtime ios-edab217484237bd7에 OTA 게시했다. bundle dcef8daa29e3cd7cc1f2656f04c73f19c6e31158101b576e7c3a25f598df6f7, ZIP 383326 bytes. OTA 테스트 7개, native fingerprint 일치, 새 Capacitor 빌드, 로컬 및 공개 manifest/ZIP SHA-256·RSA 서명 검증을 통과했다. 게시 범위는 gh-pages의 해당 runtime 경로이며 EAS나 새 네이티브 빌드는 실행하지 않았다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용하며 실제 iPhone 적용 여부는 별도 확인한다. master 소스 푸시는 앞선 승인 검토 차단으로 대기 중이다.
