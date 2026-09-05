@@ -538,6 +538,8 @@ export default function Session() {
                 />
               ) : (
                 <>
+                  <div className="overflow-x-auto">
+                  <div className="min-w-[18.5rem]">
                   <div aria-hidden="true" className="grid grid-cols-[2rem_1.5rem_minmax(0,1fr)_minmax(0,0.8fr)_2.75rem] gap-1 border-b border-zinc-800 pb-1 text-center text-xs text-zinc-300">
                     <span>Del.</span><span>Set</span><span>{storage.getWeightUnit()}</span><span>Reps</span><span>Done</span>
                   </div>
@@ -553,6 +555,8 @@ export default function Session() {
                       onRemove={() => removeSet(exIdx, setIdx)}
                     />
                   ))}
+                  </div>
+                  </div>
                   <button
                     ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
