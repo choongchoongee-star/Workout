@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { access, readFile } from 'node:fs/promises'
 import { nativeFingerprint } from './ota-native.mjs'
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
@@ -26,7 +26,16 @@ assert.equal(appConfig.ios.infoPlist.ITSAppUsesNonExemptEncryption, false, 'encr
 assert.match(appConfig.extra?.eas?.projectId || '', /^[0-9a-f-]{36}$/, 'EAS project must be linked')
 
 assert.match(project, /MARKETING_VERSION = 1\.0;/, 'native marketing version must be 1.0')
-assert.match(project, /CURRENT_PROJECT_VERSION = 1;/, 'native build number must be 1 before EAS increments it')
+const nativeBuildNumbers = [...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(match => match[1])
+assert.ok(nativeBuildNumbers.length > 0)
+assert.ok(nativeBuildNumbers.every(version => version === appConfig.ios.buildNumber), 'all native build numbers must match app.json')
+const eas = JSON.parse(await read('eas.json')).build.production
+assert.ok(Number(eas.node?.split('.')[0]) >= 22, 'EAS must explicitly select Node 22 or newer')
+assert.ok(Number(eas.ios.image?.match(/xcode-(\d+)/)?.[1]) >= 26, 'EAS must explicitly select Xcode 26 or newer')
+const swiftPackage = await read('ios/App/CapApp-SPM/Package.swift')
+for (const [, path] of swiftPackage.matchAll(/path: "([^"]+)"/g)) {
+  await access(new URL(`../ios/App/CapApp-SPM/${path}/Package.swift`, import.meta.url))
+}
 assert.match(project, new RegExp(`PRODUCT_BUNDLE_IDENTIFIER = ${capacitor.appId.replaceAll('.', '\\.')};`), 'native bundle identifier must match Capacitor')
 assert.match(project, /TARGETED_DEVICE_FAMILY = 1;/, 'native target must be iPhone-only')
 assert.match(project, /AppSettingsPlugin\.swift in Sources/, 'Settings plugin must be compiled into the native target')

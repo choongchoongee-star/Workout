@@ -8,11 +8,13 @@
   "build": {
     "production": {
       "distribution": "store",
+      "node": "24.13.0",
       "autoIncrement": true,
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       },
       "ios": {
+        "image": "macos-tahoe-26.5-xcode-26.6",
         "config": "ios-production.yml",
         "scheme": "App",
         "buildConfiguration": "Release",

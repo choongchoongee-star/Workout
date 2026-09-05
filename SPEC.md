@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-05
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 최초 EAS 빌드·실기기 검증 대기
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·재빌드 승인 및 실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -65,13 +65,13 @@ mode !== 'capacitor' && VitePWA({
 - 공개 사이트 반영은 **수동으로 `npm run deploy`** 실행 → `site-dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙. 공개 루트는 `site/index.html`의 영문 iPhone 앱 소개·TestFlight 준비 상태·지원 링크이며 운동 기록 UI나 OTA 파일 링크를 표시하지 않는다. 개인정보처리방침은 `/privacy/`, OTA는 `/ota/<runtime>/`에 유지한다.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
 - 브라우저/PWA 운동 UI는 로컬 개발용이다. 공개 배포 시 기존 앱 JS/CSS·manifest·Workbox 파일을 제거하고 `site/sw.js`로 이전 서비스워커를 해제한다. 기존 브라우저의 localStorage 운동 기록은 삭제하지 않는다. 오프라인 캐시 사용자는 온라인 복귀 후 worker 갱신 시 안내 페이지로 전환된다.
-- iOS 앱은 `npm run ios:sync` 후 `ios/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 `cap sync ios` 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
+- iOS 앱은 `npm run ios:sync` 후 `ios/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 프로젝트 경로 어댑터 동기화 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
 - EAS 프로젝트는 `@choongchoongee/workout-logger`(project ID `ca086289-002e-40a4-a2ee-c11e84212f41`)에 연결되어 있다. `eas.json`의 production profile은 store 배포, 자동 build number 증가, `NPM_CONFIG_LEGACY_PEER_DEPS=true`를 사용한다. 실제 원격 빌드는 Apple 자격 증명과 실기기 체크 준비 후 최종 단계에서만 시작한다.
-- 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 초기 build number는 `1`이다. 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
+- 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 현재 build number는 `2`이다 (실패한 첫 원격 빌드에서 증가한 값을 보존). 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
 - EAS production iOS profile에는 `scheme: App`을 명시한다. 공유 Xcode 프로젝트는 EAS가 검색하는 `ios/App.xcodeproj`에 있으며 앱 소스는 `ios/App/App`, SPM은 `ios/App/CapApp-SPM`에 유지한다. pbxproj의 source group·Info.plist·debug config·SPM 상대 경로는 프로젝트 위치에 맞춘다.
 - `scripts/ios-project.mjs`는 고정한 Capacitor CLI 8.5.1의 config를 로드하고 Xcode 프로젝트 경로를 지정한 뒤 공식 copy/update 작업을 호출한다. 의존성 소스는 수정하지 않는다. 복사 실패는 중단하며 `npm run ios:sync` 및 `ios:open`은 이 adapter를 사용한다. 직접 `cap sync ios`는 기본 중첩 경로를 가정하므로 사용하지 않는다.
-- EAS CLI 23.2.0의 로컬 파서로 Scheme·Release 구성·target·bundle ID 해석을 검증했다. 실제 archive·서명·TestFlight 제출은 별도 실행 결과로 확인해야 한다. 프로젝트 경로 변경으로 OTA native runtime은 `ios-beefaaa9cd2c01e7`로 갱신했으며 기존 runtime OTA를 적용하지 않는다.
+- EAS CLI 23.2.0의 로컬 파서로 Scheme·Release 구성·target·bundle ID 해석을 검증했다. 실제 archive·서명·TestFlight 제출은 별도 실행 결과로 확인해야 한다. 프로젝트 경로 변경으로 OTA native runtime은 `ios-1146c05c863d7e17`로 갱신했으며 기존 runtime OTA를 적용하지 않는다.
 - 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 - EAS 실행은 필요성이 확인된 경우에만 구체적인 작업을 설명하고 사용자 확인을 받은 뒤 진행한다. 읽기 전용 CLI 조회, 프로젝트 연결, 자격 증명, 빌드, TestFlight/App Store 제출, OTA 배포 및 동등한 API·대시보드 작업에도 적용한다. 로컬 설정 편집·검증과 GitHub 푸시는 별개다. 이 규칙은 `.agents/skills/workout-maintenance/SKILL.md`에 유지한다.
 
@@ -157,7 +157,7 @@ Workout/
 - `scripts/ota-native.mjs`는 Swift·plist·스토리보드·네이티브 프로젝트·SPM·플러그인 버전·Capacitor 설정으로 fingerprint를 계산한다. `ota:prepare`와 `check:ios-release`는 native runtime 불일치 시 중단한다. 네이티브 변경 후 기존 runtime으로 OTA만 배포하면 안 된다.
 - `scripts/ota-prepare.mjs`는 fresh Capacitor 빌드만 ZIP으로 만들고 서명을 재검증한 뒤 Git 제외 폴더 `ota-release/`에 산출한다. 개인키 `.ota-keys/private.pem`은 별도 비공개 백업이 필요하며 Git·배포에 포함하지 않는다. 최초 초기화는 `scripts/ota-init.mjs`이며 기존 키가 있으면 중단한다.
 - 공개 정책에 OTA 요청과 GitHub의 IP 등 기술 정보 처리를 고지한다. 운동·기기 식별자는 업데이트 요청에 포함하지 않는다. GitHub Pages 게시와 정책 갱신은 별도 배포 승인을 받은 뒤 진행한다. 안내 사이트 배포는 제거 대상에서 `ota/`를 제외해 모든 기존 OTA runtime을 보존한다.
-- 최초 EAS 빌드는 대기한다. OTA 플러그인이 포함된 iPhone 앱 설치 후 정상/변조 ZIP·오프라인·시작 실패 복구·운동 중 비재시작을 TestFlight에서 검증해야 한다. 저장 형식 변경은 이전 bundle과 호환되어야 한다.
+- 첫 EAS 빌드는 웹 자산 생성 단계에서 실패했으며 재빌드 승인을 기다린다. OTA 플러그인이 포함된 iPhone 앱 설치 후 정상/변조 ZIP·오프라인·시작 실패 복구·운동 중 비재시작을 TestFlight에서 검증해야 한다. 저장 형식 변경은 이전 bundle과 호환되어야 한다.
 
 ---
 
@@ -567,3 +567,6 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: EAS 프로젝트를 연결하고 Capacitor/SPM용 production Custom Build, 공유 App Scheme, 버전·번들·암호화 출시 설정 검사기를 추가했다. 알림 거부 시 앱별 iPhone Settings를 직접 여는 네이티브 브리지와 iPhone safe area 보정도 추가했다.
 - 2026-09-05: 운동 입력·기록 상세·Progress 화면에서 맨몸 운동의 `BW +`/`Bodyweight+` 접두어를 제거했다. 추가 중량 데이터와 Markdown 백업 형식은 유지한다.
 - 2026-09-05: GitHub Pages를 iPhone 앱 소개·지원·개인정보처리방침 사이트로 전환했다. 기존 PWA 자산은 제거하고 서비스워커 해제 파일을 게시했다. OTA manifest와 서명 ZIP을 게시하고 공개 응답·체크섬·서명을 확인했다. EAS는 실행하지 않았다.
+
+- 2026-09-05: 원격 빌드 `f7825767-02cf-4da0-88a7-61e706e85ec6` (build 2)는 Node 18.18.0에서 Vite 실행 중 `CustomEvent is not defined`로 실패했다. production 환경을 Node 24.13.0과 `macos-tahoe-26.5-xcode-26.6`으로 명시했다. Swift 컴파일·archive·TestFlight 제출은 아직 검증되지 않았다.
+- iOS sync 어댑터는 CLI가 Xcode 프로젝트 기준으로 생성한 SPM 경로를 실제 Package.swift 위치 기준으로 보정하고 각 의존성의 Package.swift 존재를 확인한다. 출시 검사기는 build number 일치와 Node/Xcode 최소 버전도 검사한다. 새 native runtime `ios-1146c05c863d7e17`의 OTA 게시도 별도 승인 후 진행한다.

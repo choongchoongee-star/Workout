@@ -9,7 +9,7 @@
     ],
     "ios": {
       "bundleIdentifier": "com.choongchoongeestar.workout",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
