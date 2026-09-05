@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-05
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·EAS build 4 성공·TestFlight 업로드 및 실기기 검증 대기
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·빌드 4 TestFlight 업로드 완료·Apple 처리 및 실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -524,7 +524,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - [x] OTA 파일·변경된 공개 개인정보처리방침 및 iPhone 소개 사이트 게시 (2026-09-05)
 - [ ] TestFlight 실기기 OTA 검증
 - [x] EAS Release archive·서명·IPA 생성 (build 4)
-- [ ] TestFlight 업로드, 실기기 검증, App Store 메타데이터와 제출
+- [x] 빌드 4 App Store Connect/TestFlight 업로드
+- [ ] Apple 처리 완료 확인, 실기기 검증, App Store 메타데이터와 제출
 
 ---
 
@@ -579,3 +580,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: build 3은 sharp 0.34.5가 소스 빌드를 시도하며 node-addon-api 누락으로 npm ci에서 실패했다. EAS production env에 `SHARP_IGNORE_GLOBAL_LIBVIPS=1`을 추가해 서버의 전역 libvips 감지를 끄고 macOS 사전 컴파일 패키지를 사용하도록 한다. https://sharp.pixelplumbing.com/install/ 의 공식 설치 설정을 적용했다. 이 수정의 macOS 원격 검증과 Swift archive는 아직 미완료이며 추가 빌드에는 별도 승인이 필요하다.
 
 - 2026-09-05: 승인된 build 4 (`8dbb3032-b99b-43aa-be0c-47c1e82b4ed7`)가 성공했다. sharp 설치·웹 생성·Capacitor sync·SPM 컴파일·Release archive·서명과 IPA 업로드까지 완료했다. 빌드 페이지: https://expo.dev/accounts/choongchoongee/projects/workout-logger/builds/8dbb3032-b99b-43aa-be0c-47c1e82b4ed7 . TestFlight 제출과 실기기 검증은 아직 미완료다.
+
+- 2026-09-05: 빌드 4의 EAS Submit `a8e1b355-f9a3-4c10-bac7-e325b5121335`가 성공해 App Store Connect 업로드를 완료했다. Apple 처리 완료·테스터 설치는 아직 확인하지 않았다. ASC 앱 ID `6808960698`을 eas.json에 저장했고, TestFlight 주소는 https://appstoreconnect.apple.com/apps/6808960698/testflight/ios 이다. 기존 이름 중복으로 EAS가 등록한 ASC 이름은 `Workout Logger (156938)`이며 정식 출시 전 최종 이름을 정해야 한다. 내부 테스트 그룹 `Team (Expo)`가 생성됐고 소유자 계정에 접근 권한이 설정됐다.
