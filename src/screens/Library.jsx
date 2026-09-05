@@ -1,3 +1,4 @@
+import { exerciseChoices, movementName } from '../lib/equipment'
 import { useState } from 'react'
 import AddExerciseForm from '../components/AddExerciseForm'
 import { useApp } from '../context/AppContext'
@@ -13,13 +14,13 @@ export default function Library() {
   const [showAdd, setShowAdd] = useState(false)
 
   const categories = ['All', ...CATEGORIES]
-  const filtered = exercises
+  const filtered = exerciseChoices(exercises)
     .filter(e => {
       const matchCat = activeCategory === 'All' || e.category === activeCategory
-      const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
+      const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
       return matchCat && matchQ
     })
-    .sort((a, b) => a.name.localeCompare(b.name, 'en'))
+    .sort((a, b) => movementName(a).localeCompare(movementName(b), 'en'))
 
 
   return (
@@ -85,7 +86,7 @@ export default function Library() {
               }`}
             >
               <div className="flex-1">
-                <span className="text-white text-sm">{ex.name}</span>
+                <span className="text-white text-sm">{movementName(ex)}</span>
                 {isCustom && <span className="text-accent-400 text-xs ml-2">Custom</span>}
                 <span className="text-zinc-600 text-xs ml-2">{TYPE_LABELS[ex.type]}</span>
               </div>

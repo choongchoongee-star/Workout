@@ -43,6 +43,8 @@ function safeFloat(raw, fallback) {
 
 export const storage = {
   isAvailable,
+  getEquipment: (family) => safeGet(`wl_equipment_${family}`),
+  setEquipment: (family, equipment) => safeSet(`wl_equipment_${family}`, equipment),
   getWeightUnit: () => safeGet(KEYS.WEIGHT_UNIT) === 'lbs' ? 'lbs' : 'kg',
   setWeightUnit: (v) => safeSet(KEYS.WEIGHT_UNIT, v === 'lbs' ? 'lbs' : 'kg'),
 

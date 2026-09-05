@@ -1,3 +1,4 @@
+import { EQUIPMENT_LABELS, movementName, recordEquipment } from '../lib/equipment'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate } from '../lib/dateUtils'
@@ -56,8 +57,9 @@ export default function SessionDetail() {
 
           return (
             <div key={i} className="bg-zinc-900 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3 min-w-0">
-                <h3 className="text-white font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
+              <div className="flex flex-wrap items-center gap-2 mb-3 min-w-0">
+                <h3 className="text-white font-semibold truncate">{movementName(exercise) || se.exerciseId}</h3>
+                {recordEquipment(se, exercise) && <span className="text-zinc-400 text-sm">{EQUIPMENT_LABELS[recordEquipment(se, exercise)]}</span>}
                 <span className="text-zinc-600 text-xs flex-shrink-0">{exercise?.category}</span>
               </div>
 

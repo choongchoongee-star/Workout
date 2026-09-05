@@ -1,3 +1,4 @@
+import { EQUIPMENT_LABELS } from './equipment.js'
 import { DEFAULT_EXERCISES } from '../data/exercises.js'
 import { normalizeCategory, normalizeExercise } from './exerciseLibrary.js'
 
@@ -63,8 +64,10 @@ function validateBackup(data) {
       id: session.id, date: session.date, ...copyNumbers(session, ['duration_min']),
       exercises: session.exercises.map(ex => {
         requireValue(isObject(ex) && isText(ex.exerciseId) && Array.isArray(ex.sets))
+        requireValue(ex.equipment === undefined || (typeof ex.equipment === 'string' && Object.hasOwn(EQUIPMENT_LABELS, ex.equipment)), 'Invalid exercise equipment.')
         return {
           exerciseId: ex.exerciseId,
+          ...(ex.equipment === undefined ? {} : { equipment: ex.equipment }),
           sets: ex.sets.map(set => {
             requireValue(isObject(set) && (set.done === undefined || typeof set.done === 'boolean'))
             return {
@@ -143,6 +146,12 @@ function parseLegacyMarkdown(text, knownExercises) {
       requireValue(title, `${date}: Could not read the exercise name.`)
       const [, rawName, rawCategory] = title
       const category = normalizeCategory(rawCategory)
+      let equipment
+      if (lines[index]?.startsWith('- Equipment: ')) {
+        const label = lines[index++].slice('- Equipment: '.length)
+        equipment = Object.keys(EQUIPMENT_LABELS).find(key => EQUIPMENT_LABELS[key] === label)
+        requireValue(equipment, 'Invalid exercise equipment.')
+      }
       const sets = []
       let type
       if (['- _세트 없음_', '- _No sets_'].includes(lines[index])) index++
@@ -162,7 +171,7 @@ function parseLegacyMarkdown(text, knownExercises) {
       requireValue(type, `${rawName}: Cannot determine the exercise type without sets. Add this exercise to your library first.`)
       const exercise = existing ?? { id: `custom-${crypto.randomUUID()}`, name: nameForType(type), category: category || 'Other', type }
       if (!exercises.some(ex => ex.id === exercise.id)) exercises.push(exercise)
-      session.exercises.push({ exerciseId: exercise.id, sets })
+      session.exercises.push({ exerciseId: exercise.id, ...(equipment ? { equipment } : {}), sets })
     }
     requireValue(session.exercises.length === Number(meta[2]), `${date}: The exercise count does not match the records.`)
     sessions.push(session)

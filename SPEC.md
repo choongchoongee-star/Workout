@@ -95,6 +95,7 @@ Workout/
 │   │   └── Settings.jsx
 │   ├── components/
 │   │   ├── Layout.jsx        # 하단 네비(운동/기록/무게/설정) + 스크롤 위치 관리
+│   │   ├── EquipmentSelect.jsx # 운동 카드/Progress 장비 선택
 │   │   ├── StepperInput.jsx  # 상시 ± 조절 + 숫자 버튼/보조 dialog
 │   │   ├── RestTimer.jsx     # 휴식 타이머 (원형 진행 + 바)
 │   │   └── UndoToast.jsx     # 10초 되돌리기 토스트
@@ -196,8 +197,10 @@ Workout/
 
 ### 4.4 SessionExercise
 ```json
-{ "exerciseId": "bench-press", "sets": [ Set, ... ] }
+{ "exerciseId": "bench-press", "equipment": "barbell", "sets": [ Set, ... ] }
 ```
+
+- equipment는 선택적 문자열이며 구형 기록에서 생략 가능하다. 장비 해석·호환성 규칙은 장비 선택과 운동 계열 절에 정의한다.
 
 ### 4.5 Set
 - **weight:** `{ "weight": 80, "reps": 10, "done": false }`
@@ -210,6 +213,7 @@ Workout/
 |----|------|--------|------|
 | `wl_rest_seconds` | 휴식 타이머 초 | 90 | 설정 탭에서 수정 |
 | `wl_body_weight` | 체중(kg) | 70 | **설정 UI 제거됨(2026-06-14)**, 칼로리 계산 시 기본값 70 사용 |
+| `wl_equipment_[familyId]` | 운동 계열별 마지막 선택 장비 | 기록/기본 장비 | 운동 추가·장비 변경 시 저장 |
 - private/incognito 등 접근 불가 환경 안전 처리(try/catch, isAvailable).
 
 ### 4.7 sessionStorage
@@ -276,7 +280,7 @@ Workout/
 - **헤더:** History와 동일한 20px 굵은 제목 `Workout`을 표시하고, 바로 아래 14px 보조색 날짜를 `Sat, September 5, 2026`처럼 짧은 요일과 함께 표시한다. 좌측 정렬은 16px이며 날짜를 눌러 변경할 수 있다. **완료 버튼 없음**(2026-06-14 제거 — 모든 변경이 자동 저장되므로 불필요).
 - **운동 추가:** [+ 운동 추가] 버튼은 **운동 목록 맨 아래**에 위치(2026-06-14 상단→하단 이동). 탭 → 바텀시트(`h-[80vh]` 고정). 상단 검색 input(**autoFocus 없음** — 키보드 자동 노출 방지, 2026-06-14), 카테고리 칩(전체+7), 운동 리스트. 기본 카테고리 = 현재 세션 메인 카테고리 → 없으면 과거 세션 메인 → 없으면 '전체'. 이미 추가된 운동은 흐리게 + "추가됨". Escape/배경 탭으로 닫기, Tab 포커스 트랩.
 - **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가(cardio는 빈 기록 1개 자동 생성). **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
-- **세트 추가:** 첫 세트면 **과거 세션의 마지막 세트 값**을 기본값으로(getLastSession), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
+- **세트 추가:** 첫 세트면 **같은 운동 계열·장비의 과거 마지막 세트 값**을 기본값으로(previousEquipmentSet), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
 - **숫자 수정:** 목록의 밑줄 숫자를 누르면 해당 운동명·세트 번호·Weight/Added weight/Reps가 표시된 native dialog를 연다. 목록의 ± 버튼은 항상 표시하며 한 번 누르면 즉시 값에 반영하고 자동 저장한다. 큰 dialog는 숫자 직접 입력을 위한 보조 경로이며 ± 조작에 필수 단계가 아니다. 창에는 56px ± 버튼, 30px 숫자 직접 입력, 단위, 48px 이상 Cancel/Apply 버튼이 있다. kg 증감 2.5 / lbs 증감 5 / reps 증감 1. 입력을 누르면 전체 선택한다. dialog 안의 초안은 Apply만 값을 반영하고 Cancel·Escape·창 배경 클릭은 버린다. 빈 값·유한하지 않은 값·최솟값 미만은 적용할 수 없다. dialog가 열릴 때 제목에 포커스를 두어 키보드를 자동 표시하지 않는다. 완료 세트의 숫자 수정은 잠긴다.
 - **세트 행 밀도와 조작 구분:** 한 운동 5세트와 운동명·열 제목·Add set 영역이 일반 iPhone 화면 높이 약 60%를 차지하는 구성을 기준으로 한다. 2개 운동/10세트 한 화면 압축은 목표가 아니다. `.workout-set-row` 최소 높이는 `clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem)`로 화면 높이에 따라 변한다. 390×844·430×932에서는 약 60%를 목표로 하며, 작은 화면에서는 44px 증감 버튼을 보존하기 위한 최소 행 높이를 우선한다. 첫 5세트는 하단 탭 위에 모두 보인다. 4열은 Set(번호 위·× 삭제 아래), kg/lbs, Reps, Done이다. 각 입력기는 24px 숫자를 위에, 항상 보이는 ±를 아래에 둔다. 증감·삭제·완료 클릭 영역은 최소 44×44px다. 삭제는 왼쪽 ×, 완료는 오른쪽 체크로 분리하고 초록 완료 상태와 입력 잠금을 유지한다. 운동명 16px, 번호·열 제목·Add set은 14px다. 키보드가 닫힌 기본 글자 크기 기준이다. 페이지 줌은 제한하고 일반 세로 스크롤은 유지한다. 실제 iPhone 확인은 별도다.
 - **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
@@ -415,7 +419,7 @@ Workout/
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
 - 병합: 앱은 날짜별 한 세션만 허용하므로 기존 날짜는 절대 덮어쓰지 않고 누락된 날짜만 추가한다. 같은 파일을 반복 가져오면 변경이 없다. 저장 실패 시 `Retry save`를 표시한다.
-- 호환: 새 JSON 메타데이터가 있으면 `done`, 모든 세트 값, 운동 ID/type/MET를 복원한다. 이전 한국어 보고서 형식도 읽지만 파일에 없던 `done`은 `false`로, 커스텀 MET는 복원 불가로 안내한다. 손상된 메타데이터는 구형 파서로 우회하지 않고 전체 가져오기를 거부한다.
+- 호환: 새 JSON 메타데이터가 있으면 `done`, 모든 세트 값, 운동 ID/type/MET와 카드별 equipment를 복원한다. 이전 한국어 보고서 형식도 읽지만 파일에 없던 `done`은 `false`로, 커스텀 MET는 복원 불가로 안내한다. 손상된 메타데이터는 구형 파서로 우회하지 않고 전체 가져오기를 거부한다.
 - Privacy 섹션에서 앱 내 `/privacy` 정책으로 이동한다. 공개 App Store용 정책 URL은 `https://choongchoongee-star.github.io/Workout/privacy/`이며, 데이터 미수집·기기 내 저장·사용자 선택 백업 공유·로컬 알림·삭제 정책을 명시한다.
 
 ---
@@ -458,8 +462,20 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 세션 내 운동들의 카테고리 빈도 최다를 반환. 동률이면 **먼저 등장한** 카테고리. 운동 없으면 null.
 - 사용처: History 카드 우측, Session 추가 모달 기본 카테고리.
 
-### 8.4 이전 값 자동 입력 (`AppContext.getLastSession`)
-- `(exerciseId, excludeDate)` → 그 운동을 포함하는, 오늘이 아닌 가장 최근 세션. 첫 세트 기본값 채울 때 사용.
+### 8.4 이전 값 자동 입력 (`equipment.previousEquipmentSet`)
+- 첫 세트는 현재 편집 날짜를 제외하고 같은 운동 계열·equipment의 최신 날짜에서 마지막 카드의 마지막 세트를 사용한다. 다른 장비나 Unspecified 기록은 섞지 않는다. 이후 세트는 현재 카드의 직전 세트를 복사한다. 과거 값이 없으면 weight=20kg, added_weight=0kg, reps=10이다.
+
+### 장비 선택과 운동 계열 (2026-09-06)
+- 구현: `src/lib/equipment.js`, `src/components/EquipmentSelect.jsx`. 표시 목록만 계열별로 묶으며 기존 운동 ID·정의·세트는 삭제/병합하지 않는다. 이름/category/type이 알려진 기본 정의와 일치할 때만 계열로 인식한다. 임의 커스텀 이름에는 장비를 추측하지 않는다.
+- Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row 계열로 묶는다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
+- SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/ezbar/unspecified다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
+- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. Bench/Incline/Decline Press 및 Overhead Press: Barbell/Dumbbell/Smith Machine. Squat: Barbell/Smith Machine/Dumbbell. RDL: Barbell/Dumbbell/Smith Machine. Deadlift: Barbell/Dumbbell. Lateral Raise: Dumbbell/Cable/Machine. Front Raise: Dumbbell/Barbell/Cable. Biceps Curl: Barbell/Dumbbell/EZ Bar/Cable. Overhead Triceps Extension: Dumbbell/Cable/EZ Bar. Preacher Curl: EZ Bar/Dumbbell/Machine. Skull Crusher: EZ Bar/Barbell/Dumbbell. Seated Row: Machine/Cable. Lat Pulldown: Cable/Machine. Chest Press와 Shoulder Press: Machine. 이외 운동에는 선택기를 표시하지 않는다.
+- 추가 기본값: 기기 설정 `wl_equipment_[familyId]` → 날짜 역순/동일 날짜 카드 역순의 최근 유효 장비 → 선택지 첫 장비. 추가/변경 시 기억하며 Progress 열람 필터는 기억값을 바꾸지 않는다. 이 기기 설정은 백업에 포함하지 않고 복원 기기는 기록에서 장비를 찾는다.
+- 0세트 카드는 제자리 변경한다. 세트가 하나라도 있으면 입력/완료 여부에 관계없이 기존 카드와 세트를 보존하고 선택한 장비의 0세트 카드를 맨 아래 추가·스크롤한다. 현재 장비 재선택은 추가하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
+- 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동은 기존대로다.
+- History 상세는 장비를 함께 표시한다. Progress는 운동 선택 후 장비 필터로 분리하고 같은 날짜·장비의 모든 카드를 date:index 키로 각각 표시한다. 기본 장비 기록이 없고 Unspecified 과거 기록이 있으면 처음부터 Unspecified를 표시한다.
+- 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith Machine`으로 출력한다. 구형 보고서 파서도 이 줄을 읽는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
+- 단위 테스트 `src/lib/equipment.test.mjs`, 브라우저 회귀 검사 `scripts/verify-equipment.mjs`. 브라우저 실행 변수: PLAYWRIGHT_MODULE/WORKOUT_URL/BROWSER_CHANNEL.
 
 ### 8.5 자동 저장 / 디바운스 (`AppContext`)
 - `LOAD_START`로 로컬 JSON을 읽으며, 완료 전에는 Session/History 등 자식 화면을 마운트하지 않는다. 따라서 오늘 화면이 초기 빈 `sessions`를 캡처하거나 사용자가 로딩 중 빈 상태를 편집하는 일을 막는다.
@@ -639,3 +655,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: Workout 운동 추가 창·Progress·Manage exercises의 부위 필터를 가로 스크롤에서 4열×2행으로 변경했다. 첫 줄 All/Chest/Back/Legs, 둘째 줄 Shoulders/Arms/Core/Cardio 순서다. 공통 `.category-filters`는 첫 열을 1.4fr, 나머지를 1fr로 두어 좁은 화면의 Shoulders 글자를 수용하고 버튼은 최소 44px 높이·선택 상태 aria-pressed를 사용한다. 큰 글자는 버튼 안에서 줄바꿈해 겹침을 방지한다. Workout 세트 행 밀도와 추가 폼의 카테고리 select는 유지한다. 3개 화면 × 320/375/390/430px에서 두 줄·44px 이상 클릭 영역·가로 넘침 없음·Cardio 필터 결과를 확인했고 lint·build를 통과했다. OTA 배포는 별도다.
 
 - 2026-09-06: 사용자 승인으로 두 줄 카테고리·큰 부위 우선 순서·Workout/History 헤더·Progress 관리 버튼 개선(최종 소스 815f25e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `8efb81292980af22595944f56b7763b8df77ad9a8f33a7fc8ee70338f13bbdb3`, ZIP 383303 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
+
+- 2026-09-06: 단일 운동 목록과 카드별 장비 선택을 구현했다. 최근 장비 기본값·장비별 이전 세트/Progress·세트가 있는 카드 장비 전환 시 새 카드 추가·동일 운동/장비 중복을 지원한다. 기존 무장비 기록과 별도 장비 ID를 보존하고 백업/복원에 equipment를 반영했다. 테스트 45개, 장비 전환/중복/재로드/Progress/Undo 및 삭제 회귀 브라우저 검사, 4개 화면 너비, lint·build를 통과했다. 실제 iPhone 검증과 OTA 배포는 별도다.

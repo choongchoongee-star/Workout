@@ -1,3 +1,4 @@
+import { EQUIPMENT_LABELS } from './equipment.js'
 import { formatDate, localTodayStr } from './dateUtils.js'
 import { normalizeExercise } from './exerciseLibrary.js'
 
@@ -64,6 +65,7 @@ export function buildMarkdown(sessions, exercises) {
       const name = ex?.name || se.exerciseId
       const cat = ex?.category ? ` _(${ex.category})_` : ''
       lines.push(`### ${name}${cat}`)
+      if (se.equipment) lines.push(`- Equipment: ${EQUIPMENT_LABELS[se.equipment] ?? se.equipment}`)
       const sets = se.sets ?? []
       if (sets.length === 0) {
         lines.push('- _No sets_')

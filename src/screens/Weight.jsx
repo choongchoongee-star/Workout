@@ -1,3 +1,5 @@
+import EquipmentSelect from '../components/EquipmentSelect'
+import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices, familyId, movementName } from '../lib/equipment'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -27,29 +29,33 @@ export default function Weight() {
   const unit = storage.getWeightUnit()
   const { exercises, sessions, loaded, syncError } = useApp()
   const [selected, setSelected] = useState(null) // 선택된 exercise 객체 (null = 선택 화면)
+  const [selectedEquipment, setSelectedEquipment] = useState(null)
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
 
   const categories = ['All', ...CATEGORIES]
 
   // 선택 화면: 카테고리/검색 필터된 운동 목록
-  const filtered = useMemo(() => exercises.filter(e => {
+  const filtered = useMemo(() => exerciseChoices(exercises).filter(e => {
     const matchCat = activeCategory === 'All' || e.category === activeCategory
-    const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
+    const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
   }), [exercises, activeCategory, query])
 
   // 상세 화면: 선택한 운동의 날짜별 기록 (세션은 이미 날짜 역순 정렬)
   const records = useMemo(() => {
     if (!selected) return []
-    return sessions
-      .map(s => {
-        const se = (s.exercises ?? []).find(e => e.exerciseId === selected.id)
-        if (!se || !(se.sets?.length)) return null
-        return { date: s.date, sets: se.sets }
-      })
-      .filter(Boolean)
-  }, [sessions, selected])
+    return equipmentRecords(sessions, exercises, selected, selectedEquipment)
+  }, [sessions, exercises, selected, selectedEquipment])
+
+  function selectExercise(exercise) {
+    const equipment = defaultEquipment(exercise, sessions, exercises, storage.getEquipment(familyId(exercise)))
+    const hasUnknownRecords = equipmentRecords(sessions, exercises, exercise, 'unspecified').length > 0
+    const hasEquipmentRecords = equipmentRecords(sessions, exercises, exercise, equipment).length > 0
+    setSelected(exercise)
+    setSelectedEquipment(!hasEquipmentRecords && hasUnknownRecords ? 'unspecified' : equipment)
+    setQuery('')
+  }
 
   // ===== 상세 화면 =====
   if (selected) {
@@ -64,17 +70,22 @@ export default function Weight() {
             ←
           </button>
           <div className="min-w-0">
-            <h1 className="text-white font-bold text-lg truncate">{selected.name}</h1>
+            <h1 className="text-white font-bold text-lg truncate">{movementName(selected)}</h1>
             <span className="text-zinc-500 text-xs">{selected.category}</span>
           </div>
         </div>
 
+        <div className="mb-4">
+          <EquipmentSelect name={movementName(selected)} value={selectedEquipment}
+            options={[...equipmentOptions(selected), ...(equipmentRecords(sessions, exercises, selected, 'unspecified').length ? ['unspecified'] : [])]}
+            onChange={setSelectedEquipment} />
+        </div>
         {records.length === 0 ? (
           <p className="text-zinc-600 text-sm text-center py-12">No history for this exercise yet.</p>
         ) : (
           <div className="space-y-4">
-            {records.map(({ date, sets }) => (
-              <div key={date}>
+            {records.map(({ date, index, sets }) => (
+              <div key={`${date}:${index}`}>
                 <h2 className="text-zinc-400 text-sm font-medium mb-1.5">
                   {formatDate(date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
                 </h2>
@@ -138,10 +149,10 @@ export default function Weight() {
           filtered.map(ex => (
             <button
               key={ex.id}
-              onClick={() => { setSelected(ex); setQuery('') }}
+              onClick={() => selectExercise(ex)}
               className="w-full flex items-center justify-between bg-zinc-900 rounded-xl px-4 py-3.5 text-left active:bg-zinc-800"
             >
-              <span className="text-white text-sm">{ex.name}</span>
+              <span className="text-white text-sm">{movementName(ex)}</span>
               <span className="text-zinc-500 text-xs">{ex.category}</span>
             </button>
           ))

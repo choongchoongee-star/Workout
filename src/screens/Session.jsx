@@ -1,3 +1,5 @@
+import EquipmentSelect from '../components/EquipmentSelect'
+import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, movementName, previousEquipmentSet, recordEquipment } from '../lib/equipment'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -32,9 +34,9 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
   const modalRef = useRef(null)
 
   const categories = ['All', ...CATEGORIES]
-  const filtered = exercises.filter(e => {
+  const filtered = exerciseChoices(exercises).filter(e => {
     const matchCat = activeCategory === 'All' || e.category === activeCategory
-    const matchQ = !query || e.name.toLowerCase().includes(query.toLowerCase())
+    const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
   })
 
@@ -107,7 +109,7 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
             </div>
           ) : filtered.length > 0 ? (
             filtered.map(ex => {
-              const alreadyAdded = addedIds.has(ex.id)
+              const alreadyAdded = addedIds.has(familyId(ex))
               return (
                 <button
                   key={ex.id}
@@ -116,7 +118,7 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
                     alreadyAdded ? 'opacity-50' : ''
                   }`}
                 >
-                  <span className="text-white">{ex.name}</span>
+                  <span className="text-white">{movementName(ex)}</span>
                   <div className="flex items-center gap-2">
                     {alreadyAdded && <span className="text-zinc-500 text-xs">Added</span>}
                     <span className="text-zinc-500 text-xs">{ex.category}</span>
@@ -234,7 +236,7 @@ function CardioForm({ record, exercise, onUpdate }) {
 
 export default function Session() {
   const location = useLocation()
-  const { exercises, sessions, upsertSession, deleteSession, getLastSession, syncError, loaded } = useApp()
+  const { exercises, sessions, upsertSession, deleteSession, syncError, loaded } = useApp()
   const realToday = localTodayStr()
 
   const initialDate = location.state?.date ?? realToday
@@ -378,8 +380,19 @@ export default function Session() {
     const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
     // 새 운동은 목록 맨 아래에 추가되므로 추가 후 그 카드로 스크롤
     pendingScrollCardIdx.current = sessionExercises.length
-    setSessionExercises(prev => [...prev, { exerciseId: ex.id, sets }])
+    const equipment = defaultEquipment(ex, sessions, exercises, storage.getEquipment(familyId(ex)))
+    if (equipment) storage.setEquipment(familyId(ex), equipment)
+    setSessionExercises(prev => [...prev, { exerciseId: ex.id, ...(equipment ? { equipment } : {}), sets }])
     setShowModal(false)
+  }
+
+  function selectEquipment(exIdx, equipment) {
+    const card = sessionExercises[exIdx]
+    const exercise = exercises.find(ex => ex.id === card?.exerciseId)
+    if (!equipmentOptions(exercise).includes(equipment)) return
+    if (card.sets.length && recordEquipment(card, exercise) !== equipment) pendingScrollCardIdx.current = sessionExercises.length
+    storage.setEquipment(familyId(exercise), equipment)
+    setSessionExercises(prev => changeCardEquipment(prev, exIdx, exercise, equipment))
   }
 
   function addSet(exIdx) {
@@ -394,9 +407,7 @@ export default function Session() {
         let lastSet = ex.sets[ex.sets.length - 1]
         // 첫 세트일 경우 과거 세션의 마지막 세트 값을 기본값으로 사용
         if (!lastSet) {
-          const lastSession = getLastSession(ex.exerciseId, sessionDate)
-          const lastExData = lastSession?.exercises?.find(e => e.exerciseId === ex.exerciseId) ?? null
-          lastSet = lastExData?.sets?.[lastExData.sets.length - 1] ?? null
+          lastSet = previousEquipmentSet(sessions, exercises, exercise, recordEquipment(ex, exercise), sessionDate)
         }
         if (exercise?.type === 'bodyweight') {
           ex.sets = [...ex.sets, { added_weight: lastSet?.added_weight ?? 0, reps: lastSet?.reps ?? 10, done: false }]
@@ -522,13 +533,14 @@ export default function Session() {
             <div
               key={exIdx}
               role="group"
-              aria-label={exercise?.name || se.exerciseId}
+              aria-label={movementName(exercise) || se.exerciseId}
               ref={el => { exerciseCardRefs.current[exIdx] = el }}
               className="border-t border-zinc-700/70"
             >
               <div className="flex min-h-11 items-center justify-between gap-2">
-                <div className="flex min-w-0 flex-1 items-baseline gap-2">
-                  <h3 className="text-white text-base font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                  <h3 className="text-white text-base font-semibold truncate">{movementName(exercise) || se.exerciseId}</h3>
+                  <EquipmentSelect name={movementName(exercise)} value={recordEquipment(se, exercise)} options={equipmentOptions(exercise)} onChange={value => selectEquipment(exIdx, value)} />
                 </div>
                 <button
                   type="button"
@@ -608,7 +620,7 @@ export default function Session() {
           exercises={exercises}
           onSelect={addExercise}
           onClose={() => setShowModal(false)}
-          addedIds={new Set(sessionExercises.map(se => se.exerciseId))}
+          addedIds={new Set(sessionExercises.map(se => familyId(exercises.find(ex => ex.id === se.exerciseId))))}
           loaded={loaded}
           defaultCategory={(() => {
             const current = getMainCategory(sessionExercises, exercises)
