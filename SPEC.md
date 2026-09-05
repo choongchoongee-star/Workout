@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-05
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·EAS build 3 실패·설치 환경 수정 및 재시도 승인 대기
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·EAS build 4 성공·TestFlight 업로드 및 실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -67,7 +67,7 @@ mode !== 'capacitor' && VitePWA({
 - 브라우저/PWA 운동 UI는 로컬 개발용이다. 공개 배포 시 기존 앱 JS/CSS·manifest·Workbox 파일을 제거하고 `site/sw.js`로 이전 서비스워커를 해제한다. 기존 브라우저의 localStorage 운동 기록은 삭제하지 않는다. 오프라인 캐시 사용자는 온라인 복귀 후 worker 갱신 시 안내 페이지로 전환된다.
 - iOS 앱은 `npm run ios:sync` 후 `ios/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 프로젝트 경로 어댑터 동기화 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
 - EAS 프로젝트는 `@choongchoongee/workout-logger`(project ID `ca086289-002e-40a4-a2ee-c11e84212f41`)에 연결되어 있다. `eas.json`의 production profile은 store 배포, 자동 build number 증가, `NPM_CONFIG_LEGACY_PEER_DEPS=true`를 사용한다. 실제 원격 빌드는 Apple 자격 증명과 실기기 체크 준비 후 최종 단계에서만 시작한다.
-- 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 현재 build number는 `3`이다 (승인된 재빌드에서 증가한 값을 보존). 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
+- 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 현재 build number는 `4`이다 (승인된 재빌드에서 증가한 값을 보존). 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
 - EAS production iOS profile에는 `scheme: App`을 명시한다. 공유 Xcode 프로젝트는 EAS가 검색하는 `ios/App.xcodeproj`에 있으며 앱 소스는 `ios/App/App`, SPM은 `ios/App/CapApp-SPM`에 유지한다. pbxproj의 source group·Info.plist·debug config·SPM 상대 경로는 프로젝트 위치에 맞춘다.
 - `scripts/ios-project.mjs`는 고정한 Capacitor CLI 8.5.1의 config를 로드하고 Xcode 프로젝트 경로를 지정한 뒤 공식 copy/update 작업을 호출한다. 의존성 소스는 수정하지 않는다. 복사 실패는 중단하며 `npm run ios:sync` 및 `ios:open`은 이 adapter를 사용한다. 직접 `cap sync ios`는 기본 중첩 경로를 가정하므로 사용하지 않는다.
@@ -157,7 +157,7 @@ Workout/
 - `scripts/ota-native.mjs`는 Swift·plist·스토리보드·네이티브 프로젝트·SPM·플러그인 버전·Capacitor 설정으로 fingerprint를 계산한다. `ota:prepare`와 `check:ios-release`는 native runtime 불일치 시 중단한다. 네이티브 변경 후 기존 runtime으로 OTA만 배포하면 안 된다.
 - `scripts/ota-prepare.mjs`는 fresh Capacitor 빌드만 ZIP으로 만들고 서명을 재검증한 뒤 Git 제외 폴더 `ota-release/`에 산출한다. 개인키 `.ota-keys/private.pem`은 별도 비공개 백업이 필요하며 Git·배포에 포함하지 않는다. 최초 초기화는 `scripts/ota-init.mjs`이며 기존 키가 있으면 중단한다.
 - 공개 정책에 OTA 요청과 GitHub의 IP 등 기술 정보 처리를 고지한다. 운동·기기 식별자는 업데이트 요청에 포함하지 않는다. GitHub Pages 게시와 정책 갱신은 별도 배포 승인을 받은 뒤 진행한다. 안내 사이트 배포는 제거 대상에서 `ota/`를 제외해 모든 기존 OTA runtime을 보존한다.
-- 첫 EAS 빌드는 웹 자산 생성 단계에서 실패했으며 build 3도 npm 설치 단계에서 실패했고 설치 환경을 보정했다. OTA 플러그인이 포함된 iPhone 앱 설치 후 정상/변조 ZIP·오프라인·시작 실패 복구·운동 중 비재시작을 TestFlight에서 검증해야 한다. 저장 형식 변경은 이전 bundle과 호환되어야 한다.
+- 첫 EAS 빌드는 웹 자산 생성 단계에서 실패했으며 설치 환경 보정 후 build 4의 Release archive·서명·IPA 생성이 완료됐다. OTA 플러그인이 포함된 iPhone 앱 설치 후 정상/변조 ZIP·오프라인·시작 실패 복구·운동 중 비재시작을 TestFlight에서 검증해야 한다. 저장 형식 변경은 이전 bundle과 호환되어야 한다.
 
 ---
 
@@ -523,7 +523,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - [x] 자체 호스팅 OTA 다운로드·서명 검증·다음 시작 적용 / 실패 시 내장 버전 복구 / 로컬 배포 파일 생성
 - [x] OTA 파일·변경된 공개 개인정보처리방침 및 iPhone 소개 사이트 게시 (2026-09-05)
 - [ ] TestFlight 실기기 OTA 검증
-- [ ] 최초 EAS Release archive, 실기기 검증, App Store 메타데이터와 제출
+- [x] EAS Release archive·서명·IPA 생성 (build 4)
+- [ ] TestFlight 업로드, 실기기 검증, App Store 메타데이터와 제출
 
 ---
 
@@ -576,3 +577,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 기존 테스트 37개, lint, 웹 빌드 및 별도 checkout의 npm ci·iOS sync·출시 검사를 통과했다. 비대화형 EAS는 `EAS_BUILD_AUTOCOMMIT=1`로 버전 증가 커밋을 허용한다. 승인된 원격 재빌드 ID는 `81cb98f8-4a54-46db-ab07-8bc7d08c50b8`이며 build number 3을 사용한다. npm audit 경고는 남아 있으며, 서버 렌더링을 사용하지 않는 앱의 실제 영향과 도구 의존성 갱신을 별도 검토한다.
 
 - 2026-09-05: build 3은 sharp 0.34.5가 소스 빌드를 시도하며 node-addon-api 누락으로 npm ci에서 실패했다. EAS production env에 `SHARP_IGNORE_GLOBAL_LIBVIPS=1`을 추가해 서버의 전역 libvips 감지를 끄고 macOS 사전 컴파일 패키지를 사용하도록 한다. https://sharp.pixelplumbing.com/install/ 의 공식 설치 설정을 적용했다. 이 수정의 macOS 원격 검증과 Swift archive는 아직 미완료이며 추가 빌드에는 별도 승인이 필요하다.
+
+- 2026-09-05: 승인된 build 4 (`8dbb3032-b99b-43aa-be0c-47c1e82b4ed7`)가 성공했다. sharp 설치·웹 생성·Capacitor sync·SPM 컴파일·Release archive·서명과 IPA 업로드까지 완료했다. 빌드 페이지: https://expo.dev/accounts/choongchoongee/projects/workout-logger/builds/8dbb3032-b99b-43aa-be0c-47c1e82b4ed7 . TestFlight 제출과 실기기 검증은 아직 미완료다.
