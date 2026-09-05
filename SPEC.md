@@ -12,7 +12,7 @@
 
 - **목적:** 웨이트 + 유산소 운동 세션을 최소 마찰로 기록하는 개인용 iOS 앱
 - **핵심 철학:** "운동 중에 빠르게 기록" — 탭 수 최소화, 자동 입력(이전 값 재사용), 자동 저장
-- **핵심 제약사항:** 로그인·백엔드 서버·원격 데이터 전송 없음, 기기 내 저장, 1일 1세션
+- **핵심 제약사항:** 로그인·운동 데이터 백엔드·운동 기록 전송 없음, 기기 내 저장, 1일 1세션. 앱 업데이트 파일은 GitHub Pages에서 다운로드한다.
 - **주요 사용자:** Charlie (단일 사용자, 개인용)
 - **플랫폼:** Capacitor 기반 iOS 앱 우선. 동일 React 앱의 브라우저/PWA 빌드도 개발·미리보기용으로 유지. 세로형 `max-w-lg`, 다크 테마 고정
 
@@ -25,6 +25,7 @@
 - **Tailwind CSS v4** (`@tailwindcss/vite` 플러그인 방식 — `tailwind.config` 없이 CSS-first)
 - **react-router-dom v7** (`BrowserRouter`, `basename="/Workout"`)
 - **Capacitor v8** — iOS 네이티브 셸, Filesystem, Local Notifications, Share
+- **Capawesome Live Update v8** — 서명된 자체 호스팅 OTA, 네이티브 runtime별 배포, 시작 실패 시 내장 버전 복구
 - **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
 - 앱 아이콘: 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512 아이콘
 
@@ -51,6 +52,8 @@ mode !== 'capacitor' && VitePWA({
 | `ios:sync` | iOS 빌드 후 `cap sync ios` |
 | `ios:open` | macOS에서 Xcode 프로젝트 열기 |
 | `check:ios-release` | 번들 ID·버전·기기·방향·Scheme·EAS archive 절차의 일관성 검사 |
+| `ota:prepare` | 네이티브 fingerprint 검사 후 Capacitor ZIP·체크섬·서명을 로컬 생성 |
+| `ota:publish` | 승인 후 `ota-release/`를 gh-pages의 `ota/`에 추가 배포 (EAS 미사용) |
 | `lint` | `eslint .` |
 | `preview` | `vite preview` |
 | `icons` | `node generate-icons.mjs` (PWA 아이콘 생성) |
@@ -141,7 +144,16 @@ Workout/
 ```
 
 ### 외부 의존성
-- 런타임 서버 의존성 없음. iOS 네이티브 기능은 앱에 포함된 Capacitor 공식 플러그인만 사용한다.
+- 운동 기록은 오프라인으로 동작한다. OTA만 GitHub Pages에 연결하며 Capawesome 클라우드 API는 사용하지 않는다. 앱별 채널에는 네이티브 fingerprint를 저장하고 같은 runtime의 서명된 ZIP만 다운로드한다.
+
+### OTA 동작과 배포
+- `src/lib/otaUpdate.js`: 정상 데이터 로드 후 Layout 마운트에서 `ready()`를 호출하고 시작 시 1회 확인한다. Settings의 `Check for updates`로 수동 확인 가능. 운동 중 WebView를 강제로 재시작하지 않고 완전 종료 후 재실행 시 적용한다.
+- `capacitor.config.json`의 LiveUpdate는 자동 클라우드 갱신을 끄고 `readyTimeout=30000`, 실패 bundle 차단, 미사용 bundle 삭제, RSA 공개키를 설정한다. 준비 신호가 오지 않으면 내장 bundle로 복구한다.
+- manifest는 `/Workout/ota/<runtime>/latest.json`의 `{schema:1,runtime,bundle:{bundleId,url,checksum,signature}}` 형식. bundle ID는 ZIP SHA-256이며 URL은 동일 경로의 `<bundleId>.zip`만 허용한다. `bundle:null`은 다음 실행 시 내장 버전 복원 요청이다.
+- `scripts/ota-native.mjs`는 Swift·plist·스토리보드·네이티브 프로젝트·SPM·플러그인 버전·Capacitor 설정으로 fingerprint를 계산한다. `ota:prepare`와 `check:ios-release`는 native runtime 불일치 시 중단한다. 네이티브 변경 후 기존 runtime으로 OTA만 배포하면 안 된다.
+- `scripts/ota-prepare.mjs`는 fresh Capacitor 빌드만 ZIP으로 만들고 서명을 재검증한 뒤 Git 제외 폴더 `ota-release/`에 산출한다. 개인키 `.ota-keys/private.pem`은 별도 비공개 백업이 필요하며 Git·배포에 포함하지 않는다. 최초 초기화는 `scripts/ota-init.mjs`이며 기존 키가 있으면 중단한다.
+- 공개 정책에 OTA 요청과 GitHub의 IP 등 기술 정보 처리를 고지한다. 운동·기기 식별자는 업데이트 요청에 포함하지 않는다. GitHub Pages 게시와 정책 갱신은 별도 배포 승인을 받은 뒤 진행한다. 일반 웹 배포도 `--add`로 기존 OTA 경로를 보존한다.
+- 최초 EAS 빌드는 대기한다. OTA 플러그인이 포함된 iPhone 앱 설치 후 정상/변조 ZIP·오프라인·시작 실패 복구·운동 중 비재시작을 TestFlight에서 검증해야 한다. 저장 형식 변경은 이전 bundle과 호환되어야 한다.
 
 ---
 
@@ -504,6 +516,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - [x] Firebase·Google 로그인 제거 / 기기 파일 자동 저장 / Capacitor Xcode 프로젝트 / 백그라운드 로컬 알림 / iOS 공유 시트 백업
 - [x] iPhone 전용 세로 고정 / 정식 불투명 아이콘 / 알림 권한 Settings / 손상 시 로컬 백업 복구 / 개인정보처리방침
 - [x] EAS 프로젝트 연결 / Capacitor-SPM Custom Build / 공유 Scheme / 출시 설정 정적 검사
+- [x] 자체 호스팅 OTA 다운로드·서명 검증·다음 시작 적용 / 실패 시 내장 버전 복구 / 로컬 배포 파일 생성
+- [ ] OTA 파일·변경된 공개 개인정보처리방침 게시 승인 및 배포 / TestFlight 실기기 OTA 검증
 - [ ] 최초 EAS Release archive, 실기기 검증, App Store 메타데이터와 제출
 
 ---

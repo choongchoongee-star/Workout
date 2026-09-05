@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { otaUpdater } from '../lib/otaUpdate'
 
 const NAV = [
   {
@@ -48,6 +49,10 @@ export default function Layout({ children }) {
   const scrollPositions = useRef({})
   const { pathname } = useLocation()
   const { recoveryNotice, dismissRecoveryNotice } = useApp()
+
+  useEffect(() => {
+    void otaUpdater.check()
+  }, [])
 
   useEffect(() => {
     const main = mainRef.current

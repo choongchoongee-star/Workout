@@ -10,10 +10,12 @@
     "ios:sync": "npm run build:ios && cap sync ios",
     "ios:open": "cap open ios",
     "check:ios-release": "node scripts/verify-ios-release.mjs",
+    "ota:prepare": "node scripts/ota-prepare.mjs",
+    "ota:publish": "gh-pages -d ota-release --dest ota --add",
     "lint": "eslint .",
     "preview": "vite preview",
     "icons": "node generate-icons.mjs",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && gh-pages -d dist --add"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.1",
@@ -21,6 +23,7 @@
     "@capacitor/ios": "^8.5.1",
     "@capacitor/local-notifications": "^8.3.1",
     "@capacitor/share": "^8.0.1",
+    "@capawesome/capacitor-live-update": "^8.4.2",
     "@tailwindcss/vite": "^4.2.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -37,6 +40,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "fflate": "^0.8.3",
     "gh-pages": "^6.3.0",
     "globals": "^17.4.0",
     "sharp": "^0.34.5",

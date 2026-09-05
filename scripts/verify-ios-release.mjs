@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
+import { nativeFingerprint } from './ota-native.mjs'
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 const [appConfigText, capacitorText, project, plist, scheme, customBuild] = await Promise.all([
@@ -13,6 +14,8 @@ const [appConfigText, capacitorText, project, plist, scheme, customBuild] = awai
 
 const appConfig = JSON.parse(appConfigText).expo
 const capacitor = JSON.parse(capacitorText)
+assert.equal(await nativeFingerprint(), capacitor.plugins.LiveUpdate.defaultChannel, 'native runtime changed: prepare a new native runtime before release')
+assert.ok(capacitor.plugins.LiveUpdate.publicKey, 'OTA signature verification must be configured')
 
 assert.equal(appConfig.name, capacitor.appName, 'app names must match')
 assert.equal(appConfig.ios.bundleIdentifier, capacitor.appId, 'bundle identifiers must match')

@@ -15,7 +15,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-white font-semibold mb-2">Data collection</h2>
-          <p>Workout Logger does not collect, transmit, sell, or share personal data. The app has no user accounts, analytics, advertising, or tracking.</p>
+          <p>Your workout records are not sent to the developer. The app has no user accounts, analytics, advertising, or tracking.</p>
         </section>
 
         <section>
@@ -31,6 +31,12 @@ export default function Privacy() {
         <section>
           <h2 className="text-white font-semibold mb-2">Notifications</h2>
           <p>If you allow notifications, the app schedules local rest timer alerts on your device. No notification server or remote push service is used.</p>
+        </section>
+
+        <section>
+          <h2 className="text-white font-semibold mb-2">App updates</h2>
+          <p>The app checks GitHub Pages for updates and downloads signed app files. These requests do not include your workouts or a device identifier. GitHub may process technical request information, such as your IP address, under its privacy policy. The app continues to work offline.</p>
+          <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noreferrer" className="text-blue-400 underline">GitHub Privacy Statement</a>
         </section>
 
         <section>

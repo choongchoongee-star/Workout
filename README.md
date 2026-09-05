@@ -55,6 +55,25 @@ npx eas-cli@latest build --platform ios --profile production
 
 개인정보처리방침은 앱의 Settings에서 확인할 수 있으며 공개 URL은 `https://choongchoongee-star.github.io/Workout/privacy/`이다.
 
+## iPhone OTA
+
+Capawesome Live Update 8을 자체 호스팅 방식으로 사용한다. 별도 유료 OTA 계정 없이 GitHub Pages의 `/Workout/ota/<native-runtime>/latest.json`과 서명된 ZIP을 받는다. 운동 데이터는 전송하지 않는다. 정상 화면과 데이터가 준비된 뒤 업데이트를 확인하고, 다운로드한 버전은 앱을 완전히 종료 후 재실행할 때 적용한다. 30초 내 준비되지 않는 업데이트는 내장 버전으로 복구하고 차단한다.
+
+`npm run ota:prepare`는 네이티브 호환성을 검사하고 새 Capacitor 웹 빌드의 ZIP·SHA-256·RSA 서명을 `ota-release/`에 만든다. `npm run ota:publish`는 준비된 파일을 GitHub Pages에 게시하므로 사용자 배포 승인 후에만 실행한다. EAS는 사용하지 않는다. 최초 iPhone 빌드에 플러그인·공개키가 포함되어야 작동한다.
+
+서명 개인키는 Git에서 제외된 `.ota-keys/private.pem`에 있다. 안전한 개인 보관소에 별도로 백업해야 하며 소스나 배포 파일에 포함하면 안 된다. 초기화 스크립트 `node scripts/ota-init.mjs`는 키가 이미 구성되어 있으면 중단한다. 키 교체나 네이티브 변경은 새 iPhone 빌드가 필요하다.
+
+배포 중지·복구는 해당 runtime의 `latest.json`을 `{ "schema": 1, "runtime": "<native-runtime>", "bundle": null }`로 게시한다. 다음 확인 시 내장 버전을 다음 실행 대상으로 지정한다. 운동 저장 형식을 바꾸는 OTA는 이전 버전과 데이터 호환성을 유지해야 한다. 최초 배포와 실제 기기의 서명 검증·실패 복구 테스트는 아직 대기 중이다.
+
+## TestFlight 준비 순서
+
+1. OTA 배포 파일과 변경된 개인정보처리방침을 검토하고 공개 게시를 승인한다.
+2. App Store Connect 앱 레코드의 bundle ID `com.choongchoongeestar.workout`, Apple 팀과 서명 접근 권한을 확인한다. 현재 `submit.production.ios`의 App Store Connect 앱 ID는 미설정이다.
+3. `node --test src/lib/*.test.mjs`, `npm run lint`, `npm run check:ios-release`, `npm run ios:sync`로 로컬 준비를 확인한다.
+4. 사용자에게 필요한 EAS 빌드 작업을 설명하고 명시적인 승인을 받은 후에만 실행한다. TestFlight 제출도 승인 범위를 별도로 확인한다.
+5. iPhone에서 오프라인 시작, Markdown 가져오기·내보내기, 앱 재실행 후 저장, 백그라운드 휴식 알림, 알림 설정 바로가기, safe area를 확인한다.
+6. 테스트용 OTA의 다운로드·완전 종료 후 적용·변조 ZIP 거절·시작 실패 시 내장 버전 복구·오프라인 사용을 확인한다. 운동 중에는 자동 재시작하지 않는지 확인한다. 테스트 데이터로 검증하고 실제 운동 백업은 별도 보관한다.
+
 ## 웹 미리보기 배포
 
 ```bash
