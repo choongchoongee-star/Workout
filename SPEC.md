@@ -637,3 +637,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 공통 CATEGORIES 순서를 Chest → Back → Legs → Shoulders → Arms → Core → Cardio로 변경했다. Workout 운동 추가·Progress·Manage exercises 필터 및 커스텀 운동 카테고리 선택에 동일하게 적용한다. All은 맨 앞을 유지하며 저장된 운동·기록 순서는 변경하지 않는다. 카테고리 노출 UI 개선과 OTA 배포는 별도다.
 
 - 2026-09-06: Workout 운동 추가 창·Progress·Manage exercises의 부위 필터를 가로 스크롤에서 4열×2행으로 변경했다. 첫 줄 All/Chest/Back/Legs, 둘째 줄 Shoulders/Arms/Core/Cardio 순서다. 공통 `.category-filters`는 첫 열을 1.4fr, 나머지를 1fr로 두어 좁은 화면의 Shoulders 글자를 수용하고 버튼은 최소 44px 높이·선택 상태 aria-pressed를 사용한다. 큰 글자는 버튼 안에서 줄바꿈해 겹침을 방지한다. Workout 세트 행 밀도와 추가 폼의 카테고리 select는 유지한다. 3개 화면 × 320/375/390/430px에서 두 줄·44px 이상 클릭 영역·가로 넘침 없음·Cardio 필터 결과를 확인했고 lint·build를 통과했다. OTA 배포는 별도다.
+
+- 2026-09-06: 사용자 승인으로 두 줄 카테고리·큰 부위 우선 순서·Workout/History 헤더·Progress 관리 버튼 개선(최종 소스 815f25e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `8efb81292980af22595944f56b7763b8df77ad9a8f33a7fc8ee70338f13bbdb3`, ZIP 383303 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
