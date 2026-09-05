@@ -160,7 +160,6 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
       <div className="flex items-center gap-3">
         {isBodyweight ? (
           <div className="flex items-center gap-2">
-            <span className="text-zinc-500 text-xs">BW +</span>
             <StepperInput
               value={set.added_weight ?? 0}
               onChange={v => onUpdate('added_weight', v)}

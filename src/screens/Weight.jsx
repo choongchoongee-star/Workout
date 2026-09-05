@@ -15,8 +15,7 @@ function summarizeSet(set, type) {
     return parts.join(' · ') || 'History'
   }
   if (type === 'bodyweight') {
-    const w = set.added_weight ? `+${set.added_weight}kg` : ''
-    return `Bodyweight${w} × ${set.reps ?? '?'} reps`
+    return `${set.added_weight ?? 0}kg × ${set.reps ?? '?'} reps`
   }
   return `${set.weight ?? '?'}kg × ${set.reps ?? '?'} reps`
 }

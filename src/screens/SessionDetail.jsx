@@ -78,7 +78,7 @@ export default function SessionDetail() {
                       <span className="text-zinc-600 w-4 text-right">{si + 1}</span>
                       {exercise?.type === 'bodyweight' ? (
                         <span className="text-zinc-300">
-                          Bodyweight{set.added_weight ? `+${set.added_weight}kg` : ''} × {set.reps} reps
+                          {set.added_weight ?? 0}kg × {set.reps} reps
                         </span>
                       ) : (
                         <span className="text-zinc-300">{set.weight ?? '?'}kg × {set.reps} reps</span>

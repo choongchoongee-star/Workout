@@ -261,7 +261,7 @@ Workout/
 - **세트 추가:** 첫 세트면 **과거 세션의 마지막 세트 값**을 기본값으로(getLastSession), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
 - **숫자 덮어쓰기:** weight·added weight·reps 스테퍼의 숫자 input을 탭하거나 클릭하면 기존 값을 전체 선택한다. 이어서 숫자를 입력하면 기존 값을 따로 지우지 않고 바로 교체된다. 값을 바꾸지 않고 포커스만 벗어나면 원래 값은 유지한다.
 - **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
-- **bodyweight:** "체중+" 레이블 + added_weight 스테퍼(step 2.5) + reps.
+- **bodyweight:** added_weight 스테퍼(step 2.5, kg) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
 - **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
 - **삭제:** 세트/운동 ×버튼 → 즉시 제거 + UndoToast(5초). 되돌리기 시 원위치 복원.
 - **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 빈 세션(길이 0)은 저장 안 함. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
@@ -307,7 +307,7 @@ Workout/
 - 세션 없으면 "세션을 찾을 수 없습니다" + 기록으로.
 - **수정:** `/session`에 `state.date` 전달 → 해당 날짜 편집.
 - **삭제:** `deleteSession` 즉시 + `/history`로 `state.undoSession` 전달(확인창 없음).
-- bodyweight: `체중+Nkg × M회`, weight: `Wkg × M회`.
+- bodyweight: `Nkg × M reps` (추가 중량, 없으면 0kg), weight: `Wkg × M reps`.
 
 ### 6.4 Weight — 무게 탭 `/weight` (2026-06-28 신설)
 **목표:** 한 운동의 과거 세트(무게·횟수)를 날짜 클릭 없이 **연속 스크롤**로 한눈에 확인.
@@ -347,7 +347,7 @@ Workout/
 ```
 - 세션은 날짜 역순(최근 먼저). 선택 운동을 포함하고 **세트가 1개 이상**인 세션만 표시. 없으면 "아직 이 운동의 기록이 없어요".
 - 날짜 헤더 + 그 아래 세트들을 **펼쳐서 그대로** 표시(기록 탭처럼 한번 더 탭해 들어가는 구조 아님).
-- 세트 표기: weight `Wkg × M회`, bodyweight `체중+Nkg × M회`, cardio `시간·거리·속도·경사·kcal`. `done`이면 우측 초록 ✓.
+- 세트 표기: weight `Wkg × M reps`, bodyweight `Nkg × M reps` (추가 중량, 없으면 0kg), cardio `시간·거리·속도·경사·kcal`. `done`이면 우측 초록 ✓.
 - 뒤로가기(←)로 다른 운동 선택.
 
 ### 6.5 Library — 운동 목록/커스텀 `/library`
@@ -545,3 +545,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 파란 덤벨 기반의 불투명 정식 AppIcon으로 교체하고 iOS target을 iPhone 전용·세로 방향으로 고정했다. Settings에 휴식 알림 권한 상태와 요청/거부 안내를 추가했다.
 - 2026-09-05: pending 검증과 직전 정상 backup을 이용한 로컬 데이터 자동 복구를 추가했다. 앱 내 영문 개인정보처리방침과 GitHub Pages 공개 정책 페이지를 추가하고, 원격 iOS 빌드는 준비 완료 후 EAS Custom Build로 실행하도록 배포 계획을 갱신했다.
 - 2026-09-05: EAS 프로젝트를 연결하고 Capacitor/SPM용 production Custom Build, 공유 App Scheme, 버전·번들·암호화 출시 설정 검사기를 추가했다. 알림 거부 시 앱별 iPhone Settings를 직접 여는 네이티브 브리지와 iPhone safe area 보정도 추가했다.
+- 2026-09-05: 운동 입력·기록 상세·Progress 화면에서 맨몸 운동의 `BW +`/`Bodyweight+` 접두어를 제거했다. 추가 중량 데이터와 Markdown 백업 형식은 유지한다.
