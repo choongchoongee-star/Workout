@@ -70,6 +70,7 @@ mode !== 'capacitor' && VitePWA({
 - 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 초기 build number는 `1`이다. 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
 - EAS production iOS profile에는 `scheme: App`을 명시한다. EAS 자동 Scheme 탐색은 Capacitor의 `ios/App/App.xcodeproj` 중첩 경로를 찾지 못한다.
+- 최초 EAS 실행 사전 검사에서 명시된 Scheme도 `ios/*.xcodeproj/xcshareddata/xcschemes/`에서 재검증하여 중단됨을 확인했다. EAS CLI 23.2.0은 현재 중첩된 Capacitor 배치를 그대로 처리하지 못하므로, 원격 빌드 전 프로젝트 배치 또는 빌드 도구의 호환 조정이 필요하다. 현재 `.ipa`와 원격 빌드 job은 생성되지 않았으며 TestFlight 제출도 미완료다. 기존 로컬 정적 검사는 EAS 전체 호환성을 보장하지 않는다.
 - 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 - EAS 실행은 필요성이 확인된 경우에만 구체적인 작업을 설명하고 사용자 확인을 받은 뒤 진행한다. 읽기 전용 CLI 조회, 프로젝트 연결, 자격 증명, 빌드, TestFlight/App Store 제출, OTA 배포 및 동등한 API·대시보드 작업에도 적용한다. 로컬 설정 편집·검증과 GitHub 푸시는 별개다. 이 규칙은 `.agents/skills/workout-maintenance/SKILL.md`에 유지한다.
 
