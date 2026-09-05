@@ -133,42 +133,39 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
 }
 
 // Single set row for weight/bodyweight exercise
-function SetRow({ setIdx, set, exerciseType, editing, onUpdate, onDone, onRemove }) {
+function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
   const unit = storage.getWeightUnit()
   const isBodyweight = exerciseType === 'bodyweight'
   const locked = set.done
 
   return (
-    <div role="group" aria-label={`Set ${setIdx + 1}`} className="grid grid-cols-[1.25rem_minmax(0,1fr)_minmax(0,1fr)_3.25rem] items-center gap-2 py-1">
+    <div role="group" aria-label={`Set ${setIdx + 1}`} className="grid grid-cols-[1.5rem_1rem_minmax(0,1fr)_minmax(0,0.8fr)_2.25rem] items-center gap-1 border-b border-zinc-800/60">
+      <button type="button" onClick={onRemove} aria-label="Delete set" title={`Delete set ${setIdx + 1}`}
+        className="flex h-8 w-6 items-center justify-center text-zinc-500 active:text-red-300">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-3.5 w-3.5"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
+      </button>
       <span className={`text-center text-xs tabular-nums ${locked ? 'text-emerald-400' : 'text-zinc-500'}`}>{setIdx + 1}</span>
       <StepperInput
         value={displayWeight(isBodyweight ? set.added_weight ?? 0 : set.weight ?? 20, unit)}
         onChange={v => onUpdate(isBodyweight ? 'added_weight' : 'weight', storedWeight(v, unit))}
         step={unit === 'lbs' ? 5 : 2.5}
         unit={unit}
-        disabled={locked || editing}
+        disabled={locked}
       />
       <StepperInput
         value={set.reps ?? 10}
         onChange={v => onUpdate('reps', v)}
         step={1}
         unit="reps"
-        disabled={locked || editing}
+        disabled={locked}
       />
-      <div className="pl-2 border-l border-zinc-800">
-        {editing ? (
-          <button type="button" onClick={onRemove} aria-label="Delete set"
-            className="flex h-11 w-11 items-center justify-center rounded-lg border border-red-400/30 bg-red-400/5 text-red-300 active:bg-red-900/40">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
-          </button>
-        ) : (
-          <button type="button" onClick={onDone}
-            aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'} aria-pressed={locked}
-            className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-colors ${locked ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-zinc-700 text-zinc-400 active:border-emerald-500 active:bg-emerald-500/15 active:text-emerald-300'}`}>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="m5 12 4 4L19 6" /></svg>
-          </button>
-        )}
-      </div>
+      <button type="button" onClick={onDone}
+        aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'} aria-pressed={locked}
+        className={`flex h-8 items-center justify-center border-l border-zinc-800 ${locked ? 'text-emerald-400' : 'text-zinc-500 active:text-emerald-300'}`}>
+        <span className={`flex h-5 w-5 items-center justify-center rounded border ${locked ? 'border-emerald-500/50 bg-emerald-500/15' : 'border-zinc-700'}`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5"><path d="m5 12 4 4L19 6" /></svg>
+        </span>
+      </button>
     </div>
   )
 }
@@ -279,7 +276,6 @@ export default function Session() {
   }, [sessionDate, realToday, startTimeKey])
 
   const [showModal, setShowModal] = useState(false)
-  const [editingExercise, setEditingExercise] = useState(null)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90, endsAt: null })
   const notifiedRestEndRef = useRef(null)
   const [undoData, setUndoData] = useState(null)
@@ -474,9 +470,9 @@ export default function Session() {
   }, [])
 
   return (
-    <div className="p-4 max-w-lg mx-auto pb-8">
+    <div className="p-3 max-w-lg mx-auto pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pt-2">
+      <div className="flex items-center justify-between mb-3 pt-1">
         <div>
           <p className="text-zinc-400 text-sm">{sessionDate === realToday ? 'Today' : 'Past workout'}</p>
           <div className="relative">
@@ -505,31 +501,31 @@ export default function Session() {
       )}
 
       {/* Exercise cards */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
-          const editing = editingExercise === se.exerciseId
 
           return (
             <div
               key={exIdx}
+              role="group"
+              aria-label={exercise?.name || se.exerciseId}
               ref={el => { exerciseCardRefs.current[exIdx] = el }}
-              className="bg-zinc-900 rounded-2xl p-4"
+              className="border-t border-zinc-700/70"
             >
-              <div className="flex items-center justify-between mb-1">
-                <div className="min-w-0 flex-1 mr-2">
-                  <h3 className="text-white font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
-                  <span className="text-zinc-500 text-xs">{exercise?.category}</span>
+              <div className="flex min-h-9 items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-1 items-baseline gap-2">
+                  <h3 className="text-white text-sm font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
+                  <span className="shrink-0 text-zinc-500 text-[10px]">{exercise?.category}</span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setEditingExercise(editing ? null : se.exerciseId)}
-                  aria-label={editing ? 'Finish editing exercise' : 'Edit exercise'}
-                  aria-pressed={editing}
-                  className={`min-h-11 px-3 text-sm font-medium ${editing ? 'text-blue-400' : 'text-zinc-400 active:text-white'}`}
+                  onClick={() => removeExercise(exIdx)}
+                  aria-label="Delete exercise"
+                  className="h-8 px-2 text-[11px] text-zinc-500 active:text-red-300"
                 >
-                  {editing ? 'Done' : 'Edit'}
+                  Delete
                 </button>
               </div>
               {isCardio ? (
@@ -540,8 +536,8 @@ export default function Session() {
                 />
               ) : (
                 <>
-                  <div aria-hidden="true" className="grid grid-cols-[1.25rem_minmax(0,1fr)_minmax(0,1fr)_3.25rem] gap-2 pt-2 pb-1 text-center text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-                    <span>Set</span><span>{storage.getWeightUnit()}</span><span>Reps</span><span>{editing ? 'Delete' : 'Done'}</span>
+                  <div aria-hidden="true" className="grid grid-cols-[1.5rem_1rem_minmax(0,1fr)_minmax(0,0.8fr)_2.25rem] gap-1 border-b border-zinc-800 pb-1 text-center text-[10px] text-zinc-500">
+                    <span /><span>#</span><span>{storage.getWeightUnit()} (±{storage.getWeightUnit() === 'lbs' ? 5 : 2.5})</span><span>Reps</span><span>Done</span>
                   </div>
                   {se.sets.map((set, setIdx) => (
                     <SetRow
@@ -549,7 +545,6 @@ export default function Session() {
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
-                      editing={editing}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
                       onRemove={() => removeSet(exIdx, setIdx)}
@@ -558,17 +553,11 @@ export default function Session() {
                   <button
                     ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
-                    className="w-full text-blue-400 text-sm py-2 mt-2 rounded-lg border border-dashed border-zinc-700/70 active:bg-zinc-800 transition-colors"
+                    className="w-full h-7 text-blue-400 text-xs text-left pl-11 active:text-blue-300"
                   >
                     + Add set
                   </button>
                 </>
-              )}
-              {editing && (
-                <button type="button" onClick={() => { removeExercise(exIdx); setEditingExercise(null) }}
-                  className="mt-3 min-h-11 w-full border-t border-zinc-800 pt-3 text-sm text-red-300 active:text-red-200">
-                  Delete exercise
-                </button>
               )}
             </div>
           )

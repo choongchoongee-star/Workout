@@ -29,18 +29,19 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-2 overflow-hidden rounded-lg border border-zinc-700/60 bg-zinc-950/40 focus-within:border-blue-400/70">
+    <div className="grid min-w-0 grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center">
       <button
         type="button"
         onClick={dec}
         disabled={disabled}
         aria-label={`Decrease ${unit || 'value'} by ${step}`}
-        className="row-start-2 h-8 border-t border-r border-zinc-700/60 text-zinc-400 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        title={`Decrease ${unit || 'value'} by ${step}`}
+        className="h-8 text-zinc-500 text-base active:text-white active:bg-zinc-800 select-none disabled:opacity-30 disabled:pointer-events-none"
       >
-        -{step}
+        −
       </button>
 
-      <div className="col-span-2 col-start-1 row-start-1 min-w-0">
+      <div className="min-w-0">
         <input
           ref={inputRef}
           type="number"
@@ -62,7 +63,7 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
               onChange(min)
             }
           }}
-          className="w-full min-w-0 h-7 px-0 text-center bg-transparent text-white text-base font-semibold tabular-nums focus:outline-none disabled:opacity-50"
+          className="w-full min-w-0 h-7 px-0 text-center bg-transparent text-white text-base tabular-nums focus:outline-none focus:bg-zinc-800 focus:ring-1 focus:ring-blue-400/70 disabled:opacity-50"
         />
       </div>
 
@@ -71,9 +72,10 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
         onClick={inc}
         disabled={disabled}
         aria-label={`Increase ${unit || 'value'} by ${step}`}
-        className="row-start-2 h-8 border-t border-zinc-700/60 text-zinc-400 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        title={`Increase ${unit || 'value'} by ${step}`}
+        className="h-8 text-zinc-500 text-base active:text-white active:bg-zinc-800 select-none disabled:opacity-30 disabled:pointer-events-none"
       >
-        +{step}
+        +
       </button>
     </div>
   )
