@@ -62,6 +62,11 @@ input[type=number]::-webkit-outer-spin-button {
 }
 input[type=number] { -moz-appearance: textfield; }
 
+/* Five sets plus their heading/actions occupy roughly 80% of the viewport. */
+.workout-set-row {
+  min-height: clamp(5.25rem, calc((80svh - 6.75rem) / 5), 8rem);
+}
+
 /* Hide scrollbar while keeping scroll functionality */
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }

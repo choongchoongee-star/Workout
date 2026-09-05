@@ -52,18 +52,18 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
   const [editing, setEditing] = useState(false)
   return (
     <>
-      <div className={`grid w-full min-w-0 grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center justify-self-center ${unit === 'reps' ? 'max-w-20' : 'max-w-25'}`}>
+      <div className="grid w-full max-w-28 min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center justify-self-center">
         <button type="button" disabled={disabled} aria-label={`Decrease ${unit} by ${step}`}
           onClick={() => onChange(Math.max(min, Number((value - step).toFixed(2))))}
-          className="h-8 text-lg text-zinc-300 active:bg-zinc-800 active:text-white disabled:text-zinc-600">−</button>
+          className="row-start-2 col-start-1 h-11 rounded-md text-2xl text-zinc-300 active:bg-zinc-800 active:text-white disabled:text-zinc-600">−</button>
         <button type="button" disabled={disabled} onClick={() => setEditing(true)}
           aria-label={`Edit ${label.toLowerCase()}: ${value} ${unit}`} aria-haspopup="dialog"
-          className={`h-8 w-full min-w-0 text-center ${String(value).length > 5 ? 'text-base' : 'text-lg'} font-medium tabular-nums text-white underline decoration-zinc-600 underline-offset-4 active:bg-zinc-800 disabled:no-underline disabled:text-zinc-300`}>
+          className="col-span-3 col-start-1 row-start-1 h-8 w-full min-w-0 text-center text-2xl font-medium tabular-nums text-white underline decoration-zinc-700 underline-offset-4 active:bg-zinc-800 disabled:no-underline disabled:text-zinc-300">
           {value}
         </button>
         <button type="button" disabled={disabled} aria-label={`Increase ${unit} by ${step}`}
           onClick={() => onChange(Number((value + step).toFixed(2)))}
-          className="h-8 text-lg text-zinc-300 active:bg-zinc-800 active:text-white disabled:text-zinc-600">+</button>
+          className="row-start-2 col-start-3 h-11 rounded-md text-2xl text-zinc-300 active:bg-zinc-800 active:text-white disabled:text-zinc-600">+</button>
       </div>
       {editing && <NumberEditor value={value} onChange={onChange} step={step} unit={unit} min={min}
         label={label} contextLabel={contextLabel} onClose={() => setEditing(false)} />}
