@@ -1,7 +1,7 @@
 import Capacitor
 
 class AppBridgeViewController: CAPBridgeViewController {
-    override open func capacitorDidLoad() {
+    override func capacitorDidLoad() {
         bridge?.registerPluginInstance(AppSettingsPlugin())
     }
 }
