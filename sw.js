@@ -1,1 +1,11 @@
-if(!self.define){let e,s={};const i=(i,n)=>(i=new URL(i+".js",n).href,s[i]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=i,e.onload=s,document.head.appendChild(e)}else e=i,importScripts(i),s()}).then(()=>{let e=s[i];if(!e)throw new Error(`Module ${i} didn’t register its module`);return e}));self.define=(n,r)=>{const l=e||("document"in self?document.currentScript.src:"")||location.href;if(s[l])return;let t={};const o=e=>i(e,l),u={module:{uri:l},exports:t,require:o};s[l]=Promise.all(n.map(e=>u[e]||o(e))).then(e=>(r(...e),t))}}define(["./workbox-8c29f6e4"],function(e){"use strict";self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"registerSW.js",revision:"75a1d9db7f029c8834162e3131ad62e6"},{url:"index.html",revision:"0bd7e611991968de5965b9d59de5a89e"},{url:"privacy/index.html",revision:"c764605ecad5e9ba702b0e1808d1c233"},{url:"assets/web-SzICmCU6.js",revision:null},{url:"assets/web-D4zxSW92.js",revision:null},{url:"assets/web-BuER6i0B.js",revision:null},{url:"assets/index-uRfID9aP.js",revision:null},{url:"assets/index-C8Rp4ROp.css",revision:null},{url:"icon-192.png",revision:"2938dc586660993ca220944496ebb324"},{url:"icon-512.png",revision:"1ea573c99bd07c4936b05f96d3dcadaf"},{url:"manifest.webmanifest",revision:"fd37ee625173f50b02a697eceb611f24"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html")))});
+// Retire the old PWA worker without touching local workout data.
+self.addEventListener('install', () => self.skipWaiting())
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    await self.registration.unregister()
+    const windows = await self.clients.matchAll({ type: 'window' })
+    for (const client of windows) {
+      if (client.url.startsWith(self.registration.scope)) await client.navigate(self.registration.scope)
+    }
+  })())
+})
