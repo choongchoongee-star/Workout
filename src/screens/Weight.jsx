@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import AddExerciseForm from '../components/AddExerciseForm'
 import { useApp } from '../context/AppContext'
 import { CATEGORIES } from '../data/exercises'
 import { formatDate } from '../lib/dateUtils'
@@ -21,8 +23,9 @@ function summarizeSet(set, type) {
 }
 
 export default function Weight() {
-  const { exercises, sessions, loaded } = useApp()
+  const { exercises, sessions, loaded, syncError } = useApp()
   const [selected, setSelected] = useState(null) // 선택된 exercise 객체 (null = 선택 화면)
+  const [showAdd, setShowAdd] = useState(false)
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
 
@@ -94,7 +97,21 @@ export default function Weight() {
   // ===== 운동 선택 화면 =====
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold text-white mb-4 pt-2">Exercise history</h1>
+      <div className="flex items-center justify-between mb-4 pt-2">
+        <h1 className="text-xl font-bold text-white">Exercise history</h1>
+        <button type="button" aria-label="Add custom exercise" aria-expanded={showAdd} disabled={!loaded}
+          onClick={() => setShowAdd(value => !value)}
+          className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-2xl text-white active:bg-blue-700 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400">
+          <span aria-hidden="true">+</span>
+        </button>
+      </div>
+      {showAdd && <AddExerciseForm onCancel={() => setShowAdd(false)} onAdded={() => {
+        setShowAdd(false)
+        setQuery('')
+        setActiveCategory('All')
+      }} />}
+      {syncError && <p role="alert" className="mb-4 text-sm text-red-300">Could not save your exercise library on this device.</p>}
+      <Link to="/library" className="mb-4 inline-block text-sm text-zinc-400 underline">Manage exercises</Link>
 
       <input
         type="text"

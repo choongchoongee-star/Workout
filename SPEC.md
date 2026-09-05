@@ -240,7 +240,7 @@ Workout/
 
 **하단 탭(Layout):** `Workout(/session)` · `History(/history)` · `Progress(/weight)` · `Settings(/settings)` 4개.
 - 활성 탭 `text-blue-400`, 비활성 `text-zinc-500`.
-- 라이브러리(`/library`)는 탭 없음 — 설정에서 진입.
+- 라이브러리(`/library`)는 탭 없음 — Progress의 `Manage exercises`에서 진입. 커스텀 운동 추가는 Progress 우상단 +에서 바로 수행한다.
 
 ---
 
@@ -332,7 +332,8 @@ Workout/
 **(a) 운동 선택 화면 (selected = null)**
 ```
 ┌──────────────────────────────────────┐
-│ 무게 기록                              │
+│ Exercise history                  [+] │
+│ Manage exercises                      │
 │ [🔍 운동 검색...]                       │
 │ [전체][가슴][등][어깨][팔][하체]...      │  ← 카테고리 칩 가로 스크롤
 │ ┌────────────────────────────────────┐│
@@ -343,6 +344,8 @@ Workout/
 ```
 - Session의 운동추가 모달과 동일한 필터(전체+7 카테고리 + 텍스트 검색). 기록 유무와 무관하게 전체 운동 노출.
 - 운동 탭 → `selected`에 해당 exercise 저장, 검색어 초기화.
+- 우상단 44px + 버튼은 `Add custom exercise` 폼을 인라인으로 연다. 이름 필수, 카테고리·타입 선택, Cardio만 선택적 양수 MET 입력을 제공한다. 취소 시 저장하지 않으며 추가 후 폼을 닫고 검색어·카테고리를 초기화해 새 운동을 목록에 표시한다. 폼은 `AddExerciseForm.jsx`로 Library와 공유하고 기존 로컬 저장 경로를 사용한다.
+- `Manage exercises` 링크로 기존 Library의 커스텀 운동 관리·삭제 화면에 접근한다. Settings에는 운동 관리 링크를 두지 않는다.
 
 **(b) 상세 화면 (selected != null)**
 ```
@@ -395,9 +398,6 @@ Workout/
 │ │ 휴식 타이머 (초)                   │  │  ← 체중 필드 제거됨(2026-06-14)
 │ │ [ 90 ]  (0이면 타이머 꺼짐)        │  │
 │ └──────────────────────────────────┘  │
-│ ┌─ 운동 목록 관리 ─────────────────┐  │
-│ │ 운동 목록 보기 / 커스텀 추가    →  │  │  → /library
-│ └──────────────────────────────────┘  │
 │ ┌─ 데이터 내보내기 ────────────────┐  │
 │ │ 전체 기록(N개 세션)을 .md로...     │  │
 │ │ [ 운동 기록 내보내기 (.md) ]       │  │
@@ -406,7 +406,7 @@ Workout/
 │ [          저장          ]             │  ← 휴식 시간 localStorage 저장
 └──────────────────────────────────────┘
 ```
-- 영문 UI 섹션: `Preferences`, `Exercise library`, `Backup / Restore`. 계정·로그아웃 UI는 없다.
+- 영문 UI 섹션: `Preferences`, `App updates`, `Backup / Restore`, `Privacy`. 계정·로그아웃 UI는 없다.
 - Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청한다. 거부 상태의 `Open iPhone Settings`는 Capacitor에 등록한 `AppSettingsPlugin`을 통해 `UIApplication.openSettingsURLString`을 열고, 실패하면 수동 경로를 표시한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
@@ -582,3 +582,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 승인된 build 4 (`8dbb3032-b99b-43aa-be0c-47c1e82b4ed7`)가 성공했다. sharp 설치·웹 생성·Capacitor sync·SPM 컴파일·Release archive·서명과 IPA 업로드까지 완료했다. 빌드 페이지: https://expo.dev/accounts/choongchoongee/projects/workout-logger/builds/8dbb3032-b99b-43aa-be0c-47c1e82b4ed7 . TestFlight 제출과 실기기 검증은 아직 미완료다.
 
 - 2026-09-05: 빌드 4의 EAS Submit `a8e1b355-f9a3-4c10-bac7-e325b5121335`가 성공해 App Store Connect 업로드를 완료했다. Apple 처리 완료·테스터 설치는 아직 확인하지 않았다. ASC 앱 ID `6808960698`을 eas.json에 저장했고, TestFlight 주소는 https://appstoreconnect.apple.com/apps/6808960698/testflight/ios 이다. 기존 이름 중복으로 EAS가 등록한 ASC 이름은 `Workout Logger (156938)`이며 정식 출시 전 최종 이름을 정해야 한다. 내부 테스트 그룹 `Team (Expo)`가 생성됐고 소유자 계정에 접근 권한이 설정됐다.
+
+- 2026-09-05: 커스텀 운동 추가를 Settings에서 Progress 우상단 + 버튼으로 이동했다. 기존 폼을 공유 컴포넌트로 추출했고 Progress에서 직접 추가·취소 및 운동 관리 화면 접근을 제공한다. 이번 UI 변경은 소스 반영이며 OTA 게시·EAS 빌드는 실행하지 않았다.

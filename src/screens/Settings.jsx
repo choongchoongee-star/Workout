@@ -185,18 +185,6 @@ export default function Settings() {
         }[updateStatus]}</p>}
       </div>
 
-      {/* Library link */}
-      <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
-        <h2 className="text-zinc-300 font-medium mb-3">Exercise library</h2>
-        <Link
-          to="/library"
-          className="flex items-center justify-between text-sm text-zinc-300 active:text-white"
-        >
-          <span>Browse exercises / Add a custom exercise</span>
-          <span className="text-zinc-500">→</span>
-        </Link>
-      </div>
-
       {/* Data backup */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
         <h2 className="text-zinc-300 font-medium mb-1">Backup / Restore</h2>
