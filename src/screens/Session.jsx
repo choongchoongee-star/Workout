@@ -141,11 +141,11 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
   return (
     <div role="group" aria-label={`Set ${setIdx + 1}`} className="workout-set-row grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-zinc-700/60">
       <div className="flex flex-col items-center">
+        <span className={`text-center text-sm tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-400'}`}>{setIdx + 1}</span>
         <button type="button" onClick={onRemove} aria-label="Delete set" title={`Delete set ${setIdx + 1}`}
           className="flex h-11 w-11 items-center justify-center text-2xl text-zinc-400 active:text-red-300">
           <span aria-hidden="true">×</span>
         </button>
-        <span className={`text-center text-sm tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-400'}`}>{setIdx + 1}</span>
       </div>
       <StepperInput
         value={displayWeight(isBodyweight ? set.added_weight ?? 0 : set.weight ?? 20, unit)}
