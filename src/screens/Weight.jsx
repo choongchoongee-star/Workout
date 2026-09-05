@@ -114,12 +114,13 @@ export default function Weight() {
         className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
       />
 
-      <div className="flex gap-2 overflow-x-auto mb-4 no-scrollbar">
+      <div className="category-filters mb-4">
         {categories.map(c => (
           <button
             key={c}
             onClick={() => setActiveCategory(c)}
-            className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full transition-colors ${
+            aria-pressed={activeCategory === c}
+            className={`min-h-11 min-w-0 text-sm px-1 py-2 rounded-lg transition-colors [overflow-wrap:anywhere] ${
               activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-900 text-zinc-400'
             }`}
           >

@@ -76,6 +76,13 @@ input[type=number] { -moz-appearance: textfield; }
   min-height: clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem);
 }
 
+/* The first column accommodates Shoulders on narrow phones. */
+.category-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
 /* Hide scrollbar while keeping scroll functionality */
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }

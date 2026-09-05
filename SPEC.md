@@ -336,7 +336,8 @@ Workout/
 ┌──────────────────────────────────────┐
 │ Exercise history   [Manage exercises] │
 │ [🔍 운동 검색...]                       │
-│ [전체][가슴][등][하체][어깨][팔]...      │  ← 카테고리 칩 가로 스크롤
+│ [All] [Chest] [Back] [Legs]           │
+│ [Shoulders] [Arms] [Core] [Cardio]     │
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스                      가슴  ││  ← 탭하면 상세로
 │ │ 스쿼트                          하체  ││
@@ -378,7 +379,8 @@ Workout/
 │ (추가 폼: 이름 / 카테고리▼ / 타입▼       │  ← +추가 토글
 │         / cardio면 MET / [취소][추가])  │
 │ [🔍 운동 검색...]                       │
-│ [전체][가슴][등][하체][어깨][팔]...      │  ← 카테고리 칩 가로 스크롤
+│ [All] [Chest] [Back] [Legs]           │
+│ [Shoulders] [Arms] [Core] [Cardio]     │
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스  웨이트              가슴   ││  ← 기본: zinc-900
 │ ├────────────────────────────────────┤│
@@ -502,7 +504,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - **커스텀 운동(라이브러리 전용):** `bg-accent-950/50 + border-accent-800/50`.
 - **모양:** Workout은 얇은 선 목록. 다른 카드 `rounded-2xl`은 12px, `rounded-xl`은 8px로 정의하며 칩은 full을 허용한다. 모달은 바텀시트(`rounded-t-2xl mt-auto`).
 - **숫자 조절과 확대:** 기록 목록의 각 무게·횟수에 ±를 항상 표시한다. 이 반복 버튼은 앱의 빠른 조작을 위한 핵심 기능이며 디자인 단순화를 이유로 숨기지 않는다. 무게·횟수 모두 열 중앙의 최대 112px 영역을 사용하며 숫자는 위, 44px 폭 ± 버튼은 아래에 배치한다. 큰 숫자 dialog는 선택적 보조 입력이다. 큰 시스템 글자나 매우 좁은 화면에서는 최소 18.5rem의 표 너비와 표 내부 가로 스크롤을 보존해 버튼 겹침을 방지한다. dialog는 최대 384px, 작은 화면에서는 좌우 16px 여백을 두며 native focus trap과 Escape를 지원한다. viewport를 initial/minimum/maximum-scale=1.0, user-scalable=no로 설정하고 html의 touch-action: pan-x pan-y로 핀치·더블탭 페이지 확대를 제한한다. 한 손가락 스크롤은 유지한다. text-sm/text-xs 입력·선택·textarea는 최소 16px로 표시해 iOS 입력 포커스 자동 확대를 방지하고 큰 숫자 입력은 유지한다. 브라우저 자체의 확대 정책이나 OS 접근성 확대는 앱이 제어하지 않는다. 200% 루트 글자 크기에서 조절창 열기·닫기를 브라우저로 확인했다.
-- **인터랙션:** 모바일이라 hover 대신 `active:` 사용. 가로 스크롤 칩 `no-scrollbar`.
+- **인터랙션:** 모바일이라 hover 대신 `active:` 사용. 부위 필터는 4열×2행으로 전체 노출하며 `aria-pressed`로 선택 상태를 전달한다.
 - **애니메이션:** `animate-slide-up`(토스트), `animate-pulse`(스켈레톤/동기화).
 - **접근성:** 모달 `role="dialog" aria-modal`, Escape 닫기 + Tab 포커스 트랩, 아이콘 버튼 `aria-label`, 세트 완료 `aria-pressed`.
 
@@ -633,3 +635,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: History 상세 날짜의 요일을 short(Sat 등)로 통일하고 Edit/Delete는 날짜 아래 별도 행에 44px 이상 높이로 배치했다. Workout은 History와 같은 크기의 제목과 그 아래 날짜 선택으로 헤더를 통일했다. Progress의 직접 추가 +와 인라인 폼을 제거하고 우상단을 Manage exercises 글자 버튼으로 대체했다. 브라우저에서 320/375/390/430px 상세 날짜 한 줄 표시, Workout 날짜 전환, 관리 화면 진입·Add 폼을 확인했다. OTA 배포는 별도다.
 
 - 2026-09-06: 공통 CATEGORIES 순서를 Chest → Back → Legs → Shoulders → Arms → Core → Cardio로 변경했다. Workout 운동 추가·Progress·Manage exercises 필터 및 커스텀 운동 카테고리 선택에 동일하게 적용한다. All은 맨 앞을 유지하며 저장된 운동·기록 순서는 변경하지 않는다. 카테고리 노출 UI 개선과 OTA 배포는 별도다.
+
+- 2026-09-06: Workout 운동 추가 창·Progress·Manage exercises의 부위 필터를 가로 스크롤에서 4열×2행으로 변경했다. 첫 줄 All/Chest/Back/Legs, 둘째 줄 Shoulders/Arms/Core/Cardio 순서다. 공통 `.category-filters`는 첫 열을 1.4fr, 나머지를 1fr로 두어 좁은 화면의 Shoulders 글자를 수용하고 버튼은 최소 44px 높이·선택 상태 aria-pressed를 사용한다. 큰 글자는 버튼 안에서 줄바꿈해 겹침을 방지한다. Workout 세트 행 밀도와 추가 폼의 카테고리 select는 유지한다. 3개 화면 × 320/375/390/430px에서 두 줄·44px 이상 클릭 영역·가로 넘침 없음·Cardio 필터 결과를 확인했고 lint·build를 통과했다. OTA 배포는 별도다.
