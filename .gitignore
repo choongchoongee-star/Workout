@@ -33,3 +33,5 @@ generate-icons.mjs
 *.njsproj
 *.sln
 *.sw?
+
+/workout-2026-09-05.md
