@@ -182,7 +182,7 @@ Workout/
   "type": "weight | bodyweight | cardio", "met": 8.3 }
 ```
 - `id`: 기본 운동은 고정 슬러그, 커스텀은 `custom-${crypto.randomUUID()}`
-- `category`: CATEGORIES 중 하나 (`Chest/Back/Shoulders/Arms/Legs/Core/Cardio`)
+- `category`: CATEGORIES 중 하나 (`Chest/Back/Legs/Shoulders/Arms/Core/Cardio`)
 - `met`: cardio 타입에만 존재 (칼로리 계산용). 그 외 타입은 필드 없음/null
 - 커스텀 판별: `id.startsWith('custom-')`이면서 영문 기본 운동 정의와 일치하지 않을 때만 라이브러리에서 색상 구별 + 삭제 가능. 과거 사용자가 추가했던 운동이 현재 기본 운동과 이름·카테고리·타입이 같으면 기존 ID를 유지한 채 기본 운동으로 승격한다.
 
@@ -336,7 +336,7 @@ Workout/
 ┌──────────────────────────────────────┐
 │ Exercise history   [Manage exercises] │
 │ [🔍 운동 검색...]                       │
-│ [전체][가슴][등][어깨][팔][하체]...      │  ← 카테고리 칩 가로 스크롤
+│ [전체][가슴][등][하체][어깨][팔]...      │  ← 카테고리 칩 가로 스크롤
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스                      가슴  ││  ← 탭하면 상세로
 │ │ 스쿼트                          하체  ││
@@ -378,7 +378,7 @@ Workout/
 │ (추가 폼: 이름 / 카테고리▼ / 타입▼       │  ← +추가 토글
 │         / cardio면 MET / [취소][추가])  │
 │ [🔍 운동 검색...]                       │
-│ [전체][가슴][등][어깨][팔][하체]...      │  ← 카테고리 칩 가로 스크롤
+│ [전체][가슴][등][하체][어깨][팔]...      │  ← 카테고리 칩 가로 스크롤
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스  웨이트              가슴   ││  ← 기본: zinc-900
 │ ├────────────────────────────────────┤│
@@ -489,7 +489,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - **Legs(9):** Squat, Leg Press, Lunge, Leg Extension, Leg Curl, Hip Abduction, Calf Raise, Romanian Deadlift, Thigh Abduction
 - **Core(7):** Crunch(bw), Leg Raise(bw), Plank(bw), Cable Crunch, Hanging Leg Raise(bw), Ab Wheel Rollout(bw), Back Extension
 - **Cardio(7, MET):** Treadmill 8.3, Cycling 8.0, Rowing Machine 7.0, Elliptical 5.0, Jump Rope 10.0, Walking 3.5, Stair Climber 9.0
-- `CATEGORIES = ['Chest','Back','Shoulders','Arms','Legs','Core','Cardio']`
+- `CATEGORIES = ['Chest','Back','Legs','Shoulders','Arms','Core','Cardio']`
 - `LEGACY_EXERCISE_NAMES`와 `LEGACY_CATEGORIES`는 한국어 저장 데이터/백업을 영문 기본 정의로 연결한다. ID만 같고 사용자가 이름을 임의 변경한 운동은 이름을 강제로 덮어쓰지 않는다.
 
 ---
@@ -631,3 +631,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 사용자 승인으로 마지막 운동 삭제가 탭 재진입 후 되살아나는 버그 수정(dea73cc)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `02433702d75edb91f4b3163a58f4273a37d4a9e5fa47e76fe1fe68255908dfa4`, ZIP 383267 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
 
 - 2026-09-06: History 상세 날짜의 요일을 short(Sat 등)로 통일하고 Edit/Delete는 날짜 아래 별도 행에 44px 이상 높이로 배치했다. Workout은 History와 같은 크기의 제목과 그 아래 날짜 선택으로 헤더를 통일했다. Progress의 직접 추가 +와 인라인 폼을 제거하고 우상단을 Manage exercises 글자 버튼으로 대체했다. 브라우저에서 320/375/390/430px 상세 날짜 한 줄 표시, Workout 날짜 전환, 관리 화면 진입·Add 폼을 확인했다. OTA 배포는 별도다.
+
+- 2026-09-06: 공통 CATEGORIES 순서를 Chest → Back → Legs → Shoulders → Arms → Core → Cardio로 변경했다. Workout 운동 추가·Progress·Manage exercises 필터 및 커스텀 운동 카테고리 선택에 동일하게 적용한다. All은 맨 앞을 유지하며 저장된 운동·기록 순서는 변경하지 않는다. 카테고리 노출 UI 개선과 OTA 배포는 별도다.

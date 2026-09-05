@@ -79,7 +79,7 @@ export const DEFAULT_EXERCISES = [
   { id: 'stair-climber', name: 'Stair Climber', category: 'Cardio', type: 'cardio', met: 9.0 },
 ]
 
-export const CATEGORIES = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Cardio']
+export const CATEGORIES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
 
 // Compatibility aliases for existing accounts and Korean Markdown backups.
 export const LEGACY_EXERCISE_NAMES = {
