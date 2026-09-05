@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "icons": "node generate-icons.mjs",
-    "deploy": "npm run build && gh-pages -d dist --add"
+    "build:site": "node scripts/build-site.mjs",
+    "deploy": "node scripts/deploy-site.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.1",

@@ -1,6 +1,6 @@
 # Workout Logger
 
-개인용 운동 기록 앱. React 화면을 Capacitor iOS 앱에 포함하며 계정이나 데이터 서버 없이 기기 내부에 기록을 저장한다. 브라우저/PWA 빌드는 개발과 GitHub Pages 미리보기를 위해 유지한다.
+개인용 운동 기록 앱. React 화면을 Capacitor iOS 앱에 포함하며 계정이나 데이터 서버 없이 기기 내부에 기록을 저장한다. 브라우저/PWA 빌드는 로컬 개발용으로 유지한다. GitHub Pages에는 앱 소개·지원·개인정보처리방침과 OTA 파일만 게시한다.
 
 ## 주요 기능
 
@@ -63,7 +63,7 @@ Capawesome Live Update 8을 자체 호스팅 방식으로 사용한다. 별도 �
 
 서명 개인키는 Git에서 제외된 `.ota-keys/private.pem`에 있다. 안전한 개인 보관소에 별도로 백업해야 하며 소스나 배포 파일에 포함하면 안 된다. 초기화 스크립트 `node scripts/ota-init.mjs`는 키가 이미 구성되어 있으면 중단한다. 키 교체나 네이티브 변경은 새 iPhone 빌드가 필요하다.
 
-배포 중지·복구는 해당 runtime의 `latest.json`을 `{ "schema": 1, "runtime": "<native-runtime>", "bundle": null }`로 게시한다. 다음 확인 시 내장 버전을 다음 실행 대상으로 지정한다. 운동 저장 형식을 바꾸는 OTA는 이전 버전과 데이터 호환성을 유지해야 한다. 최초 배포와 실제 기기의 서명 검증·실패 복구 테스트는 아직 대기 중이다.
+배포 중지·복구는 해당 runtime의 `latest.json`을 `{ "schema": 1, "runtime": "<native-runtime>", "bundle": null }`로 게시한다. 다음 확인 시 내장 버전을 다음 실행 대상으로 지정한다. 운동 저장 형식을 바꾸는 OTA는 이전 버전과 데이터 호환성을 유지해야 한다. 최초 OTA 파일과 공개 정책은 2026-09-05 게시했다. 실제 기기의 서명 검증·실패 복구 테스트는 아직 대기 중이다.
 
 ## TestFlight 준비 순서
 
@@ -74,10 +74,10 @@ Capawesome Live Update 8을 자체 호스팅 방식으로 사용한다. 별도 �
 5. iPhone에서 오프라인 시작, Markdown 가져오기·내보내기, 앱 재실행 후 저장, 백그라운드 휴식 알림, 알림 설정 바로가기, safe area를 확인한다.
 6. 테스트용 OTA의 다운로드·완전 종료 후 적용·변조 ZIP 거절·시작 실패 시 내장 버전 복구·오프라인 사용을 확인한다. 운동 중에는 자동 재시작하지 않는지 확인한다. 테스트 데이터로 검증하고 실제 운동 백업은 별도 보관한다.
 
-## 웹 미리보기 배포
+## 공개 안내 사이트 배포
 
 ```bash
 npm run deploy
 ```
 
-`master` 푸시는 소스만 갱신한다. GitHub Pages 배포는 위 명령으로 `gh-pages` 브랜치에 별도로 수행한다.
+`master` 푸시는 소스만 갱신한다. `npm run build:site`는 `site/`의 소개 페이지와 `public/privacy/index.html`을 `site-dist/`에 구성한다. `npm run deploy`는 사용자 승인 후 안내 사이트를 `gh-pages`에 게시하며 과거 PWA 파일을 제거하고 `ota/`는 보존한다. 웹 운동 기록 앱은 공개 배포하지 않는다. 기존 PWA 서비스워커는 같은 URL의 종료용 worker로 교체해 해제하며 로컬 운동 저장소는 삭제하지 않는다.
