@@ -69,6 +69,7 @@ mode !== 'capacitor' && VitePWA({
 - EAS 프로젝트는 `@choongchoongee/workout-logger`(project ID `ca086289-002e-40a4-a2ee-c11e84212f41`)에 연결되어 있다. `eas.json`의 production profile은 store 배포, 자동 build number 증가, `NPM_CONFIG_LEGACY_PEER_DEPS=true`를 사용한다. 실제 원격 빌드는 Apple 자격 증명과 실기기 체크 준비 후 최종 단계에서만 시작한다.
 - 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 초기 build number는 `1`이다. 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
+- EAS production iOS profile에는 `scheme: App`을 명시한다. EAS 자동 Scheme 탐색은 Capacitor의 `ios/App/App.xcodeproj` 중첩 경로를 찾지 못한다.
 - 앱은 Firebase 환경변수나 서버 자격 증명을 사용하지 않는다.
 - EAS 실행은 필요성이 확인된 경우에만 구체적인 작업을 설명하고 사용자 확인을 받은 뒤 진행한다. 읽기 전용 CLI 조회, 프로젝트 연결, 자격 증명, 빌드, TestFlight/App Store 제출, OTA 배포 및 동등한 API·대시보드 작업에도 적용한다. 로컬 설정 편집·검증과 GitHub 푸시는 별개다. 이 규칙은 `.agents/skills/workout-maintenance/SKILL.md`에 유지한다.
 
