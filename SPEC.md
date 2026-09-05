@@ -624,3 +624,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 승인된 OTA 배포를 완료했다. 최종 소스 657276c의 새 팔레트·큰 상시 ±·Settings 순서·번호 위/× 아래·약 60% 운동 영역을 runtime ios-edab217484237bd7에 게시했다. bundle 1ae3dc3e4082f69fcc1f9f0e241433ba7b3d7acb5f50fc711e461f5c2a607dd9, ZIP 383174 bytes. native fingerprint, OTA 테스트 7개, lint·build, 4개 화면 크기·직접 조절/보조 dialog·삭제/Undo·단위 저장·200% 글자 확대 검증과 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. 새 EAS/네이티브 빌드는 실행하지 않았다. 앱 Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 실제 iPhone 적용 확인은 별도다.
 
 - 2026-09-06: 페이지 줌 제한을 viewport와 touch-action으로 적용하고 작은 입력 필드 글자를 최소 16px로 조정했다. 60% 운동 영역·44px 상시 ±·일반 스크롤을 유지한다. 모바일 Chromium에서 핀치 후 1배 유지·터치 스크롤·입력 포커스, 4개 화면 크기와 기존 ±/dialog/Undo/단위 저장, lint·build를 검증했다. 실제 iPhone의 확대 동작 확인은 별도다. 네이티브 설정 변경과 OTA 게시는 수행하지 않았다.
+
+- 2026-09-06: 사용자 승인으로 화면 확대 방지 수정(c66b719)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `f63bca2c326b50692a1879bb68913d7da4b103055a1db04bb17c250ba7fc3004`, ZIP 383258 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build와 공개 manifest/ZIP SHA-256·RSA 서명 검증을 통과했다. Settings → Check for updates에서 다운로드 후 앱 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
