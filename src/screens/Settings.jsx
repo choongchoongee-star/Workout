@@ -118,7 +118,7 @@ export default function Settings() {
     setTimeout(() => setStatus({}), 2000)
   }
 
-  const inputCls = "w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
+  const inputCls = "w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
 
   return (
     <div className="p-4 max-w-lg mx-auto pb-8">
@@ -132,7 +132,7 @@ export default function Settings() {
             {['kg', 'lbs'].map(unit => (
               <button key={unit} type="button" aria-pressed={weightUnit === unit}
                 onClick={() => setWeightUnit(unit)}
-                className={`flex-1 rounded-lg py-2 text-sm font-medium ${weightUnit === unit ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                className={`flex-1 rounded-lg py-2 text-sm font-medium ${weightUnit === unit ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-800 text-zinc-400'}`}>
                 {unit}
               </button>
             ))}
@@ -187,7 +187,7 @@ export default function Settings() {
           <button
             type="button"
             onClick={save}
-            className="min-h-11 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white active:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+            className="min-h-11 rounded-xl bg-accent-600 px-5 py-2.5 text-sm font-medium text-zinc-950 active:bg-accent-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
           >
             Save preferences
           </button>
@@ -257,7 +257,7 @@ export default function Settings() {
                 type="button"
                 onClick={handleConfirmImport}
                 disabled={!importPlan.addedCount}
-                className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm disabled:opacity-50"
+                className="flex-1 bg-accent-600 text-zinc-950 rounded-xl py-2.5 text-sm disabled:opacity-50"
               >
                 Import
               </button>

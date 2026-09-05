@@ -36,14 +36,14 @@ export default function UndoToast({ message, onUndo, onDismiss, bottomOffset = '
           <span className="text-white text-sm">{message}</span>
           <button
             onClick={handleUndo}
-            className="text-blue-400 text-sm font-semibold ml-4 flex-shrink-0 active:text-blue-300"
+            className="text-accent-400 text-sm font-semibold ml-4 flex-shrink-0 active:text-accent-300"
           >
             Undo
           </button>
         </div>
         <div className="h-0.5 bg-zinc-700">
           <div
-            className="h-full bg-blue-500 transition-none"
+            className="h-full bg-accent-500 transition-none"
             style={{ width: `${progress * 100}%` }}
           />
         </div>

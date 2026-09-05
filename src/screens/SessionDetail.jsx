@@ -14,7 +14,7 @@ export default function SessionDetail() {
   if (!session) return (
     <div className="p-4 text-center py-20">
       <p className="text-zinc-500">Workout not found.</p>
-      <button onClick={() => navigate('/history')} className="text-blue-400 mt-4 text-sm">← Back to history</button>
+      <button onClick={() => navigate('/history')} className="text-accent-400 mt-4 text-sm">← Back to history</button>
     </div>
   )
 
@@ -37,7 +37,7 @@ export default function SessionDetail() {
         </div>
         <button
           onClick={() => navigate('/session', { state: { date: session.date } })}
-          className="text-blue-400 text-sm active:text-blue-300"
+          className="text-accent-400 text-sm active:text-accent-300"
         >
           Edit
         </button>

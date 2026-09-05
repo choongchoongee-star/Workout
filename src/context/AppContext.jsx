@@ -157,7 +157,7 @@ export function AppProvider({ children }) {
             <button
               type="button"
               onClick={() => setLoadAttempt(attempt => attempt + 1)}
-              className="mt-5 bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm active:bg-blue-500"
+              className="mt-5 bg-accent-600 text-zinc-950 rounded-xl px-5 py-2.5 text-sm active:bg-accent-500"
             >
               Try again
             </button>

@@ -28,7 +28,7 @@ export default function Library() {
         <h1 className="text-xl font-bold text-white">Exercises</h1>
         <button
           onClick={() => setShowAdd(s => !s)}
-          className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-xl active:bg-blue-700"
+          className="bg-accent-600 text-zinc-950 text-sm px-3 py-1.5 rounded-xl active:bg-accent-700"
         >
           + Add
         </button>
@@ -49,7 +49,7 @@ export default function Library() {
         placeholder="Search exercises..."
         value={query}
         onChange={e => setQuery(e.target.value)}
-        className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
+        className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
       />
 
       {/* Category tabs */}
@@ -59,7 +59,7 @@ export default function Library() {
             key={c}
             onClick={() => setActiveCategory(c)}
             className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full transition-colors ${
-              activeCategory === c ? 'bg-blue-600 text-white' : 'bg-zinc-900 text-zinc-400'
+              activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-900 text-zinc-400'
             }`}
           >
             {c}
@@ -71,7 +71,7 @@ export default function Library() {
       <div className="space-y-1">
         {!loaded && (
           <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
         {loaded && filtered.map(ex => {
@@ -80,12 +80,12 @@ export default function Library() {
             <div
               key={ex.id}
               className={`flex items-center rounded-xl px-4 py-3 ${
-                isCustom ? 'bg-blue-950/50 border border-blue-800/50' : 'bg-zinc-900'
+                isCustom ? 'bg-accent-950/50 border border-accent-800/50' : 'bg-zinc-900'
               }`}
             >
               <div className="flex-1">
                 <span className="text-white text-sm">{ex.name}</span>
-                {isCustom && <span className="text-blue-400 text-xs ml-2">Custom</span>}
+                {isCustom && <span className="text-accent-400 text-xs ml-2">Custom</span>}
                 <span className="text-zinc-600 text-xs ml-2">{TYPE_LABELS[ex.type]}</span>
               </div>
               <span className="text-zinc-600 text-xs mr-3">{ex.category}</span>

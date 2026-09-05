@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* A restrained training-log palette, shared by every app screen. */
+@theme {
+  --color-white: #eeeee7;
+  --color-zinc-950: #171916;
+  --color-zinc-900: #20231e;
+  --color-zinc-800: #2d312a;
+  --color-zinc-700: #454b40;
+  --color-zinc-600: #858b7d;
+  --color-zinc-500: #969d8d;
+  --color-zinc-400: #acb2a4;
+  --color-zinc-300: #c7cbbf;
+  --color-zinc-200: #daddd2;
+  --color-accent-300: #d2dfab;
+  --color-accent-400: #c2d68b;
+  --color-accent-500: #acc568;
+  --color-accent-600: #b4cc78;
+  --color-accent-700: #9bb55e;
+  --color-accent-800: #4d5d35;
+  --color-accent-950: #29311e;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
@@ -7,8 +30,9 @@ html, body, #root {
 }
 
 html {
-  background-color: #09090b;
-  color: #fafafa;
+  background-color: var(--color-zinc-950);
+  color: var(--color-white);
+  color-scheme: dark;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   font-family: system-ui, -apple-system, sans-serif;

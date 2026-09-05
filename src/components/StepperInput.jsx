@@ -29,7 +29,7 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center">
+    <div className={`grid w-full min-w-0 grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center justify-self-center ${unit === 'reps' ? 'max-w-20' : 'max-w-25'}`}>
       <button
         type="button"
         onClick={dec}
@@ -63,7 +63,7 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
               onChange(min)
             }
           }}
-          className="w-full min-w-0 h-7 px-0 text-center bg-transparent text-white text-base tabular-nums focus:outline-none focus:bg-zinc-800 focus:ring-1 focus:ring-blue-400/70 disabled:opacity-50"
+          className="w-full min-w-0 h-7 px-0 text-center bg-transparent text-white text-base tabular-nums focus:outline-none focus:bg-zinc-800 focus:ring-1 focus:ring-accent-400/70 disabled:opacity-50"
         />
       </div>
 

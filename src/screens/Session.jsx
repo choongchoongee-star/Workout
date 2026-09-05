@@ -83,7 +83,7 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
             placeholder="Search exercises..."
             value={query}
             onChange={e => setQuery(e.target.value)}
-            className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
+            className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
           />
         </div>
         <div className="flex gap-2 p-3 overflow-x-auto no-scrollbar border-b border-zinc-800">
@@ -92,7 +92,7 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
               key={c}
               onClick={() => setActiveCategory(c)}
               className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full transition-colors ${
-                activeCategory === c ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400'
+                activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-800 text-zinc-400'
               }`}
             >
               {c}
@@ -102,7 +102,7 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
         <div className="overflow-y-auto flex-1">
           {!loaded ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filtered.length > 0 ? (
             filtered.map(ex => {
@@ -144,7 +144,7 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
         className="flex h-8 w-6 items-center justify-center text-zinc-500 active:text-red-300">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-3.5 w-3.5"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
       </button>
-      <span className={`text-center text-xs tabular-nums ${locked ? 'text-emerald-400' : 'text-zinc-500'}`}>{setIdx + 1}</span>
+      <span className={`text-center text-xs tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-500'}`}>{setIdx + 1}</span>
       <StepperInput
         value={displayWeight(isBodyweight ? set.added_weight ?? 0 : set.weight ?? 20, unit)}
         onChange={v => onUpdate(isBodyweight ? 'added_weight' : 'weight', storedWeight(v, unit))}
@@ -161,8 +161,8 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
       />
       <button type="button" onClick={onDone}
         aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'} aria-pressed={locked}
-        className={`flex h-8 items-center justify-center border-l border-zinc-800 ${locked ? 'text-emerald-400' : 'text-zinc-500 active:text-emerald-300'}`}>
-        <span className={`flex h-5 w-5 items-center justify-center rounded border ${locked ? 'border-emerald-500/50 bg-emerald-500/15' : 'border-zinc-700'}`}>
+        className={`flex h-8 items-center justify-center border-l border-zinc-800 ${locked ? 'text-accent-400' : 'text-zinc-500 active:text-accent-300'}`}>
+        <span className={`flex h-5 w-5 items-center justify-center rounded border ${locked ? 'border-accent-500/50 bg-accent-500/15' : 'border-zinc-700'}`}>
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5"><path d="m5 12 4 4L19 6" /></svg>
         </span>
       </button>
@@ -204,7 +204,7 @@ function CardioForm({ record, exercise, onUpdate }) {
               placeholder={placeholder}
               value={record[key] ?? ''}
               onChange={e => onUpdate(key, e.target.value === '' ? null : Math.max(0, parseFloat(e.target.value)))}
-              className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500"
             />
           </div>
         ))}
@@ -219,7 +219,7 @@ function CardioForm({ record, exercise, onUpdate }) {
           placeholder="Calories"
           value={record.calories ?? ''}
           onChange={e => onUpdate('calories', e.target.value === '' ? null : parseInt(e.target.value, 10))}
-          className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500"
         />
       </div>
     </div>
@@ -553,7 +553,7 @@ export default function Session() {
                   <button
                     ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
-                    className="w-full h-7 text-blue-400 text-xs text-left pl-11 active:text-blue-300"
+                    className="w-full h-7 text-accent-400 text-xs text-left pl-11 active:text-accent-300"
                   >
                     + Add set
                   </button>

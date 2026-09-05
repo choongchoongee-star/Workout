@@ -32,7 +32,7 @@ export default function AddExerciseForm({ onCancel, onAdded }) {
         placeholder="Exercise name"
         value={form.name}
         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
+        className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
       />
       <div className="flex gap-2">
         <div className="flex-1">
@@ -71,7 +71,7 @@ export default function AddExerciseForm({ onCancel, onAdded }) {
             placeholder="e.g. 8.3"
             value={form.met}
             onChange={e => setForm(f => ({ ...f, met: e.target.value }))}
-            className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
+            className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
           />
         </div>
       )}
@@ -86,7 +86,7 @@ export default function AddExerciseForm({ onCancel, onAdded }) {
         <button
           type="submit"
           disabled={!form.name.trim()}
-          className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm active:bg-blue-700 disabled:opacity-50"
+          className="flex-1 bg-accent-600 text-zinc-950 rounded-xl py-2.5 text-sm active:bg-accent-700 disabled:opacity-50"
         >
           Add
         </button>

@@ -18,11 +18,11 @@ export default function RestTimer({ seconds, total, onSkip }) {
       <div className="flex items-center gap-4">
         <div className="relative w-14 h-14 flex-shrink-0">
           <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-            <circle cx="28" cy="28" r="24" fill="none" stroke="#3f3f46" strokeWidth="4" />
+            <circle cx="28" cy="28" r="24" fill="none" stroke="var(--color-zinc-700)" strokeWidth="4" />
             <circle
               cx="28" cy="28" r="24"
               fill="none"
-              stroke="#3b82f6"
+              stroke="var(--color-accent-500)"
               strokeWidth="4"
               strokeDasharray={`${2 * Math.PI * 24}`}
               strokeDashoffset={`${2 * Math.PI * 24 * (1 - pct / 100)}`}
@@ -36,7 +36,7 @@ export default function RestTimer({ seconds, total, onSkip }) {
         </div>
         <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
           <div
-            className="h-2 bg-blue-500 rounded-full transition-all duration-1000"
+            className="h-2 bg-accent-500 rounded-full transition-all duration-1000"
             style={{ width: `${pct}%` }}
           />
         </div>

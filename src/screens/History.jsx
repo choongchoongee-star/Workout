@@ -45,7 +45,7 @@ export default function History() {
             type="date"
             value={jumpDate}
             onChange={e => handleDateJump(e.target.value)}
-            className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
         )}
       </div>
@@ -72,7 +72,7 @@ export default function History() {
                 <div className="flex items-center justify-between">
                   <span className="text-white font-medium">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</span>
                   {mainCategory && (
-                    <span className="text-blue-400 text-sm font-medium">{mainCategory}</span>
+                    <span className="text-accent-400 text-sm font-medium">{mainCategory}</span>
                   )}
                 </div>
               </button>

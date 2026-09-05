@@ -104,7 +104,7 @@ export default function Weight() {
         <h1 className="text-xl font-bold text-white">Exercise history</h1>
         <button type="button" aria-label="Add custom exercise" aria-expanded={showAdd} disabled={!loaded}
           onClick={() => setShowAdd(value => !value)}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-2xl text-white active:bg-blue-700 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400">
+          className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-600 text-2xl text-zinc-950 active:bg-accent-700 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400">
           <span aria-hidden="true">+</span>
         </button>
       </div>
@@ -121,7 +121,7 @@ export default function Weight() {
         placeholder="Search exercises..."
         value={query}
         onChange={e => setQuery(e.target.value)}
-        className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-zinc-500"
+        className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
       />
 
       <div className="flex gap-2 overflow-x-auto mb-4 no-scrollbar">
@@ -130,7 +130,7 @@ export default function Weight() {
             key={c}
             onClick={() => setActiveCategory(c)}
             className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full transition-colors ${
-              activeCategory === c ? 'bg-blue-600 text-white' : 'bg-zinc-900 text-zinc-400'
+              activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-900 text-zinc-400'
             }`}
           >
             {c}
@@ -141,7 +141,7 @@ export default function Weight() {
       <div className="space-y-1">
         {!loaded ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length > 0 ? (
           filtered.map(ex => (
