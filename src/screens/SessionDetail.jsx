@@ -25,23 +25,25 @@ export default function SessionDetail() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6 pt-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-6 pt-2">
         <button onClick={() => navigate('/history')} aria-label="Go back" className="text-zinc-400 active:text-white">
           ←
         </button>
-        <div className="flex-1">
-          <h1 className="text-white font-bold text-lg">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-white font-bold text-lg">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</h1>
           {session.duration_min > 0 && (
             <p className="text-zinc-500 text-sm">{session.duration_min} min</p>
           )}
         </div>
-        <button
-          onClick={() => navigate('/session', { state: { date: session.date } })}
-          className="text-accent-400 text-sm active:text-accent-300"
-        >
-          Edit
-        </button>
-        <button onClick={handleDelete} className="text-red-500 text-sm active:text-red-400">Delete</button>
+        <div className="flex w-full items-center justify-end gap-6">
+          <button
+            onClick={() => navigate('/session', { state: { date: session.date } })}
+            className="min-h-11 px-2 text-accent-400 text-sm active:text-accent-300"
+          >
+            Edit
+          </button>
+          <button onClick={handleDelete} className="min-h-11 px-2 text-red-500 text-sm active:text-red-400">Delete</button>
+        </div>
       </div>
 
       <div className="space-y-4">

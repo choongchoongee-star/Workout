@@ -8,7 +8,7 @@ import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import UndoToast from '../components/UndoToast'
 import { CATEGORIES } from '../data/exercises'
-import { localTodayStr } from '../lib/dateUtils'
+import { formatDate, localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
 import { getRemainingSeconds } from '../lib/restTimer'
 import { cancelRestNotification, notifyRestComplete, prepareRestNotification, scheduleRestNotification } from '../lib/restNotification'
@@ -482,15 +482,16 @@ export default function Session() {
   return (
     <div className="p-3 max-w-lg mx-auto pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3 pt-1">
+      <div className="flex items-center justify-between mb-4 pt-2 px-1">
         <div>
-          <p className="text-zinc-400 text-sm">{sessionDate === realToday ? 'Today' : 'Past workout'}</p>
-          <div className="relative">
-            <p className="text-xl font-bold text-white pointer-events-none underline decoration-dotted decoration-zinc-600 underline-offset-4">
-              {(() => { const [y, m, d] = sessionDate.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) })()}
+          <h1 className="text-xl font-bold text-white">Workout</h1>
+          <div className="relative mt-1">
+            <p className="text-sm text-zinc-400 pointer-events-none underline decoration-dotted decoration-zinc-600 underline-offset-4">
+              {formatDate(sessionDate, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
             </p>
             <input
               type="date"
+              aria-label="Workout date"
               value={sessionDate}
               max={realToday}
               onChange={e => e.target.value && setSessionDate(e.target.value)}

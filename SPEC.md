@@ -240,7 +240,7 @@ Workout/
 
 **하단 탭(Layout):** `Workout(/session)` · `History(/history)` · `Progress(/weight)` · `Settings(/settings)` 4개.
 - 하단 탭 배경은 `bg-accent-600`(짙은 초록), 활성 탭은 `text-zinc-800`(살구), 비활성은 `text-zinc-950/80`(크림).
-- 라이브러리(`/library`)는 탭 없음 — Progress의 `Manage exercises`에서 진입. 커스텀 운동 추가는 Progress 우상단 +에서 바로 수행한다.
+- 라이브러리(`/library`)는 탭 없음 — Progress의 `Manage exercises`에서 진입. Progress 우상단 `Manage exercises` 글자 버튼으로 Library에 진입해 커스텀 운동을 추가·관리한다.
 
 ---
 
@@ -251,7 +251,7 @@ Workout/
 ### 6.1 Session — Active Session (핵심) `/session`
 ```
 ┌──────────────────────────────────────┐
-│ 오늘                                   │  ← 완료 버튼 없음(자동저장, 2026-06-14)
+│ Workout                                │  ← 완료 버튼 없음(자동저장)
 │ 2026년 6월 14일 ⌄                       │  ← 날짜(점선밑줄). 탭하면 date picker
 │                                        │     (max=오늘). 다른날 = "다른 날 기록"
 │ (동기화 실패 시 빨간 배너)               │
@@ -273,7 +273,7 @@ Workout/
 └──────────────────────────────────────┘
 ```
 **동작 명세**
-- **헤더:** 날짜만 표시. **완료 버튼 없음**(2026-06-14 제거 — 모든 변경이 자동 저장되므로 불필요).
+- **헤더:** History와 동일한 20px 굵은 제목 `Workout`을 표시하고, 바로 아래 14px 보조색 날짜를 `Sat, September 5, 2026`처럼 짧은 요일과 함께 표시한다. 좌측 정렬은 16px이며 날짜를 눌러 변경할 수 있다. **완료 버튼 없음**(2026-06-14 제거 — 모든 변경이 자동 저장되므로 불필요).
 - **운동 추가:** [+ 운동 추가] 버튼은 **운동 목록 맨 아래**에 위치(2026-06-14 상단→하단 이동). 탭 → 바텀시트(`h-[80vh]` 고정). 상단 검색 input(**autoFocus 없음** — 키보드 자동 노출 방지, 2026-06-14), 카테고리 칩(전체+7), 운동 리스트. 기본 카테고리 = 현재 세션 메인 카테고리 → 없으면 과거 세션 메인 → 없으면 '전체'. 이미 추가된 운동은 흐리게 + "추가됨". Escape/배경 탭으로 닫기, Tab 포커스 트랩.
 - **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가(cardio는 빈 기록 1개 자동 생성). **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
 - **세트 추가:** 첫 세트면 **과거 세션의 마지막 세트 값**을 기본값으로(getLastSession), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
@@ -334,8 +334,7 @@ Workout/
 **(a) 운동 선택 화면 (selected = null)**
 ```
 ┌──────────────────────────────────────┐
-│ Exercise history                  [+] │
-│ Manage exercises                      │
+│ Exercise history   [Manage exercises] │
 │ [🔍 운동 검색...]                       │
 │ [전체][가슴][등][어깨][팔][하체]...      │  ← 카테고리 칩 가로 스크롤
 │ ┌────────────────────────────────────┐│
@@ -346,8 +345,8 @@ Workout/
 ```
 - Session의 운동추가 모달과 동일한 필터(전체+7 카테고리 + 텍스트 검색). 기록 유무와 무관하게 전체 운동 노출.
 - 운동 탭 → `selected`에 해당 exercise 저장, 검색어 초기화.
-- 우상단 44px + 버튼은 `Add custom exercise` 폼을 인라인으로 연다. 이름 필수, 카테고리·타입 선택, Cardio만 선택적 양수 MET 입력을 제공한다. 취소 시 저장하지 않으며 추가 후 폼을 닫고 검색어·카테고리를 초기화해 새 운동을 목록에 표시한다. 폼은 `AddExerciseForm.jsx`로 Library와 공유하고 기존 로컬 저장 경로를 사용한다.
-- `Manage exercises` 링크로 기존 Library의 커스텀 운동 관리·삭제 화면에 접근한다. Settings에는 운동 관리 링크를 두지 않는다.
+- 우상단에는 높이 44px 이상의 테두리형 `Manage exercises` 글자 버튼 하나만 표시한다. 기존 + 버튼과 Progress 인라인 추가 폼은 제거한다. 모호한 아이콘 대신 글자로 관리 동작을 명시한다. 운동 추가는 Library의 + Add에서 기존 `AddExerciseForm.jsx`와 로컬 저장 경로를 사용한다.
+- 제목 오른쪽 `Manage exercises` 버튼으로 기존 Library의 커스텀 운동 추가·관리·삭제 화면에 접근한다. 검색창 위 별도 관리 링크는 두지 않는다. Settings에는 운동 관리 링크를 두지 않는다.
 
 **(b) 상세 화면 (selected != null)**
 ```
@@ -630,3 +629,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: Workout 마지막 운동 삭제 시 빈 목록의 자동 저장을 건너뛰어 탭 재진입 때 기록이 되살아나던 문제를 수정했다. 빈 날짜 세션은 삭제하고 Undo로 복원한다. `scripts/verify-session-deletion.mjs`는 Playwright와 실행 중인 Vite 서버로 부분/마지막 삭제·즉시 History 왕복·로컬 저장 및 재로드·과거/빈 날짜 전환·Undo를 검증한다. `PLAYWRIGHT_MODULE`로 Playwright 경로, `WORKOUT_URL`로 앱 기본 URL, `BROWSER_CHANNEL`로 브라우저를 지정할 수 있다. 기존 코드에서 마지막 삭제 후 기록이 남는 실패를 재현하고 수정본 통과를 확인했다. 로컬 저장 테스트 4개·lint·build도 통과했다. OTA 배포는 별도다.
 
 - 2026-09-06: 사용자 승인으로 마지막 운동 삭제가 탭 재진입 후 되살아나는 버그 수정(dea73cc)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `02433702d75edb91f4b3163a58f4273a37d4a9e5fa47e76fe1fe68255908dfa4`, ZIP 383267 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
+
+- 2026-09-06: History 상세 날짜의 요일을 short(Sat 등)로 통일하고 Edit/Delete는 날짜 아래 별도 행에 44px 이상 높이로 배치했다. Workout은 History와 같은 크기의 제목과 그 아래 날짜 선택으로 헤더를 통일했다. Progress의 직접 추가 +와 인라인 폼을 제거하고 우상단을 Manage exercises 글자 버튼으로 대체했다. 브라우저에서 320/375/390/430px 상세 날짜 한 줄 표시, Workout 날짜 전환, 관리 화면 진입·Add 폼을 확인했다. OTA 배포는 별도다.
