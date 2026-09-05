@@ -29,18 +29,18 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-0.5">
+    <div className="grid min-w-0 grid-cols-2 overflow-hidden rounded-lg border border-zinc-700/60 bg-zinc-950/40 focus-within:border-blue-400/70">
       <button
         type="button"
         onClick={dec}
         disabled={disabled}
         aria-label={`Decrease ${unit || 'value'} by ${step}`}
-        className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        className="row-start-2 h-8 border-t border-r border-zinc-700/60 text-zinc-400 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
       >
         -{step}
       </button>
 
-      <div className="min-w-0">
+      <div className="col-span-2 col-start-1 row-start-1 min-w-0">
         <input
           ref={inputRef}
           type="number"
@@ -62,7 +62,7 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
               onChange(min)
             }
           }}
-          className="w-full min-w-0 h-8 px-0 text-center bg-transparent text-white text-base font-semibold tabular-nums focus:outline-none disabled:opacity-40"
+          className="w-full min-w-0 h-7 px-0 text-center bg-transparent text-white text-base font-semibold tabular-nums focus:outline-none disabled:opacity-50"
         />
       </div>
 
@@ -71,7 +71,7 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
         onClick={inc}
         disabled={disabled}
         aria-label={`Increase ${unit || 'value'} by ${step}`}
-        className="w-8 h-8 rounded-md bg-zinc-800 text-zinc-300 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        className="row-start-2 h-8 border-t border-zinc-700/60 text-zinc-400 text-xs font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
       >
         +{step}
       </button>

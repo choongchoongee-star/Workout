@@ -133,60 +133,41 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
 }
 
 // Single set row for weight/bodyweight exercise
-function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
+function SetRow({ setIdx, set, exerciseType, editing, onUpdate, onDone, onRemove }) {
   const unit = storage.getWeightUnit()
   const isBodyweight = exerciseType === 'bodyweight'
   const locked = set.done
 
   return (
-    <div role="group" aria-label={`Set ${setIdx + 1}`} className={`py-1 border-b border-zinc-800/40 last:border-b-0 ${locked ? 'opacity-60' : ''}`}>
-      <div className="flex items-center gap-2">
-        <span className="text-zinc-500 text-xs">Set {setIdx + 1}</span>
-        <span className="text-zinc-500 text-xs">{unit} / reps</span>
-        <div className="flex-1" />
-        <button
-          onClick={onDone}
-          aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'}
-          aria-pressed={locked}
-          className={`w-8 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors ${
-            locked
-              ? 'bg-green-600 text-white'
-              : 'bg-zinc-800 text-zinc-400 active:bg-green-600 active:text-white'
-          }`}
-        >
-          ✓
-        </button>
-        <button onClick={onRemove} aria-label="Delete set" className="text-zinc-500 active:text-red-400 w-7 h-7 text-lg">
-          ×
-        </button>
-      </div>
-      <div className="grid grid-cols-2 items-center gap-2">
-        {isBodyweight ? (
-          <div className="min-w-0">
-            <StepperInput
-              value={displayWeight(set.added_weight ?? 0, unit)}
-              onChange={v => onUpdate('added_weight', storedWeight(v, unit))}
-              step={unit === 'lbs' ? 5 : 2.5}
-              unit={unit}
-              disabled={locked}
-            />
-          </div>
+    <div role="group" aria-label={`Set ${setIdx + 1}`} className="grid grid-cols-[1.25rem_minmax(0,1fr)_minmax(0,1fr)_3.25rem] items-center gap-2 py-1">
+      <span className={`text-center text-xs tabular-nums ${locked ? 'text-emerald-400' : 'text-zinc-500'}`}>{setIdx + 1}</span>
+      <StepperInput
+        value={displayWeight(isBodyweight ? set.added_weight ?? 0 : set.weight ?? 20, unit)}
+        onChange={v => onUpdate(isBodyweight ? 'added_weight' : 'weight', storedWeight(v, unit))}
+        step={unit === 'lbs' ? 5 : 2.5}
+        unit={unit}
+        disabled={locked || editing}
+      />
+      <StepperInput
+        value={set.reps ?? 10}
+        onChange={v => onUpdate('reps', v)}
+        step={1}
+        unit="reps"
+        disabled={locked || editing}
+      />
+      <div className="pl-2 border-l border-zinc-800">
+        {editing ? (
+          <button type="button" onClick={onRemove} aria-label="Delete set"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-red-400/30 bg-red-400/5 text-red-300 active:bg-red-900/40">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
+          </button>
         ) : (
-          <StepperInput
-            value={displayWeight(set.weight ?? 20, unit)}
-            onChange={v => onUpdate('weight', storedWeight(v, unit))}
-            step={unit === 'lbs' ? 5 : 2.5}
-            unit={unit}
-            disabled={locked}
-          />
+          <button type="button" onClick={onDone}
+            aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'} aria-pressed={locked}
+            className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-colors ${locked ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-zinc-700 text-zinc-400 active:border-emerald-500 active:bg-emerald-500/15 active:text-emerald-300'}`}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="m5 12 4 4L19 6" /></svg>
+          </button>
         )}
-        <StepperInput
-          value={set.reps ?? 10}
-          onChange={v => onUpdate('reps', v)}
-          step={1}
-          unit="reps"
-          disabled={locked}
-        />
       </div>
     </div>
   )
@@ -298,6 +279,7 @@ export default function Session() {
   }, [sessionDate, realToday, startTimeKey])
 
   const [showModal, setShowModal] = useState(false)
+  const [editingExercise, setEditingExercise] = useState(null)
   const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90, endsAt: null })
   const notifiedRestEndRef = useRef(null)
   const [undoData, setUndoData] = useState(null)
@@ -527,6 +509,7 @@ export default function Session() {
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
+          const editing = editingExercise === se.exerciseId
 
           return (
             <div
@@ -540,11 +523,13 @@ export default function Session() {
                   <span className="text-zinc-500 text-xs">{exercise?.category}</span>
                 </div>
                 <button
-                  onClick={() => removeExercise(exIdx)}
-                  aria-label="Delete exercise"
-                  className="text-zinc-700 active:text-red-400 text-xl px-2"
+                  type="button"
+                  onClick={() => setEditingExercise(editing ? null : se.exerciseId)}
+                  aria-label={editing ? 'Finish editing exercise' : 'Edit exercise'}
+                  aria-pressed={editing}
+                  className={`min-h-11 px-3 text-sm font-medium ${editing ? 'text-blue-400' : 'text-zinc-400 active:text-white'}`}
                 >
-                  ×
+                  {editing ? 'Done' : 'Edit'}
                 </button>
               </div>
               {isCardio ? (
@@ -555,12 +540,16 @@ export default function Session() {
                 />
               ) : (
                 <>
+                  <div aria-hidden="true" className="grid grid-cols-[1.25rem_minmax(0,1fr)_minmax(0,1fr)_3.25rem] gap-2 pt-2 pb-1 text-center text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                    <span>Set</span><span>{storage.getWeightUnit()}</span><span>Reps</span><span>{editing ? 'Delete' : 'Done'}</span>
+                  </div>
                   {se.sets.map((set, setIdx) => (
                     <SetRow
                       key={setIdx}
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
+                      editing={editing}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
                       onRemove={() => removeSet(exIdx, setIdx)}
@@ -569,11 +558,17 @@ export default function Session() {
                   <button
                     ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
-                    className="w-full text-zinc-500 text-sm py-2 mt-1 rounded-lg active:text-zinc-300 active:bg-zinc-800 transition-colors"
+                    className="w-full text-blue-400 text-sm py-2 mt-2 rounded-lg border border-dashed border-zinc-700/70 active:bg-zinc-800 transition-colors"
                   >
                     + Add set
                   </button>
                 </>
+              )}
+              {editing && (
+                <button type="button" onClick={() => { removeExercise(exIdx); setEditingExercise(null) }}
+                  className="mt-3 min-h-11 w-full border-t border-zinc-800 pt-3 text-sm text-red-300 active:text-red-200">
+                  Delete exercise
+                </button>
               )}
             </div>
           )
