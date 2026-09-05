@@ -133,23 +133,25 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
 }
 
 // Single set row for weight/bodyweight exercise
-function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
+function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onRemove }) {
   const unit = storage.getWeightUnit()
   const isBodyweight = exerciseType === 'bodyweight'
   const locked = set.done
 
   return (
-    <div role="group" aria-label={`Set ${setIdx + 1}`} className="grid grid-cols-[1.5rem_1rem_minmax(0,1fr)_minmax(0,0.8fr)_2.25rem] items-center gap-1 border-b border-zinc-800/60">
+    <div role="group" aria-label={`Set ${setIdx + 1}`} className="grid grid-cols-[2rem_1.5rem_minmax(0,1fr)_minmax(0,0.8fr)_2.75rem] items-center gap-1 border-b border-zinc-800/60">
       <button type="button" onClick={onRemove} aria-label="Delete set" title={`Delete set ${setIdx + 1}`}
-        className="flex h-8 w-6 items-center justify-center text-zinc-500 active:text-red-300">
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-3.5 w-3.5"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
+        className="flex h-8 w-8 items-center justify-center text-zinc-400 active:text-red-300">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
       </button>
-      <span className={`text-center text-xs tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-500'}`}>{setIdx + 1}</span>
+      <span className={`text-center text-sm tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-400'}`}>{setIdx + 1}</span>
       <StepperInput
         value={displayWeight(isBodyweight ? set.added_weight ?? 0 : set.weight ?? 20, unit)}
         onChange={v => onUpdate(isBodyweight ? 'added_weight' : 'weight', storedWeight(v, unit))}
         step={unit === 'lbs' ? 5 : 2.5}
         unit={unit}
+        label={isBodyweight ? 'Added weight' : 'Weight'}
+        contextLabel={`${exerciseName} · Set ${setIdx + 1}`}
         disabled={locked}
       />
       <StepperInput
@@ -157,6 +159,7 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
         onChange={v => onUpdate('reps', v)}
         step={1}
         unit="reps"
+        contextLabel={`${exerciseName} · Set ${setIdx + 1}`}
         disabled={locked}
       />
       <button type="button" onClick={onDone}
@@ -501,7 +504,7 @@ export default function Session() {
       )}
 
       {/* Exercise cards */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
           const isCardio = exercise?.type === 'cardio'
@@ -516,14 +519,13 @@ export default function Session() {
             >
               <div className="flex min-h-9 items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 items-baseline gap-2">
-                  <h3 className="text-white text-sm font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
-                  <span className="shrink-0 text-zinc-500 text-[10px]">{exercise?.category}</span>
+                  <h3 className="text-white text-base font-semibold truncate">{exercise?.name || se.exerciseId}</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => removeExercise(exIdx)}
                   aria-label="Delete exercise"
-                  className="h-8 px-2 text-[11px] text-zinc-500 active:text-red-300"
+                  className="h-8 px-2 text-sm text-zinc-400 active:text-red-300"
                 >
                   Delete
                 </button>
@@ -536,8 +538,8 @@ export default function Session() {
                 />
               ) : (
                 <>
-                  <div aria-hidden="true" className="grid grid-cols-[1.5rem_1rem_minmax(0,1fr)_minmax(0,0.8fr)_2.25rem] gap-1 border-b border-zinc-800 pb-1 text-center text-[10px] text-zinc-500">
-                    <span /><span>#</span><span>{storage.getWeightUnit()} (±{storage.getWeightUnit() === 'lbs' ? 5 : 2.5})</span><span>Reps</span><span>Done</span>
+                  <div aria-hidden="true" className="grid grid-cols-[2rem_1.5rem_minmax(0,1fr)_minmax(0,0.8fr)_2.75rem] gap-1 border-b border-zinc-800 pb-1 text-center text-xs text-zinc-300">
+                    <span>Del.</span><span>Set</span><span>{storage.getWeightUnit()}</span><span>Reps</span><span>Done</span>
                   </div>
                   {se.sets.map((set, setIdx) => (
                     <SetRow
@@ -545,6 +547,7 @@ export default function Session() {
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
+                      exerciseName={exercise?.name || se.exerciseId}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
                       onRemove={() => removeSet(exIdx, setIdx)}
@@ -553,7 +556,7 @@ export default function Session() {
                   <button
                     ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
-                    className="w-full h-7 text-accent-400 text-xs text-left pl-11 active:text-accent-300"
+                    className="w-full h-7 text-accent-400 text-sm text-left pl-14 active:text-accent-300"
                   >
                     + Add set
                   </button>

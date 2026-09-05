@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const DURATION = 5000
+const DURATION = 10000
 
 export default function UndoToast({ message, onUndo, onDismiss, bottomOffset = '5rem' }) {
   const [remaining, setRemaining] = useState(DURATION)
