@@ -157,9 +157,9 @@ function SetRow({ setIdx, set, exerciseType, onUpdate, onDone, onRemove }) {
           ×
         </button>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] items-center gap-3">
         {isBodyweight ? (
-          <div className="flex items-center gap-2">
+          <div className="min-w-0">
             <StepperInput
               value={set.added_weight ?? 0}
               onChange={v => onUpdate('added_weight', v)}

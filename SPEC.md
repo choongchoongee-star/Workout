@@ -423,7 +423,7 @@ Workout/
 - 경로 전환 시 스크롤 맨 위로. 단 `/session`은 스크롤 위치 보존(`scrollPositions` ref) — 운동 중 모달 닫기 등에서 위치 유지.
 
 ### StepperInput
-- `[-step] [숫자 input] [+step]`. props: `value, onChange, step, unit, min=0, disabled`.
+- `[-step] [숫자 input / 단위] [+step]`. 단위는 숫자 아래에 표시한다. props: `value, onChange, step, unit, min=0, disabled`.
 - `onPointerDown`으로 즉시 반응. 숫자 input은 focus/click 때 현재 값을 전체 선택해 다음 입력이 기존 값을 교체한다. 외부 value 변경 시 비포커스 상태에서만 input 동기화(입력 중 방해 X). blur 시 빈/음수면 min으로 보정. 소수 누적오차 `toFixed(2)`.
 
 ### RestTimer
@@ -588,3 +588,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-05: 사용자 승인으로 Progress + 커스텀 운동 추가 UI (`af1c6ae`)를 빌드 4 runtime `ios-edab217484237bd7`에 OTA 게시했다. bundle ID `6bf8277690f5641b7817c830de357f4bd4c7996912331d61a647b6dd45aebf03`, ZIP 381610 bytes. 공개 manifest·ZIP 응답 및 SHA-256·RSA 서명을 검증했다. iPhone Settings → Check for updates에서 다운로드 후 앱을 완전히 종료·재실행해 적용하며 실제 기기 적용 여부는 별도 확인한다. 새 EAS 빌드는 실행하지 않았다.
 
 - 2026-09-05: Settings 하단의 전체 폭 Save 버튼을 Preferences 카드 내부 하단으로 이동했다. 구분선 아래 우측에 44px 이상 터치 영역의 작은 파란 `Save preferences` 버튼을 배치하고 저장 완료 문구도 버튼 옆에 표시한다. 저장 범위는 기존 휴식 시간 설정이며 백업·업데이트·Privacy와 분리된다. 소스 반영만 수행하며 이 변경의 OTA 배포는 별도 승인 후 진행한다.
+
+- 2026-09-05: iPhone Workout 세트 입력 줄이 카드 밖으로 넘치는 문제를 수정했다. 무게·횟수 입력기는 최소 9rem 반응형 grid로 배치하고 공간이 부족하면 세로로 전환한다. 각 입력기는 44px 증감 버튼과 min-width 0 숫자 영역을 사용하며 kg/reps 단위를 숫자 아래에 표시한다. lint·웹 빌드로 검증했으며 실제 iPhone 확인과 OTA 배포는 아직 수행하지 않았다.

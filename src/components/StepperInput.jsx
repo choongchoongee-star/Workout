@@ -29,20 +29,22 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-1">
       <button
         type="button"
         onPointerDown={dec}
         disabled={disabled}
-        className="w-9 h-9 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        aria-label={`Decrease ${unit || 'value'} by ${step}`}
+        className="w-11 h-11 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
       >
         -{step}
       </button>
 
-      <div className="flex items-baseline gap-0.5 min-w-[4rem] justify-center">
+      <div className="flex min-w-0 flex-col items-center">
         <input
           ref={inputRef}
           type="number"
+          aria-label={unit || 'Value'}
           defaultValue={value}
           disabled={disabled}
           onFocus={e => e.currentTarget.select()}
@@ -58,16 +60,17 @@ export default function StepperInput({ value, onChange, step = 1, unit = '', min
               onChange(min)
             }
           }}
-          className="w-14 text-center bg-transparent text-white text-lg font-semibold focus:outline-none disabled:opacity-40"
+          className="w-full min-w-0 text-center bg-transparent text-white text-lg font-semibold focus:outline-none disabled:opacity-40"
         />
-        {unit && <span className="text-zinc-400 text-sm">{unit}</span>}
+        {unit && <span className="text-zinc-400 text-xs leading-4">{unit}</span>}
       </div>
 
       <button
         type="button"
         onPointerDown={inc}
         disabled={disabled}
-        className="w-9 h-9 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
+        aria-label={`Increase ${unit || 'value'} by ${step}`}
+        className="w-11 h-11 rounded-lg bg-zinc-800 text-zinc-300 text-sm font-medium active:bg-zinc-700 select-none disabled:opacity-40 disabled:pointer-events-none"
       >
         +{step}
       </button>
