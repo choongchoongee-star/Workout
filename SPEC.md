@@ -657,3 +657,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 사용자 승인으로 두 줄 카테고리·큰 부위 우선 순서·Workout/History 헤더·Progress 관리 버튼 개선(최종 소스 815f25e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `8efb81292980af22595944f56b7763b8df77ad9a8f33a7fc8ee70338f13bbdb3`, ZIP 383303 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
 
 - 2026-09-06: 단일 운동 목록과 카드별 장비 선택을 구현했다. 최근 장비 기본값·장비별 이전 세트/Progress·세트가 있는 카드 장비 전환 시 새 카드 추가·동일 운동/장비 중복을 지원한다. 기존 무장비 기록과 별도 장비 ID를 보존하고 백업/복원에 equipment를 반영했다. 테스트 45개, 장비 전환/중복/재로드/Progress/Undo 및 삭제 회귀 브라우저 검사, 4개 화면 너비, lint·build를 통과했다. 실제 iPhone 검증과 OTA 배포는 별도다.
+
+- 2026-09-06: 사용자 승인으로 카드별 장비 선택·장비별 기록/이전 중량 분리·중복 카드 보존(36a347e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `383bdcf9ffe83cfbde2e94c32725e7b43b50c7b503b93cfbd3bc1c3dd7baa067`, ZIP 384562 bytes. native fingerprint·iOS 호환 검사, 장비/OTA 테스트 13개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
