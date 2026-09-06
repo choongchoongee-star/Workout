@@ -215,7 +215,7 @@ Workout/
 | `wl_rest_seconds` | 휴식 타이머 초 | 90 | 설정 탭에서 수정 |
 | `wl_body_weight` | 체중(kg) | 70 | **설정 UI 제거됨(2026-06-14)**, 칼로리 계산 시 기본값 70 사용 |
 | `wl_theme` | Light/Dark 테마 | light | Appearance 선택 즉시 저장 |
-| `wl_equipment_[familyId]` | 운동 계열별 마지막 선택 장비 | 기록/기본 장비 | 운동 추가·장비 변경 시 저장 |
+| `wl_equipment_[familyId]` | 구형 마지막 선택 장비 | 미사용 | 기존 키는 보존하되 새 카드 기본값에 사용하지 않음 |
 - private/incognito 등 접근 불가 환경 안전 처리(try/catch, isAvailable).
 
 ### 4.7 sessionStorage
@@ -476,13 +476,13 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 첫 세트는 현재 편집 날짜를 제외하고 같은 운동 계열·equipment의 최신 날짜에서 마지막 카드의 마지막 세트를 사용한다. 다른 장비나 Unspecified 기록은 섞지 않는다. 이후 세트는 현재 카드의 직전 세트를 복사한다. 과거 값이 없으면 weight=20kg, added_weight=0kg, reps=10이다.
 
 ### 장비 선택과 운동 계열 (2026-09-06)
-- 구현: `src/lib/equipment.js`, `src/components/EquipmentSelect.jsx`. 표시 목록만 계열별로 묶으며 기존 운동 ID·정의·세트는 삭제/병합하지 않는다. 이름/category/type이 알려진 기본 정의와 일치할 때만 계열로 인식한다. 커스텀 운동은 계열을 임의 병합하지 않는다. 다만 이름의 명시적 Smith/Smith Machine/Barbell/EZ-bar/Dumbbell/Cable/Machine/Pec Deck 단어는 표시 이름에서 분리하고 해당 장비 하나를 선택기로 표시한다. 장비 단어가 없는 커스텀 이름은 그대로 둔다.
+- 구현: `src/lib/equipment.js`, `src/components/EquipmentSelect.jsx`. 표시 목록만 계열별로 묶으며 기존 운동 ID·정의·세트는 삭제/병합하지 않는다. 이름/category/type이 알려진 기본 정의와 일치할 때만 계열로 인식한다. 커스텀 운동은 계열을 임의 병합하지 않는다. 다만 이름의 명시적 Smith/Smith Machine/Barbell/EZ-bar/Dumbbell/Cable/Machine/Pec Deck 단어는 표시 이름에서 분리하고 구형 장비 미기입 기록에서만 해당 장비로 해석한다. 장비 단어가 없는 커스텀 이름은 그대로 둔다.
 - Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row, Dumbbell Fly/Pec Deck Fly→Fly, Cable Chest Press/Chest Press→Chest Press 계열로 묶는다. One-arm Dumbbell Row→One-arm Row, Reverse Pec Deck Fly→Reverse Fly, Cable Crossover→Crossover, Cable Dips→Dips, Cable Crunch→Crunch, Rowing Machine→Rowing으로 표시한다. 같은 이름이어도 체중/중량 입력 방식이 다른 운동은 병합하지 않는다. 원래 정의·백업 이름은 호환성을 위해 보존한다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
 - SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/unspecified다. 구형 ezbar는 로드/가져오기/내보내기 및 이전 기록 조회 시 barbell로 정규화하며 세트·카드·운동 ID는 보존한다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
-- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. Bench/Incline/Decline Press 및 Overhead Press: Barbell/Dumbbell/Smith. Squat: Barbell/Dumbbell/Smith. RDL: Barbell/Dumbbell/Smith. Deadlift: Barbell/Dumbbell. Lateral Raise: Dumbbell/Machine/Cable. Front Raise: Barbell/Dumbbell/Cable. Biceps Curl: Barbell/Dumbbell/Cable. Overhead Triceps Extension: Barbell/Dumbbell/Cable. Preacher Curl: Barbell/Dumbbell/Machine. Skull Crusher: Barbell/Dumbbell. Seated Row: Machine/Cable. Lat Pulldown: Machine/Cable. Chest Press: Machine/Cable. Shoulder Press: Machine. Fly/One-arm Row/Reverse Fly: Dumbbell/Machine/Cable. Crossover/중량 Dips/중량 Crunch: Cable. Rowing: Machine. 이름에 장비가 명시된 그 외 항목은 해당 장비를 표시하며, 나머지는 기존대로 선택기를 숨긴다.
-- 추가 기본값: 기기 설정 `wl_equipment_[familyId]` → 날짜 역순/동일 날짜 카드 역순의 최근 유효 장비 → 원래 이름에 명시된 장비 → 선택지 첫 장비. 추가/변경 시 기억하며 Progress 열람 필터는 기억값을 바꾸지 않는다. 이 기기 설정은 백업에 포함하지 않고 복원 기기는 기록에서 장비를 찾는다.
-- 0세트 카드는 제자리 변경한다. 세트가 하나라도 있으면 입력/완료 여부에 관계없이 기존 카드와 세트를 보존하고 선택한 장비의 0세트 카드를 맨 아래 추가·스크롤한다. 현재 장비 재선택은 추가하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
-- 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동은 기존대로다.
+- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. 모든 기본·커스텀·맨몸·유산소 운동에서 Unspecified / Barbell / Dumbbell / Smith / Machine / Cable 여섯 선택지를 같은 순서로 제공한다. 운동별 제한은 없다.
+- 추가 기본값: 새 카드는 항상 unspecified로 시작한다. 과거 기록·마지막 기기 선택·원래 운동명에 포함된 장비를 새 카드 기본값으로 사용하지 않는다. Progress도 Unspecified로 시작하며 원하는 장비를 선택해 기록을 조회한다.
+- 0세트 카드는 제자리 변경한다. 장비 변경으로 추가된 빈 유산소 카드도 첫 입력에서 cardio 기록 객체를 생성해 저장한다. 세트가 하나라도 있으면 입력/완료 여부에 관계없이 기존 카드와 세트를 보존하고 선택한 장비의 0세트 카드를 맨 아래 추가·스크롤한다. 현재 장비 재선택은 추가하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
+- 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동의 구형 기록은 Unspecified로 해석한다. 명시된 기존 equipment는 변경하지 않는다.
 - History 상세는 장비를 함께 표시한다. Progress는 운동 선택 후 장비 필터로 분리하고 같은 날짜·장비의 모든 카드를 date:index 키로 각각 표시한다. 기본 장비 기록이 없고 Unspecified 과거 기록이 있으면 처음부터 Unspecified를 표시한다.
 - 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith`으로 출력한다. 구형 보고서의 Smith Machine은 smith로, EZ Bar는 barbell로 읽는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
 - 단위 테스트 `src/lib/equipment.test.mjs`, 브라우저 회귀 검사 `scripts/verify-equipment.mjs`. 브라우저 실행 변수: PLAYWRIGHT_MODULE/WORKOUT_URL/BROWSER_CHANNEL.
@@ -684,3 +684,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 사용자 승인으로 스와이프 프레임 추적·Delete 점진 노출·감속 전환 개선(소스 d81818a)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `622ab7602b46176facd7498cce3990f60b8d00bdab736e2c69d94dbca51034e2`, ZIP 386189 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 체감 확인은 별도다.
 
 - 2026-09-06: 운동명에 포함된 기구 표현을 기본 표시 이름과 장비 선택으로 분리하고 Fly·Chest Press 별도 기구 항목을 검색 계열로 묶었다. ID·세트·날짜별 중복은 유지하며 명시적 장비의 구형 기록은 해당 장비로 해석한다. 사용자 4색 청색 팔레트로 Light/Dark 전환을 추가하고 wl_theme로 즉시 저장한다. 장비 기록 분리/백업 왕복 포함 테스트 47개, scripts/verify-dark-mode.mjs의 테마 재실행·탭 이동·구형 장비 선택·세트 있는 카드 전환·검색 단일화·4개 화면 너비, lint·build를 통과했다. 실제 iPhone 검증과 OTA 배포는 별도다.
+
+- 2026-09-06: 운동별 장비 제한을 없애고 모든 운동에 Unspecified/Barbell/Dumbbell/Smith/Machine/Cable을 제공한다. 새 카드·Progress 기본값은 항상 Unspecified이며 최근 장비 기억값은 사용하지 않는다. 기존 명시 장비·세트·중복 카드는 유지한다. 빈 유산소 카드의 장비 변경 후 입력 저장도 지원한다. 테스트 47개, 장비 전환·미정 기본값·유산소 입력 재로드·다크모드 브라우저 검사를 통과했다.

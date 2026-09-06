@@ -379,8 +379,7 @@ export default function Session() {
     const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
     // 새 운동은 목록 맨 아래에 추가되므로 추가 후 그 카드로 스크롤
     pendingScrollCardIdx.current = sessionExercises.length
-    const equipment = defaultEquipment(ex, sessions, exercises, storage.getEquipment(familyId(ex)))
-    if (equipment) storage.setEquipment(familyId(ex), equipment)
+    const equipment = defaultEquipment()
     setSessionExercises(prev => [...prev, { exerciseId: ex.id, ...(equipment ? { equipment } : {}), sets }])
     setShowModal(false)
   }
@@ -390,7 +389,6 @@ export default function Session() {
     const exercise = exercises.find(ex => ex.id === card?.exerciseId)
     if (!equipmentOptions(exercise).includes(equipment)) return
     if (card.sets.length && recordEquipment(card, exercise) !== equipment) pendingScrollCardIdx.current = sessionExercises.length
-    storage.setEquipment(familyId(exercise), equipment)
     setSessionExercises(prev => changeCardEquipment(prev, exIdx, exercise, equipment))
   }
 
@@ -422,6 +420,9 @@ export default function Session() {
   function updateSet(exIdx, setIdx, field, value) {
     setSessionExercises(prev => {
       const copy = deepClone(prev)
+      if (copy[exIdx] && !copy[exIdx].sets[setIdx] && exercises.find(ex => ex.id === copy[exIdx].exerciseId)?.type === 'cardio') {
+        copy[exIdx].sets[setIdx] = newCardioRecord()
+      }
       if (copy[exIdx]?.sets[setIdx]) {
         copy[exIdx].sets[setIdx][field] = value
       }

@@ -1,5 +1,5 @@
 import EquipmentSelect from '../components/EquipmentSelect'
-import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices, familyId, movementName } from '../lib/equipment'
+import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices, movementName } from '../lib/equipment'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -49,7 +49,7 @@ export default function Weight() {
   }, [sessions, exercises, selected, selectedEquipment])
 
   function selectExercise(exercise) {
-    const equipment = defaultEquipment(exercise, sessions, exercises, storage.getEquipment(familyId(exercise)))
+    const equipment = defaultEquipment()
     const hasUnknownRecords = equipmentRecords(sessions, exercises, exercise, 'unspecified').length > 0
     const hasEquipmentRecords = equipmentRecords(sessions, exercises, exercise, equipment).length > 0
     setSelected(exercise)
@@ -77,7 +77,7 @@ export default function Weight() {
 
         <div className="mb-4">
           <EquipmentSelect name={movementName(selected)} value={selectedEquipment}
-            options={[...equipmentOptions(selected), ...(equipmentRecords(sessions, exercises, selected, 'unspecified').length ? ['unspecified'] : [])]}
+            options={equipmentOptions(selected)}
             onChange={setSelectedEquipment} />
         </div>
         {records.length === 0 ? (

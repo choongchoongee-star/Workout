@@ -14,30 +14,6 @@ export function normalizeSessionEquipment(session) {
     card.equipment === 'ezbar' ? { ...card, equipment: 'barbell' } : card) }
 }
 
-// Only known movements receive compatible choices. Custom movements stay unchanged.
-const options = {
-  'bench-press': ['barbell', 'dumbbell', 'smith'],
-  'incline-bench': ['barbell', 'dumbbell', 'smith'],
-  'decline-bench': ['barbell', 'dumbbell', 'smith'],
-  squat: ['barbell', 'smith', 'dumbbell'],
-  'overhead-press': ['barbell', 'dumbbell', 'smith'],
-  'romanian-deadlift': ['barbell', 'dumbbell', 'smith'],
-  deadlift: ['barbell', 'dumbbell'],
-  'lateral-raise': ['dumbbell', 'cable', 'machine'],
-  'front-raise': ['dumbbell', 'barbell', 'cable'],
-  'barbell-curl': ['barbell', 'dumbbell', 'cable'],
-  'overhead-extension': ['barbell', 'dumbbell', 'cable'],
-  'preacher-curl': ['barbell', 'dumbbell', 'machine'],
-  'skull-crusher': ['barbell', 'dumbbell'],
-  'seated-row': ['machine', 'cable'],
-  'lat-pulldown': ['cable', 'machine'],
-  'dumbbell-fly': ['dumbbell', 'machine', 'cable'],
-  'cable-crossover': ['cable'], 'cable-dips': ['cable'],
-  'one-arm-row': ['dumbbell', 'machine', 'cable'],
-  'reverse-pec-deck-fly': ['dumbbell', 'machine', 'cable'],
-  'cable-crunch': ['cable'], rowing: ['machine'],
-  'chest-press': ['machine', 'cable'], 'shoulder-press': ['machine'],
-}
 const aliases = {
   'pec-deck-fly': ['dumbbell-fly', 'machine'],
   'cable-chest-press': ['chest-press', 'cable'],
@@ -69,10 +45,8 @@ export function familyId(exercise) {
   const base = definition(exercise)
   return aliases[base?.id]?.[0] ?? base?.id ?? exercise?.id
 }
-export function equipmentOptions(exercise) {
-  const named = namedEquipment(exercise)
-  const allowed = definition(exercise) ? options[familyId(exercise)] ?? (named ? [named.equipment] : []) : named ? [named.equipment] : []
-  return Object.keys(EQUIPMENT_LABELS).filter(equipment => allowed.includes(equipment))
+export function equipmentOptions() {
+  return ['unspecified', 'barbell', 'dumbbell', 'smith', 'machine', 'cable']
 }
 export function movementName(exercise) {
   if (!definition(exercise)) return namedEquipment(exercise)?.name ?? exercise?.name
@@ -87,7 +61,7 @@ export function recordEquipment(card, exercise) {
   if (aliases[base?.id]) return aliases[base.id][1]
   const named = namedEquipment(exercise)
   if (named) return named.equipment
-  return equipmentOptions(exercise).length ? 'unspecified' : null
+  return 'unspecified'
 }
 export function exerciseChoices(exercises) {
   const choices = new Map()
@@ -112,22 +86,8 @@ export function previousEquipmentSet(sessions, exercises, exercise, equipment, e
   const latest = records.filter(r => r.date === records[0]?.date).at(-1)
   return latest?.sets.at(-1) ?? null
 }
-export function defaultEquipment(exercise, sessions, exercises, remembered) {
-  remembered = normalizeEquipment(remembered)
-  const allowed = equipmentOptions(exercise)
-  if (!allowed.length) return null
-  if (allowed.includes(remembered)) return remembered
-  const byId = new Map(exercises.map(ex => [ex.id, ex]))
-  for (const session of [...sessions].sort((a, b) => b.date.localeCompare(a.date))) {
-    for (const card of [...(session.exercises ?? [])].reverse()) {
-      const source = byId.get(card.exerciseId)
-      if (source && familyId(source) === familyId(exercise)) {
-        const equipment = recordEquipment(card, source)
-        if (allowed.includes(equipment)) return equipment
-      }
-    }
-  }
-  return namedEquipment(exercise)?.equipment ?? allowed[0]
+export function defaultEquipment() {
+  return 'unspecified'
 }
 export function changeCardEquipment(cards, index, exercise, equipment) {
   const card = cards[index]

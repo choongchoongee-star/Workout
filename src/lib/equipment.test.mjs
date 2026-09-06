@@ -25,7 +25,7 @@ test('equipment changes preserve populated and duplicate cards, replacing only e
   assert.equal(emptySwitched.length, 3)
   assert.equal(emptySwitched[2].equipment, 'dumbbell')
   assert.equal(changeCardEquipment(cards, 1, bench, 'barbell'), cards)
-  assert.equal(changeCardEquipment(cards, 1, bench, 'machine'), cards)
+  assert.equal(changeCardEquipment(cards, 1, bench, 'invalid'), cards)
 })
 
 test('progress includes every duplicate card and previous sets use the last matching card, never another equipment', () => {
@@ -36,11 +36,14 @@ test('progress includes every duplicate card and previous sets use the last matc
   assert.equal(previousEquipmentSet(sessions, exercises, bench, 'dumbbell', '2026-09-05'), null)
 })
 
-test('defaults honor last selection then recent cards, ignoring unsupported and unspecified equipment', () => {
-  assert.equal(defaultEquipment(bench, sessions, exercises, 'smith'), 'smith')
-  assert.equal(defaultEquipment(bench, sessions, exercises, 'machine'), 'barbell')
-  assert.equal(defaultEquipment(bench, [], exercises), 'barbell')
-  assert.equal(defaultEquipment(exercises.find(e => e.id === 'plank'), sessions, exercises), null)
+test('all movements including custom, bodyweight and cardio start unspecified regardless of history', () => {
+  for (const exercise of [...exercises, { id: 'custom', name: 'Custom move', type: 'weight' }]) {
+    assert.deepEqual(equipmentOptions(exercise), ['unspecified', 'barbell', 'dumbbell', 'smith', 'machine', 'cable'])
+    assert.equal(defaultEquipment(exercise, sessions, exercises, 'smith'), 'unspecified')
+    const cards = [{ exerciseId: exercise.id, equipment: 'unspecified', sets: [] }]
+    assert.equal(changeCardEquipment(cards, 0, exercise, 'machine')[0].equipment, 'machine')
+    assert.equal(changeCardEquipment([{ ...cards[0], equipment: 'barbell' }], 0, exercise, 'unspecified')[0].equipment, 'unspecified')
+  }
 })
 
 test('legacy unknown equipment stays separate; explicit dumbbell aliases share one movement', () => {
@@ -64,7 +67,7 @@ test('custom names and promoted legacy IDs retain identity', () => {
   assert.equal(recordEquipment({}, promoted), 'dumbbell')
   const custom = { ...bench, name: 'My bench variation' }
   assert.equal(movementName(custom), custom.name)
-  assert.deepEqual(equipmentOptions(custom), [])
+  assert.deepEqual(equipmentOptions(custom), equipmentOptions(bench))
 })
 
 test('local and Markdown backup restore retain equipment and duplicate cards', () => {
@@ -93,8 +96,8 @@ test('legacy EZ Bar records and preferences join Barbell without losing duplicat
   assert.deepEqual(loaded[0].exercises.map(c => c.sets), old[0].exercises.map(c => c.sets))
   assert.equal(equipmentRecords(loaded, exercises, curl, 'barbell').length, 3)
   assert.equal(previousEquipmentSet(loaded, exercises, curl, 'barbell', '2020-01-03').weight, 20)
-  assert.equal(defaultEquipment(curl, [], exercises, 'ezbar'), 'barbell')
-  assert.deepEqual(equipmentOptions(curl), ['barbell', 'dumbbell', 'cable'])
+  assert.equal(defaultEquipment(curl, [], exercises, 'ezbar'), 'unspecified')
+  assert.deepEqual(equipmentOptions(curl), equipmentOptions(bench))
   for (const exercise of exercises) assert(!equipmentOptions(exercise).includes('ezbar'))
   const legacy = `# Workout history\n<!-- workout-backup:v1\n${JSON.stringify({ version: 1, exercises, sessions: old })}\n-->`
   assert.deepEqual(parseWorkoutMarkdown(legacy).sessions, loaded)
@@ -133,7 +136,7 @@ test('equipment-bearing names display as movements while historical equipment st
   }
   const custom = { id: 'custom-press', name: 'Smith Machine Incline Press', category: 'Chest', type: 'weight' }
   assert.equal(movementName(custom), 'Incline Press')
-  assert.deepEqual(equipmentOptions(custom), ['smith'])
+  assert.deepEqual(equipmentOptions(custom), equipmentOptions(bench))
   assert.equal(recordEquipment({}, custom), 'smith')
   assert.equal(familyId(custom), custom.id)
   assert.deepEqual(old, before)
