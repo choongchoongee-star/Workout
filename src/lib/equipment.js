@@ -31,14 +31,34 @@ const options = {
   'skull-crusher': ['barbell', 'dumbbell'],
   'seated-row': ['machine', 'cable'],
   'lat-pulldown': ['cable', 'machine'],
-  'chest-press': ['machine'], 'shoulder-press': ['machine'],
+  'dumbbell-fly': ['dumbbell', 'machine', 'cable'],
+  'cable-crossover': ['cable'], 'cable-dips': ['cable'],
+  'one-arm-row': ['dumbbell', 'machine', 'cable'],
+  'reverse-pec-deck-fly': ['dumbbell', 'machine', 'cable'],
+  'cable-crunch': ['cable'], rowing: ['machine'],
+  'chest-press': ['machine', 'cable'], 'shoulder-press': ['machine'],
 }
 const aliases = {
+  'pec-deck-fly': ['dumbbell-fly', 'machine'],
+  'cable-chest-press': ['chest-press', 'cable'],
   'incline-dumbbell-press': ['incline-bench', 'dumbbell'],
   'dumbbell-shoulder-press': ['overhead-press', 'dumbbell'],
   'dumbbell-curl': ['barbell-curl', 'dumbbell'],
   'ez-bar-curl': ['barbell-curl', 'barbell'],
   'cable-row': ['seated-row', 'cable'],
+}
+
+// Equipment words are presentation metadata; original IDs/names remain intact for backups.
+function namedEquipment(exercise) {
+  const name = exercise?.name ?? ''
+  const patterns = [['smith', /\bsmith(?:[ -]+machine)?\b/i], ['barbell', /\b(?:barbell|ez[ -]?bar)\b/i], ['dumbbell', /\bdumbbell\b/i], ['cable', /\bcable\b/i], ['machine', /\b(?:machine|pec[ -]+deck)\b/i]]
+  for (const [equipment, pattern] of patterns) {
+    if (pattern.test(name)) {
+      const clean = name.replace(pattern, '').replace(/\(\s*\)/g, '').replace(/\s+/g, ' ').trim()
+      if (clean) return { equipment, name: clean }
+    }
+  }
+  return null
 }
 
 function definition(exercise) {
@@ -50,20 +70,23 @@ export function familyId(exercise) {
   return aliases[base?.id]?.[0] ?? base?.id ?? exercise?.id
 }
 export function equipmentOptions(exercise) {
-  const allowed = definition(exercise) ? options[familyId(exercise)] ?? [] : []
+  const named = namedEquipment(exercise)
+  const allowed = definition(exercise) ? options[familyId(exercise)] ?? (named ? [named.equipment] : []) : named ? [named.equipment] : []
   return Object.keys(EQUIPMENT_LABELS).filter(equipment => allowed.includes(equipment))
 }
 export function movementName(exercise) {
-  if (!definition(exercise)) return exercise?.name
+  if (!definition(exercise)) return namedEquipment(exercise)?.name ?? exercise?.name
   const family = familyId(exercise)
   if (family === 'barbell-curl') return 'Biceps Curl'
-  return DEFAULT_EXERCISES.find(ex => ex.id === family)?.name ?? exercise?.name
+  const representative = DEFAULT_EXERCISES.find(ex => ex.id === family) ?? exercise
+  return namedEquipment(representative)?.name ?? representative?.name
 }
 export function recordEquipment(card, exercise) {
   if (card.equipment) return normalizeEquipment(card.equipment)
   const base = definition(exercise)
   if (aliases[base?.id]) return aliases[base.id][1]
-  if (base?.id === 'barbell-curl') return 'barbell'
+  const named = namedEquipment(exercise)
+  if (named) return named.equipment
   return equipmentOptions(exercise).length ? 'unspecified' : null
 }
 export function exerciseChoices(exercises) {
@@ -104,7 +127,7 @@ export function defaultEquipment(exercise, sessions, exercises, remembered) {
       }
     }
   }
-  return allowed[0]
+  return namedEquipment(exercise)?.equipment ?? allowed[0]
 }
 export function changeCardEquipment(cards, index, exercise, equipment) {
   const card = cards[index]

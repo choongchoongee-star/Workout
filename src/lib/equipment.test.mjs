@@ -109,3 +109,32 @@ test('legacy EZ Bar records and preferences join Barbell without losing duplicat
   assert.equal(parseWorkoutMarkdown(smith).sessions[0].exercises[0].equipment, 'smith')
   assert.deepEqual(old, before)
 })
+
+
+test('equipment-bearing names display as movements while historical equipment stays separate', () => {
+  const fly = exercises.find(ex => ex.id === 'dumbbell-fly')
+  const machineFly = exercises.find(ex => ex.id === 'pec-deck-fly')
+  const old = [{ id: '2020-01-02', date: '2020-01-02', exercises: [
+    { exerciseId: fly.id, sets: [set(15)] },
+    { exerciseId: machineFly.id, sets: [set(45)] },
+    { exerciseId: machineFly.id, sets: [set(50)] },
+  ] }]
+  const before = structuredClone(old)
+  assert.equal(movementName(fly), 'Fly')
+  assert.equal(movementName(machineFly), 'Fly')
+  assert.equal(exerciseChoices(exercises).filter(ex => movementName(ex) === 'Fly').length, 1)
+  assert.equal(previousEquipmentSet(old, exercises, fly, 'dumbbell', '2020-01-03').weight, 15)
+  assert.equal(previousEquipmentSet(old, exercises, fly, 'machine', '2020-01-03').weight, 50)
+  const restored = parseWorkoutMarkdown(buildMarkdown(old, exercises))
+  assert.equal(equipmentRecords(restored.sessions, restored.exercises, fly, 'machine').length, 2)
+  for (const ex of exercises.filter(ex => /\b(dumbbell|barbell|cable|machine|pec deck|ez-bar)\b/i.test(ex.name))) {
+    assert(!/\b(dumbbell|barbell|cable|machine|pec deck|ez-bar)\b/i.test(movementName(ex)), ex.name)
+    assert(equipmentOptions(ex).includes(recordEquipment({}, ex)), ex.name)
+  }
+  const custom = { id: 'custom-press', name: 'Smith Machine Incline Press', category: 'Chest', type: 'weight' }
+  assert.equal(movementName(custom), 'Incline Press')
+  assert.deepEqual(equipmentOptions(custom), ['smith'])
+  assert.equal(recordEquipment({}, custom), 'smith')
+  assert.equal(familyId(custom), custom.id)
+  assert.deepEqual(old, before)
+})

@@ -43,6 +43,8 @@ function safeFloat(raw, fallback) {
 
 export const storage = {
   isAvailable,
+  getTheme: () => safeGet('wl_theme') === 'dark' ? 'dark' : 'light',
+  setTheme: (value) => safeSet('wl_theme', value === 'dark' ? 'dark' : 'light'),
   getEquipment: (family) => safeGet(`wl_equipment_${family}`),
   setEquipment: (family, equipment) => safeSet(`wl_equipment_${family}`, equipment),
   getWeightUnit: () => safeGet(KEYS.WEIGHT_UNIT) === 'lbs' ? 'lbs' : 'kg',

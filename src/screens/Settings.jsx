@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { applyTheme } from '../lib/theme'
 import { storage } from '../lib/storage'
 import { useApp } from '../context/AppContext'
 import { buildMarkdown, exportFilename } from '../lib/exportUtils'
@@ -22,6 +23,7 @@ function Field({ label, hint, children }) {
 export default function Settings() {
   const { sessions, exercises, importWorkoutData, syncing, syncError, retrySave } = useApp()
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
+  const [theme, setTheme] = useState(storage.getTheme)
   const [weightUnit, setWeightUnit] = useState(storage.getWeightUnit)
   const [status, setStatus] = useState({})
   const [importFile, setImportFile] = useState(null)
@@ -127,6 +129,17 @@ export default function Settings() {
       {/* Body settings */}
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
         <h2 className="text-zinc-300 font-medium mb-4">Preferences</h2>
+        <Field label="Appearance" hint="Applies immediately and is saved on this device.">
+          <div role="group" aria-label="Appearance" className="flex gap-2">
+            {['light', 'dark'].map(value => (
+              <button key={value} type="button" aria-pressed={theme === value}
+                onClick={() => { setTheme(value); storage.setTheme(value); applyTheme(value) }}
+                className={`flex-1 min-h-11 rounded-lg text-sm font-medium ${theme === value ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-800 text-zinc-400'}`}>
+                {value === 'dark' ? 'Dark' : 'Light'}
+              </button>
+            ))}
+          </div>
+        </Field>
         <Field label="Weight unit" hint="Used for workout entry and history. Existing weights are converted.">
           <div role="group" aria-label="Weight unit" className="flex gap-2">
             {['kg', 'lbs'].map(unit => (

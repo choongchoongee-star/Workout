@@ -572,7 +572,7 @@ export default function Session() {
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
-                      exerciseName={exercise?.name || se.exerciseId}
+                      exerciseName={movementName(exercise) || se.exerciseId}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
                       onRemove={() => removeSet(exIdx, setIdx)}
