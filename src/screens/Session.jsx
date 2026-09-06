@@ -9,6 +9,7 @@ import { calcCalories } from '../lib/calories'
 import StepperInput from '../components/StepperInput'
 import RestTimer from '../components/RestTimer'
 import UndoToast from '../components/UndoToast'
+import SwipeToDelete from '../components/SwipeToDelete'
 import { CATEGORIES } from '../data/exercises'
 import { formatDate, localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
@@ -142,13 +143,10 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
   const locked = set.done
 
   return (
-    <div role="group" aria-label={`Set ${setIdx + 1}`} className="workout-set-row grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-zinc-700/60">
+    <SwipeToDelete label={`Set ${setIdx + 1}`} onDelete={onRemove}>
+    <div className="workout-set-row grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-zinc-700/60">
       <div className="flex flex-col items-center">
         <span className={`text-center text-sm tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-400'}`}>{setIdx + 1}</span>
-        <button type="button" onClick={onRemove} aria-label="Delete set" title={`Delete set ${setIdx + 1}`}
-          className="flex h-11 w-11 items-center justify-center text-2xl text-zinc-400 active:text-red-300">
-          <span aria-hidden="true">×</span>
-        </button>
       </div>
       <StepperInput
         value={displayWeight(isBodyweight ? set.added_weight ?? 0 : set.weight ?? 20, unit)}
@@ -175,6 +173,7 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
         </span>
       </button>
     </div>
+    </SwipeToDelete>
   )
 }
 
@@ -455,14 +454,14 @@ export default function Session() {
       return copy
     })
 
-    setUndoData({ type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} — set ${setIdx + 1}` })
+    setUndoData({ token: Date.now(), type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} — set ${setIdx + 1}` })
   }
 
   function removeExercise(exIdx) {
     const removed = sessionExercises[exIdx]
     const exerciseName = exercises.find(e => e.id === removed?.exerciseId)?.name || removed?.exerciseId
     setSessionExercises(prev => prev.filter((_, i) => i !== exIdx))
-    setUndoData({ type: 'exercise', data: removed, index: exIdx, name: exerciseName })
+    setUndoData({ token: Date.now(), type: 'exercise', data: removed, index: exIdx, name: exerciseName })
   }
 
   const handleUndo = useCallback(() => {
@@ -524,6 +523,9 @@ export default function Session() {
       )}
 
       {/* Exercise cards */}
+      {sessionExercises.some(se => se.sets.length > 0 && exercises.find(ex => ex.id === se.exerciseId)?.type !== 'cardio') && (
+        <p className="mb-2 px-1 text-xs text-zinc-500">Swipe a set left to delete.</p>
+      )}
       <div className="space-y-3">
         {sessionExercises.map((se, exIdx) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
@@ -566,7 +568,7 @@ export default function Session() {
                   </div>
                   {se.sets.map((set, setIdx) => (
                     <SetRow
-                      key={setIdx}
+                      key={`${sessionDate}-${setIdx}`}
                       setIdx={setIdx}
                       set={set}
                       exerciseType={exercise?.type}
@@ -609,6 +611,7 @@ export default function Session() {
 
       {undoData && (
         <UndoToast
+          key={undoData.token}
           message={`${undoData.name} deleted`}
           onUndo={handleUndo}
           onDismiss={handleUndoDismiss}

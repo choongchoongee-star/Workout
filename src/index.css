@@ -76,6 +76,14 @@ input[type=number] { -moz-appearance: textfield; }
   min-height: clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem);
 }
 
+.swipe-delete [data-swipe-content] {
+  transition: transform 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-delete [data-swipe-content] { transition: none; }
+}
+
 /* The first column accommodates Shoulders on narrow phones. */
 .category-filters {
   display: grid;

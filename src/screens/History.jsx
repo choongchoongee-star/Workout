@@ -4,11 +4,12 @@ import { useApp } from '../context/AppContext'
 import { formatDate, localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
 import UndoToast from '../components/UndoToast'
+import SwipeToDelete from '../components/SwipeToDelete'
 
 export default function History() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { sessions, exercises, upsertSession, syncError } = useApp()
+  const { sessions, exercises, upsertSession, deleteSession, syncError } = useApp()
   const [jumpDate, setJumpDate] = useState(() => localTodayStr())
   const cardRefs = useRef({})
 
@@ -50,6 +51,8 @@ export default function History() {
         )}
       </div>
 
+      {sessions.length > 0 && <p className="mb-2 text-xs text-zinc-500">Swipe a workout left to delete.</p>}
+
       {syncError && (
         <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
           Could not save your workout on this device.
@@ -63,8 +66,14 @@ export default function History() {
           {sessions.map(session => {
             const mainCategory = getMainCategory(session.exercises ?? [], exercises)
             return (
-              <button
+              <SwipeToDelete
                 key={session.id}
+                label={`workout on ${session.date}`}
+                className="rounded-xl"
+                surfaceClassName="bg-zinc-900"
+                onDelete={() => { setUndoSession(session); deleteSession(session.id) }}
+              >
+              <button
                 ref={el => { cardRefs.current[session.date] = el }}
                 onClick={() => navigate(`/history/${session.id}`)}
                 className="w-full bg-zinc-900 rounded-xl p-4 text-left active:bg-zinc-800"
@@ -76,6 +85,7 @@ export default function History() {
                   )}
                 </div>
               </button>
+              </SwipeToDelete>
             )
           })}
         </div>
@@ -83,6 +93,7 @@ export default function History() {
 
       {undoSession && (
         <UndoToast
+          key={undoSession.id}
           message="Workout deleted"
           onUndo={handleUndoRestore}
           onDismiss={handleUndoDismiss}
