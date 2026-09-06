@@ -1,4 +1,4 @@
-import { EQUIPMENT_LABELS } from './equipment.js'
+import { EQUIPMENT_LABELS, normalizeSessionEquipment } from './equipment.js'
 import { formatDate, localTodayStr } from './dateUtils.js'
 import { normalizeExercise } from './exerciseLibrary.js'
 
@@ -28,7 +28,7 @@ function exerciseLookup(exercises) {
 export function buildMarkdown(sessions, exercises) {
   const englishExercises = exercises.map(normalizeExercise)
   const map = exerciseLookup(englishExercises)
-  const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date))
+  const sorted = sessions.map(normalizeSessionEquipment).sort((a, b) => b.date.localeCompare(a.date))
   const lines = []
   lines.push('# Workout history')
   lines.push('')

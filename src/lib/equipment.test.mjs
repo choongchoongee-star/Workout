@@ -79,3 +79,33 @@ test('local and Markdown backup restore retain equipment and duplicate cards', (
   assert.throws(() => parseWorkoutMarkdown(markdown.replace('"equipment":"barbell"', '"equipment":"invalid"')), /equipment/)
   assert.throws(() => parseWorkoutMarkdown(markdown.replace('"equipment":"barbell"', '"equipment":["barbell"]')), /equipment/)
 })
+
+test('legacy EZ Bar records and preferences join Barbell without losing duplicate cards or set values', () => {
+  const curl = exercises.find(e => e.id === 'barbell-curl')
+  const oldCurl = exercises.find(e => e.id === 'ez-bar-curl')
+  const old = [{ id: '2020-01-02', date: '2020-01-02', exercises: [
+    card('barbell', 30, curl.id), card('ezbar', 25, curl.id),
+    { exerciseId: oldCurl.id, sets: [set(20)] },
+  ] }]
+  const before = structuredClone(old)
+  const loaded = parseLocalWorkoutData(JSON.stringify({ exercises, sessions: old })).sessions
+  assert.equal(loaded[0].exercises[1].equipment, 'barbell')
+  assert.deepEqual(loaded[0].exercises.map(c => c.sets), old[0].exercises.map(c => c.sets))
+  assert.equal(equipmentRecords(loaded, exercises, curl, 'barbell').length, 3)
+  assert.equal(previousEquipmentSet(loaded, exercises, curl, 'barbell', '2020-01-03').weight, 20)
+  assert.equal(defaultEquipment(curl, [], exercises, 'ezbar'), 'barbell')
+  assert.deepEqual(equipmentOptions(curl), ['barbell', 'dumbbell', 'cable'])
+  for (const exercise of exercises) assert(!equipmentOptions(exercise).includes('ezbar'))
+  const legacy = `# Workout history\n<!-- workout-backup:v1\n${JSON.stringify({ version: 1, exercises, sessions: old })}\n-->`
+  assert.deepEqual(parseWorkoutMarkdown(legacy).sessions, loaded)
+  const exported = buildMarkdown(old, exercises)
+  assert(!exported.includes('"equipment":"ezbar"'))
+  assert.deepEqual(parseWorkoutMarkdown(exported).sessions, loaded)
+  const readable = exported.replace(/<!-- workout-backup:v1\n[^]*?\n-->\n/, '').replace('- Equipment: Barbell', '- Equipment: EZ Bar')
+  assert.equal(parseWorkoutMarkdown(readable).sessions[0].exercises[0].equipment, 'barbell')
+  const smith = buildMarkdown([{ ...old[0], exercises: [card('smith', 40)] }], exercises)
+    .replace(/<!-- workout-backup:v1\n[^]*?\n-->\n/, '')
+    .replace('- Equipment: Smith', '- Equipment: Smith Machine')
+  assert.equal(parseWorkoutMarkdown(smith).sessions[0].exercises[0].equipment, 'smith')
+  assert.deepEqual(old, before)
+})

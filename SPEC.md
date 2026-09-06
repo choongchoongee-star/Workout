@@ -468,13 +468,13 @@ kcal = round( MET × 체중(kg) × (분/60) )
 ### 장비 선택과 운동 계열 (2026-09-06)
 - 구현: `src/lib/equipment.js`, `src/components/EquipmentSelect.jsx`. 표시 목록만 계열별로 묶으며 기존 운동 ID·정의·세트는 삭제/병합하지 않는다. 이름/category/type이 알려진 기본 정의와 일치할 때만 계열로 인식한다. 임의 커스텀 이름에는 장비를 추측하지 않는다.
 - Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row 계열로 묶는다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
-- SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/ezbar/unspecified다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
-- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. Bench/Incline/Decline Press 및 Overhead Press: Barbell/Dumbbell/Smith Machine. Squat: Barbell/Smith Machine/Dumbbell. RDL: Barbell/Dumbbell/Smith Machine. Deadlift: Barbell/Dumbbell. Lateral Raise: Dumbbell/Cable/Machine. Front Raise: Dumbbell/Barbell/Cable. Biceps Curl: Barbell/Dumbbell/EZ Bar/Cable. Overhead Triceps Extension: Dumbbell/Cable/EZ Bar. Preacher Curl: EZ Bar/Dumbbell/Machine. Skull Crusher: EZ Bar/Barbell/Dumbbell. Seated Row: Machine/Cable. Lat Pulldown: Cable/Machine. Chest Press와 Shoulder Press: Machine. 이외 운동에는 선택기를 표시하지 않는다.
+- SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/unspecified다. 구형 ezbar는 로드/가져오기/내보내기 및 이전 기록 조회 시 barbell로 정규화하며 세트·카드·운동 ID는 보존한다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
+- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. Bench/Incline/Decline Press 및 Overhead Press: Barbell/Dumbbell/Smith. Squat: Barbell/Dumbbell/Smith. RDL: Barbell/Dumbbell/Smith Machine. Deadlift: Barbell/Dumbbell. Lateral Raise: Dumbbell/Machine/Cable. Front Raise: Barbell/Dumbbell/Cable. Biceps Curl: Barbell/Dumbbell/Cable. Overhead Triceps Extension: Barbell/Dumbbell/Cable. Preacher Curl: Barbell/Dumbbell/Machine. Skull Crusher: Barbell/Dumbbell. Seated Row: Machine/Cable. Lat Pulldown: Machine/Cable. Chest Press와 Shoulder Press: Machine. 이외 운동에는 선택기를 표시하지 않는다.
 - 추가 기본값: 기기 설정 `wl_equipment_[familyId]` → 날짜 역순/동일 날짜 카드 역순의 최근 유효 장비 → 선택지 첫 장비. 추가/변경 시 기억하며 Progress 열람 필터는 기억값을 바꾸지 않는다. 이 기기 설정은 백업에 포함하지 않고 복원 기기는 기록에서 장비를 찾는다.
 - 0세트 카드는 제자리 변경한다. 세트가 하나라도 있으면 입력/완료 여부에 관계없이 기존 카드와 세트를 보존하고 선택한 장비의 0세트 카드를 맨 아래 추가·스크롤한다. 현재 장비 재선택은 추가하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
 - 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동은 기존대로다.
 - History 상세는 장비를 함께 표시한다. Progress는 운동 선택 후 장비 필터로 분리하고 같은 날짜·장비의 모든 카드를 date:index 키로 각각 표시한다. 기본 장비 기록이 없고 Unspecified 과거 기록이 있으면 처음부터 Unspecified를 표시한다.
-- 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith Machine`으로 출력한다. 구형 보고서 파서도 이 줄을 읽는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
+- 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith`으로 출력한다. 구형 보고서의 Smith Machine은 smith로, EZ Bar는 barbell로 읽는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
 - 단위 테스트 `src/lib/equipment.test.mjs`, 브라우저 회귀 검사 `scripts/verify-equipment.mjs`. 브라우저 실행 변수: PLAYWRIGHT_MODULE/WORKOUT_URL/BROWSER_CHANNEL.
 
 ### 8.5 자동 저장 / 디바운스 (`AppContext`)
@@ -659,3 +659,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 단일 운동 목록과 카드별 장비 선택을 구현했다. 최근 장비 기본값·장비별 이전 세트/Progress·세트가 있는 카드 장비 전환 시 새 카드 추가·동일 운동/장비 중복을 지원한다. 기존 무장비 기록과 별도 장비 ID를 보존하고 백업/복원에 equipment를 반영했다. 테스트 45개, 장비 전환/중복/재로드/Progress/Undo 및 삭제 회귀 브라우저 검사, 4개 화면 너비, lint·build를 통과했다. 실제 iPhone 검증과 OTA 배포는 별도다.
 
 - 2026-09-06: 사용자 승인으로 카드별 장비 선택·장비별 기록/이전 중량 분리·중복 카드 보존(36a347e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `383bdcf9ffe83cfbde2e94c32725e7b43b50c7b503b93cfbd3bc1c3dd7baa067`, ZIP 384562 bytes. native fingerprint·iOS 호환 검사, 장비/OTA 테스트 13개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
+
+- 2026-09-06: 장비 표시를 Barbell · Dumbbell · Smith · Machine · Cable 다섯 가지로 확정했다. 운동별 가능한 선택지만 이 순서로 표시하며 Smith Machine 표시는 Smith로 축약한다. 구형 EZ Bar 장비/기억값/명시적 EZ-bar Curl은 Barbell로 연결하고 로컬 로드·백업 가져오기/내보내기에서도 정규화한다. 카드 중복·세트 수치·기존 운동 ID는 유지한다. Unspecified는 장비 불명확한 구형 기록 표시용으로만 유지한다. 테스트 46개·장비 전환/중복/재로드/Progress/Undo 브라우저 검사·lint·build를 통과했다. OTA 배포는 별도다.

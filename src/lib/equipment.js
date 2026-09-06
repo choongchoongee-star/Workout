@@ -1,8 +1,17 @@
 import { DEFAULT_EXERCISES } from '../data/exercises.js'
 
 export const EQUIPMENT_LABELS = {
-  barbell: 'Barbell', dumbbell: 'Dumbbell', smith: 'Smith Machine',
-  machine: 'Machine', cable: 'Cable', ezbar: 'EZ Bar', unspecified: 'Unspecified',
+  barbell: 'Barbell', dumbbell: 'Dumbbell', smith: 'Smith',
+  machine: 'Machine', cable: 'Cable', unspecified: 'Unspecified',
+}
+
+export function normalizeEquipment(equipment) {
+  return equipment === 'ezbar' ? 'barbell' : equipment
+}
+
+export function normalizeSessionEquipment(session) {
+  return { ...session, exercises: session.exercises?.map(card =>
+    card.equipment === 'ezbar' ? { ...card, equipment: 'barbell' } : card) }
 }
 
 // Only known movements receive compatible choices. Custom movements stay unchanged.
@@ -16,10 +25,10 @@ const options = {
   deadlift: ['barbell', 'dumbbell'],
   'lateral-raise': ['dumbbell', 'cable', 'machine'],
   'front-raise': ['dumbbell', 'barbell', 'cable'],
-  'barbell-curl': ['barbell', 'dumbbell', 'ezbar', 'cable'],
-  'overhead-extension': ['dumbbell', 'cable', 'ezbar'],
-  'preacher-curl': ['ezbar', 'dumbbell', 'machine'],
-  'skull-crusher': ['ezbar', 'barbell', 'dumbbell'],
+  'barbell-curl': ['barbell', 'dumbbell', 'cable'],
+  'overhead-extension': ['barbell', 'dumbbell', 'cable'],
+  'preacher-curl': ['barbell', 'dumbbell', 'machine'],
+  'skull-crusher': ['barbell', 'dumbbell'],
   'seated-row': ['machine', 'cable'],
   'lat-pulldown': ['cable', 'machine'],
   'chest-press': ['machine'], 'shoulder-press': ['machine'],
@@ -28,7 +37,7 @@ const aliases = {
   'incline-dumbbell-press': ['incline-bench', 'dumbbell'],
   'dumbbell-shoulder-press': ['overhead-press', 'dumbbell'],
   'dumbbell-curl': ['barbell-curl', 'dumbbell'],
-  'ez-bar-curl': ['barbell-curl', 'ezbar'],
+  'ez-bar-curl': ['barbell-curl', 'barbell'],
   'cable-row': ['seated-row', 'cable'],
 }
 
@@ -41,7 +50,8 @@ export function familyId(exercise) {
   return aliases[base?.id]?.[0] ?? base?.id ?? exercise?.id
 }
 export function equipmentOptions(exercise) {
-  return definition(exercise) ? options[familyId(exercise)] ?? [] : []
+  const allowed = definition(exercise) ? options[familyId(exercise)] ?? [] : []
+  return Object.keys(EQUIPMENT_LABELS).filter(equipment => allowed.includes(equipment))
 }
 export function movementName(exercise) {
   if (!definition(exercise)) return exercise?.name
@@ -50,7 +60,7 @@ export function movementName(exercise) {
   return DEFAULT_EXERCISES.find(ex => ex.id === family)?.name ?? exercise?.name
 }
 export function recordEquipment(card, exercise) {
-  if (card.equipment) return card.equipment
+  if (card.equipment) return normalizeEquipment(card.equipment)
   const base = definition(exercise)
   if (aliases[base?.id]) return aliases[base.id][1]
   if (base?.id === 'barbell-curl') return 'barbell'
@@ -80,6 +90,7 @@ export function previousEquipmentSet(sessions, exercises, exercise, equipment, e
   return latest?.sets.at(-1) ?? null
 }
 export function defaultEquipment(exercise, sessions, exercises, remembered) {
+  remembered = normalizeEquipment(remembered)
   const allowed = equipmentOptions(exercise)
   if (!allowed.length) return null
   if (allowed.includes(remembered)) return remembered

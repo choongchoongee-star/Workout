@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core'
+import { normalizeSessionEquipment } from './equipment.js'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 
 const DATA_FILE = 'workout-data.json'
@@ -17,7 +18,7 @@ export function parseLocalWorkoutData(raw) {
   if (!data || !Array.isArray(data.exercises) || !Array.isArray(data.sessions)) {
     throw new Error('The local workout file is invalid.')
   }
-  return { exercises: data.exercises, sessions: data.sessions }
+  return { exercises: data.exercises, sessions: data.sessions.map(normalizeSessionEquipment) }
 }
 
 async function readNativeFile(path, filesystem = Filesystem) {

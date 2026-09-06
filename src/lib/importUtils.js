@@ -1,4 +1,4 @@
-import { EQUIPMENT_LABELS } from './equipment.js'
+import { EQUIPMENT_LABELS, normalizeEquipment } from './equipment.js'
 import { DEFAULT_EXERCISES } from '../data/exercises.js'
 import { normalizeCategory, normalizeExercise } from './exerciseLibrary.js'
 
@@ -64,10 +64,10 @@ function validateBackup(data) {
       id: session.id, date: session.date, ...copyNumbers(session, ['duration_min']),
       exercises: session.exercises.map(ex => {
         requireValue(isObject(ex) && isText(ex.exerciseId) && Array.isArray(ex.sets))
-        requireValue(ex.equipment === undefined || (typeof ex.equipment === 'string' && Object.hasOwn(EQUIPMENT_LABELS, ex.equipment)), 'Invalid exercise equipment.')
+        requireValue(ex.equipment === undefined || (typeof ex.equipment === 'string' && Object.hasOwn(EQUIPMENT_LABELS, normalizeEquipment(ex.equipment))), 'Invalid exercise equipment.')
         return {
           exerciseId: ex.exerciseId,
-          ...(ex.equipment === undefined ? {} : { equipment: ex.equipment }),
+          ...(ex.equipment === undefined ? {} : { equipment: normalizeEquipment(ex.equipment) }),
           sets: ex.sets.map(set => {
             requireValue(isObject(set) && (set.done === undefined || typeof set.done === 'boolean'))
             return {
@@ -148,7 +148,8 @@ function parseLegacyMarkdown(text, knownExercises) {
       const category = normalizeCategory(rawCategory)
       let equipment
       if (lines[index]?.startsWith('- Equipment: ')) {
-        const label = lines[index++].slice('- Equipment: '.length)
+        const oldLabel = lines[index++].slice('- Equipment: '.length)
+        const label = oldLabel === 'EZ Bar' ? 'Barbell' : oldLabel === 'Smith Machine' ? 'Smith' : oldLabel
         equipment = Object.keys(EQUIPMENT_LABELS).find(key => EQUIPMENT_LABELS[key] === label)
         requireValue(equipment, 'Invalid exercise equipment.')
       }
