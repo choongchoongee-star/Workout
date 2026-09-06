@@ -447,7 +447,7 @@ Workout/
 
 - `Session.SetRow`와 `History`가 공유한다. Pointer Events로 10px 이상 이동 시 가로 의도를 판별하고, 가로가 세로의 1.3배보다 클 때만 포인터를 캡처한다. `touch-action: pan-y`로 세로 스크롤을 유지한다.
 - 이동 범위는 0–88px, 44px 이상 열면 Delete를 완전히 노출한다. 취소 시 시작 위치로 돌아온다. 오른쪽 스와이프·열린 행 탭·외부 터치/포커스·Escape로 닫는다. 다른 행을 조작하면 기존 행이 닫힌다. 드래그 종료 클릭은 차단하여 숫자 수정·완료·상세 이동을 방지한다.
-- 닫힌 삭제 버튼은 hidden으로 탭/접근성 트리에서 제외한다. 행 포커스에서 Delete/ArrowLeft로 열고 ArrowRight/Escape로 닫는다. 스크린 리더용 Show delete 버튼도 제공한다. 상단에 짧은 스와이프 안내를 표시한다. 160ms 전환은 reduced-motion 설정에서 생략한다.
+- 삭제 버튼은 행 뒤에 배치해 밀린 폭만큼만 드러낸다. 닫혀 있거나 드래그 중이면 disabled·aria-hidden·tabIndex=-1로 조작 및 접근성 탐색에서 제외한다. 행 포커스에서 Delete/ArrowLeft로 열고 ArrowRight/Escape로 닫는다. 스크린 리더용 Show delete 버튼도 제공한다. 상단에 짧은 스와이프 안내를 표시한다. 손가락 추적은 ref에 최신 위치를 보관하고 requestAnimationFrame마다 translate3d만 갱신해 매 이동의 React 재렌더링을 피한다. 드래그 중 transition은 끄고 손을 뗄 때 240ms cubic-bezier(0.22, 1, 0.36, 1)로 감속한다. reduced-motion 설정에서는 전환을 생략한다.
 - 세트와 History 삭제 모두 기존 데이터 삭제/Undo 경로를 사용한다. 새 삭제는 10초 복구 시간을 다시 시작하며 저장 스키마와 장비별 기록 분리는 유지한다.
 
 ### UndoToast
@@ -676,3 +676,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: History 날짜 카드와 Workout 세트 행에 공통 SwipeToDelete를 적용했다. 왼쪽 스와이프로 폭 88px Delete를 노출하고 클릭 시 삭제하며, 세트 번호 아래 ×는 제거했다. 상시 ±·완료·행 높이·기존 운동 전체 Delete는 유지한다. 한 행만 열기·외부 탭/오른쪽 스와이프 닫기·키보드/스크린 리더 대체 조작·10초 Undo 재시작을 지원한다. scripts/verify-swipe-deletion.mjs에서 실제 터치 입력의 짧은/취소/세로 제스처, 오조작 방지, 완료 세트 복구, History 삭제와 상세 이동, 탭 이동·저장 후 재로드, 키보드, 320/375/390/430px를 검증했다. 기존 운동 삭제 회귀 검사·테스트 46개·lint·build도 통과했다. OTA 배포와 실제 iPhone 확인은 별도다.
 
 - 2026-09-06: 사용자 승인으로 History 날짜 카드·Workout 세트 행의 스와이프 삭제와 10초 Undo 개선(소스 22df843)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `6dda92558d65e733d3a79818113b143dfc98d9f3a6f6114e8d87d9d92173eb72`, ZIP 385953 bytes. native fingerprint·iOS 호환 검사, OTA 테스트 7개, lint·build 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 새 네이티브 빌드는 실행하지 않았으며 실제 iPhone 적용 확인은 별도다.
+
+- 2026-09-06: 스와이프 드래그 위치를 React state 대신 ref/requestAnimationFrame/translate3d로 처리하고 드래그 중 transition을 끈다. Delete를 행 뒤에 두어 부분 드래그에서 버튼 전체가 튀어나오지 않게 하며, 닫힌 상태·드래그 중에는 조작을 차단한다. 손을 떼면 240ms 감속 곡선으로 정착하고 진행 중 전환의 화면 위치를 다음 제스처 시작점으로 사용한다. 브라우저에서 20/30/40px 터치 추적·부분 노출·삭제/Undo·저장·키보드·4개 화면 너비와 lint·build를 검증했다. OTA 배포 및 실제 iPhone 체감 확인은 별도다.

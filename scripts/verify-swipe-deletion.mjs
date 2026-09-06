@@ -37,11 +37,26 @@ try {
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * i / 8, y: y + dy * i / 8 }] })
     }
     await cdp.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] })
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(280)
   }
   const deleteButton = row => row.getByRole('button', { name: /^Delete / })
   assert.equal(await deleteButton(rows.first()).isVisible(), false)
   const original = (await stored()).find(s => s.id === today)
+  // A partial drag must reveal only the uncovered strip, not pop the entire action over the row.
+  const box = await rows.first().boundingBox()
+  const touchX = box.x + box.width * 0.7
+  const touchY = box.y + box.height / 2
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: touchX, y: touchY }] })
+  for (const distance of [20, 30, 40]) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: touchX - distance, y: touchY }] })
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    const translation = await rows.first().locator('[data-swipe-content]').evaluate(el => -new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)
+    assert(Math.abs(translation - distance) < 2, 'The row follows each touch frame without easing lag')
+    assert(await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('[data-swipe-content]'), { x: box.x + box.width - 60, y: touchY }), 'Delete cannot overlay still-covered content')
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] })
+  await page.waitForTimeout(280)
+
   await swipe(rows.first(), -24)
   assert.equal(await deleteButton(rows.first()).isVisible(), false, 'Short gesture stays closed')
   await swipe(rows.first())
