@@ -686,3 +686,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 운동명에 포함된 기구 표현을 기본 표시 이름과 장비 선택으로 분리하고 Fly·Chest Press 별도 기구 항목을 검색 계열로 묶었다. ID·세트·날짜별 중복은 유지하며 명시적 장비의 구형 기록은 해당 장비로 해석한다. 사용자 4색 청색 팔레트로 Light/Dark 전환을 추가하고 wl_theme로 즉시 저장한다. 장비 기록 분리/백업 왕복 포함 테스트 47개, scripts/verify-dark-mode.mjs의 테마 재실행·탭 이동·구형 장비 선택·세트 있는 카드 전환·검색 단일화·4개 화면 너비, lint·build를 통과했다. 실제 iPhone 검증과 OTA 배포는 별도다.
 
 - 2026-09-06: 운동별 장비 제한을 없애고 모든 운동에 Unspecified/Barbell/Dumbbell/Smith/Machine/Cable을 제공한다. 새 카드·Progress 기본값은 항상 Unspecified이며 최근 장비 기억값은 사용하지 않는다. 기존 명시 장비·세트·중복 카드는 유지한다. 빈 유산소 카드의 장비 변경 후 입력 저장도 지원한다. 테스트 47개, 장비 전환·미정 기본값·유산소 입력 재로드·다크모드 브라우저 검사를 통과했다.
+
+- 2026-09-06: 사용자 요청으로 운동명/장비 분리·다크모드·모든 운동 공통 장비와 Unspecified 기본값(소스 e68400e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `994d6843309ed5819dfdae4bfebb6f9ff8ae6957f384c51463b393707fde77fc`, ZIP 386661 bytes. 테스트 47개·장비/다크모드 브라우저 검사·lint·build·iOS 호환/native fingerprint 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 실제 iPhone 확인은 별도다.
