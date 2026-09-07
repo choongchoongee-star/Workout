@@ -9,6 +9,19 @@ const entries = section => Object.entries(objects[section]).filter(([, value]) =
 const [appID, app] = entries('PBXNativeTarget').find(([, t]) => t.name === 'App')
 const [widgetID, widget] = entries('PBXNativeTarget').find(([, t]) => t.name === 'RestTimerActivity')
 const ref = item => typeof item === 'string' ? item : item.value
+// Expo's target/version discovery destructures { value }; bare UUID strings
+// parse in xcode but fail in the EAS CLI before a remote build is created.
+for (const [, target] of entries('PBXNativeTarget')) {
+  for (const item of target.dependencies ?? []) {
+    assert.equal(typeof item.value, 'string', 'EAS dependency references require PBX comments')
+    assert(project.getPBXGroupByKeyAndType(item.value, 'PBXTargetDependency')?.target)
+  }
+}
+for (const [, list] of entries('XCConfigurationList')) {
+  for (const item of list.buildConfigurations) {
+    assert.equal(typeof item.value, 'string', 'EAS build configuration references require PBX comments')
+  }
+}
 assert.equal(widget.productType.replaceAll('"', ''), 'com.apple.product-type.app-extension')
 assert(app.dependencies.some(item => objects.PBXTargetDependency[ref(item)].target === widgetID))
 const embed = app.buildPhases.map(ref).map(id => objects.PBXCopyFilesBuildPhase?.[id]).find(Boolean)

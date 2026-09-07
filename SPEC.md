@@ -462,7 +462,7 @@ Workout/
 - 앱이 실행 가능한 동안 native expiry Task와 JS deadline 검사로 종료한다. 앱 프로세스가 정지/종료되면 정확한 종료 시점에 Live Activity 제거를 보장하지 않는다. 화면의 숫자는 0에서 멈추고 staleDate를 종료 시각으로 설정한다. 다음 앱 복귀에서 만료 활동을 정리한다. 서버 없이 강제 백그라운드 실행이나 매초 푸시를 시도하지 않는다.
 - App Info.plist NSSupportsLiveActivities=true. RestTimerActivity.appex 타깃의 최소 iOS 16.2, APPLICATION_EXTENSION_API_ONLY=YES, SKIP_INSTALL=YES, Bundle ID com.choongchoongeestar.workout.RestTimerActivity. 앱과 동일한 version/build를 사용하며 App 타깃 의존성과 Embed App Extensions(PlugIns/13) 단계로 포함한다. app.json에도 확장 자격 증명 준비용 선언을 추가했다. App Groups·푸시 토큰·추가 서버는 사용하지 않는다.
 - scripts/verify-live-activity.mjs가 Xcode 프로젝트를 파싱해 앱/위젯의 공유 모델·위젯 소스·플러그인·의존성·embed·bundle/version을 확인하며 check:ios-release에 포함한다. 실제 Swift 컴파일/서명은 Xcode가 있는 macOS 또는 승인된 EAS 빌드에서 수행해야 한다.
-- 새 네이티브 runtime은 ios-9ba2dca70ede4ac6. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
+- 새 네이티브 runtime은 ios-d3289b7ac2e3c244. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
 - 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 네이티브 컴파일과 위 검증은 아직 미실행이다.
 
 ### UndoToast
@@ -707,3 +707,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 - 2026-09-07: RestTimerActivity WidgetKit 확장·공유 ActivityAttributes·Capacitor Live Activity 플러그인·타이머 lifecycle/복원 연결을 구현했다. iOS 프로젝트 embed/타깃/서명 식별자를 준비하고 위젯 포함 새 runtime ios-9ba2dca70ede4ac6으로 분리했다. JS 테스트 51개·복원 경합/탭 이동 브라우저 검사·lint·웹 빌드·로컬 Capacitor sync·Xcode 프로젝트 정적 검사·iOS 구성 검사를 통과했다. Windows에서는 Swift/Xcode 컴파일 불가이며, EAS 빌드·서명·실기기·OTA 게시를 실행하지 않았다.
 - 2026-09-07: EAS 실행 없이 추가 검증하여 알림 예약 진행 중 Skip 시 예약이 뒤늦게 남는 경합을 실패 테스트로 재현하고 직렬 큐로 수정했다. 연속 재시작·권한 지연·예약 실패 후 복구·지난 종료 시각 방어를 검증했다. 전체 단위 테스트 56개, 확장 타이머 복원/21회 연속 조작/중단 후 만료 브라우저 검사, 스와이프 회귀(4개 화면 폭), lint·웹/Capacitor 웹 자산 빌드·iOS 정적 구성을 통과했다. Swift 컴파일·서명·실제 Dynamic Island/잠금 화면 확인은 여전히 별도이며 EAS 빌드와 배포는 실행하지 않았다.
+
+- 2026-09-07: 승인된 EAS build 명령이 원격 작업 생성 전 Expo 타깃 탐색에서 실패했다. PBX 주석 없는 UUID 참조를 EAS가 `{ value }`로 가정한 것이 원인으로, 새 위젯 참조에 표준 PBX 주석을 추가했다. 설치된 EAS CLI의 실제 로컬 타깃 탐색 함수로 App → RestTimerActivity 서명 대상 인식을 확인하고 회귀 정적 검사를 보강했다. 수정 후 runtime은 ios-d3289b7ac2e3c244이며 원격 빌드 ID·Swift 컴파일·IPA는 아직 없다. 추가 EAS 실행은 재승인 대기다.

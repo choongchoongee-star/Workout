@@ -19,11 +19,11 @@
 		F2A000000000000000000003 /* AppSettingsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A000000000000000000001 /* AppSettingsPlugin.swift */; };
 		F2A000000000000000000004 /* AppBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A000000000000000000002 /* AppBridgeViewController.swift */; };
 		F1A2B3C4D5E60718293A4B5C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4B5D /* PrivacyInfo.xcprivacy */; };
-FA170000000000000000000A = {isa = PBXBuildFile; fileRef = FA1700000000000000000001; };
-FA170000000000000000000B = {isa = PBXBuildFile; fileRef = FA1700000000000000000002; };
-FA170000000000000000000C = {isa = PBXBuildFile; fileRef = FA1700000000000000000001; };
-FA170000000000000000000D = {isa = PBXBuildFile; fileRef = FA1700000000000000000003; };
-FA170000000000000000000E = {isa = PBXBuildFile; fileRef = FA1700000000000000000005; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+FA170000000000000000000A /* PBXBuildFile */ = {isa = PBXBuildFile; fileRef = FA1700000000000000000001 /* App/App/RestActivityAttributes.swift */; };
+FA170000000000000000000B /* PBXBuildFile */ = {isa = PBXBuildFile; fileRef = FA1700000000000000000002 /* App/App/RestLiveActivityPlugin.swift */; };
+FA170000000000000000000C /* PBXBuildFile */ = {isa = PBXBuildFile; fileRef = FA1700000000000000000001 /* App/App/RestActivityAttributes.swift */; };
+FA170000000000000000000D /* PBXBuildFile */ = {isa = PBXBuildFile; fileRef = FA1700000000000000000003 /* RestTimerActivity/RestTimerActivity.swift */; };
+FA170000000000000000000E /* PBXBuildFile */ = {isa = PBXBuildFile; fileRef = FA1700000000000000000005 /* RestTimerActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,17 +57,17 @@ FA1700000000000000000005 /* RestTimerActivity.appex */ = {isa = PBXFileReference
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-FA170000000000000000001F = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+FA170000000000000000001F /* PBXFrameworksBuildPhase */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-FA1700000000000000000021 /* Embed App Extensions */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (FA170000000000000000000E,); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0; };
+FA1700000000000000000021 /* Embed App Extensions */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (FA170000000000000000000E /* PBXBuildFile */,); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXCopyFilesBuildPhase section */
 /* Begin PBXContainerItemProxy section */
-FA1700000000000000000022 = {isa = PBXContainerItemProxy; containerPortal = 504EC2FC1FED79650016851F; proxyType = 1; remoteGlobalIDString = FA1700000000000000000028; remoteInfo = RestTimerActivity; };
+FA1700000000000000000022 /* PBXContainerItemProxy */ = {isa = PBXContainerItemProxy; containerPortal = 504EC2FC1FED79650016851F; proxyType = 1; remoteGlobalIDString = FA1700000000000000000028 /* RestTimerActivity */; remoteInfo = RestTimerActivity; };
 /* End PBXContainerItemProxy section */
 /* Begin PBXTargetDependency section */
-FA1700000000000000000023 = {isa = PBXTargetDependency; target = FA1700000000000000000028; targetProxy = FA1700000000000000000022; };
+FA1700000000000000000023 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = FA1700000000000000000028 /* RestTimerActivity */; targetProxy = FA1700000000000000000022 /* PBXContainerItemProxy */; };
 /* End PBXTargetDependency section */
 /* Begin PBXGroup section */
 		504EC2FB1FED79650016851F = {
@@ -108,7 +108,7 @@ FA1700000000000000000005 /* RestTimerActivity.appex */,
 			path = App/App;
 			sourceTree = "<group>";
 		};
-FA1700000000000000000014 /* Live Activities */ = {isa = PBXGroup; children = (FA1700000000000000000001,FA1700000000000000000002,FA1700000000000000000003,FA1700000000000000000004,); name = "Live Activities"; sourceTree = "<group>"; };
+FA1700000000000000000014 /* Live Activities */ = {isa = PBXGroup; children = (FA1700000000000000000001 /* App/App/RestActivityAttributes.swift */,FA1700000000000000000002 /* App/App/RestLiveActivityPlugin.swift */,FA1700000000000000000003 /* RestTimerActivity/RestTimerActivity.swift */,FA1700000000000000000004 /* RestTimerActivity/Info.plist */,); name = "Live Activities"; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -123,7 +123,7 @@ FA1700000000000000000021 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
-			dependencies = (FA1700000000000000000023,);
+			dependencies = (FA1700000000000000000023 /* PBXTargetDependency */,);
 			name = App;
 			packageProductDependencies = (
 				4D22ABE82AF431CB00220026 /* CapApp-SPM */,
@@ -132,7 +132,7 @@ FA1700000000000000000021 /* Embed App Extensions */,
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
-FA1700000000000000000028 /* RestTimerActivity */ = {isa = PBXNativeTarget; buildConfigurationList = FA170000000000000000002B; buildPhases = (FA170000000000000000001E,FA170000000000000000001F,FA1700000000000000000020,); buildRules = (); dependencies = (); name = RestTimerActivity; productName = RestTimerActivity; productReference = FA1700000000000000000005; productType = "com.apple.product-type.app-extension"; };
+FA1700000000000000000028 /* RestTimerActivity */ = {isa = PBXNativeTarget; buildConfigurationList = FA170000000000000000002B /* XCConfigurationList */; buildPhases = (FA170000000000000000001E /* PBXSourcesBuildPhase */,FA170000000000000000001F /* PBXFrameworksBuildPhase */,FA1700000000000000000020 /* PBXResourcesBuildPhase */,); buildRules = (); dependencies = (); name = RestTimerActivity; productName = RestTimerActivity; productReference = FA1700000000000000000005 /* RestTimerActivity.appex */; productType = "com.apple.product-type.app-extension"; };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -186,7 +186,7 @@ FA1700000000000000000028 /* RestTimerActivity */ = {isa = PBXNativeTarget; build
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-FA1700000000000000000020 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+FA1700000000000000000020 /* PBXResourcesBuildPhase */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -194,7 +194,7 @@ FA1700000000000000000020 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FA170000000000000000000A, FA170000000000000000000B,
+				FA170000000000000000000A /* PBXBuildFile */, FA170000000000000000000B /* PBXBuildFile */,
 F2A000000000000000000004 /* AppBridgeViewController.swift in Sources */,
 				F2A000000000000000000003 /* AppSettingsPlugin.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
@@ -202,7 +202,7 @@ F2A000000000000000000004 /* AppBridgeViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-FA170000000000000000001E = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (FA170000000000000000000C,FA170000000000000000000D,); runOnlyForDeploymentPostprocessing = 0; };
+FA170000000000000000001E /* PBXSourcesBuildPhase */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (FA170000000000000000000C /* PBXBuildFile */,FA170000000000000000000D /* PBXBuildFile */,); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
@@ -378,8 +378,8 @@ FA170000000000000000001E = {isa = PBXSourcesBuildPhase; buildActionMask = 214748
 			};
 			name = Release;
 		};
-FA1700000000000000000029 = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 4; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = RestTimerActivity/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.2; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)","@executable_path/Frameworks","@executable_path/../../Frameworks",); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.choongchoongeestar.workout.RestTimerActivity; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
-FA170000000000000000002A = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 4; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = RestTimerActivity/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.2; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)","@executable_path/Frameworks","@executable_path/../../Frameworks",); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.choongchoongeestar.workout.RestTimerActivity; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
+FA1700000000000000000029 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 4; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = RestTimerActivity/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.2; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)","@executable_path/Frameworks","@executable_path/../../Frameworks",); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.choongchoongeestar.workout.RestTimerActivity; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
+FA170000000000000000002A /* Release */ = {isa = XCBuildConfiguration; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 4; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = RestTimerActivity/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.2; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)","@executable_path/Frameworks","@executable_path/../../Frameworks",); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.choongchoongeestar.workout.RestTimerActivity; PRODUCT_NAME = "$(TARGET_NAME)"; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -401,7 +401,7 @@ FA170000000000000000002A = {isa = XCBuildConfiguration; buildSettings = {APPLICA
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-FA170000000000000000002B = {isa = XCConfigurationList; buildConfigurations = (FA1700000000000000000029,FA170000000000000000002A,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+FA170000000000000000002B /* XCConfigurationList */ = {isa = XCConfigurationList; buildConfigurations = (FA1700000000000000000029 /* Debug */,FA170000000000000000002A /* Release */,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
