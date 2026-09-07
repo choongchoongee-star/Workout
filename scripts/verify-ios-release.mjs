@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import './verify-live-activity.mjs'
 import { access, readFile } from 'node:fs/promises'
 import { nativeFingerprint } from './ota-native.mjs'
 

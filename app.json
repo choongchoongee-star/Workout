@@ -12,12 +12,25 @@
       "buildNumber": "4",
       "supportsTablet": false,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSupportsLiveActivities": true
       }
     },
     "extra": {
       "eas": {
-        "projectId": "ca086289-002e-40a4-a2ee-c11e84212f41"
+        "projectId": "ca086289-002e-40a4-a2ee-c11e84212f41",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "RestTimerActivity",
+                  "bundleIdentifier": "com.choongchoongeestar.workout.RestTimerActivity"
+                }
+              ]
+            }
+          }
+        }
       }
     }
   }

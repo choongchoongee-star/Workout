@@ -439,7 +439,7 @@ Workout/
 
 ### RestTimer
 - 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. [Skip] 버튼.
-- 타이머 상태와 구독은 `src/lib/activeRestTimer.js`의 앱 공통 외부 store/useSyncExternalStore가 관리한다. Session은 startRestTimer만 호출하고 Layout이 RestTimer를 표시하므로 History/Progress/Settings 왕복에도 표시·남은 시간·종료 알림이 유지된다. Skip은 어느 탭에서나 가능하다. 새 앱 프로세스/페이지 재로드까지의 상태 복원은 별도이며, iOS 예약 알림은 기존대로다.
+- 타이머 상태와 구독은 `src/lib/activeRestTimer.js`의 앱 공통 외부 store/useSyncExternalStore가 관리한다. Session은 startRestTimer만 호출하고 Layout이 RestTimer를 표시하므로 History/Progress/Settings 왕복에도 표시·남은 시간·종료 알림이 유지된다. Skip은 어느 탭에서나 가능하다. 새 네이티브 앱에서는 시작/화면 복귀 시 진행 중인 Live Activity에서 timerID·시작/종료 시각을 복원한다. 복원 요청 중 사용자가 새 타이머를 시작하거나 Skip하면 revision 검사로 오래된 응답을 버린다. Live Activity가 없거나 미지원이면 재로드 복원은 하지 않으며, iOS 예약 알림은 기존대로다.
 - 시작할 때 `endsAt = Date.now() + restSeconds * 1000`을 저장하고, `getRemainingSeconds(endsAt)`로 표시 시간을 계산한다. 250ms 폴링 외에 `visibilitychange`, `focus`, `pageshow`에서도 즉시 다시 계산하므로 브라우저가 백그라운드 타이머를 중단해도 경과 시간이 밀리지 않는다.
 - iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 알림 ID `1101`을 예약한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 또는 Settings의 `Enable alerts`에서 알림 권한을 요청한다.
 - [Skip]은 예약을 취소한다. 새 타이머는 같은 ID의 이전 예약을 취소·교체하며 generation 값으로 비동기 권한 요청 경합을 막는다. 네이티브 예약이 성공한 경우 타이머 종료 effect는 Web Audio를 중복 재생하지 않는다.
@@ -452,7 +452,16 @@ Workout/
 - 삭제 버튼은 행 뒤에 배치해 밀린 폭만큼만 드러낸다. 닫혀 있거나 드래그 중이면 disabled·aria-hidden·tabIndex=-1로 조작 및 접근성 탐색에서 제외한다. 행 포커스에서 Delete/ArrowLeft로 열고 ArrowRight/Escape로 닫는다. 스크린 리더용 Show delete 버튼도 제공한다. 상단에 짧은 스와이프 안내를 표시한다. 손가락 추적은 ref에 최신 위치를 보관하고 requestAnimationFrame마다 translate3d만 갱신해 매 이동의 React 재렌더링을 피한다. 드래그 중 transition은 끄고 손을 뗄 때 240ms cubic-bezier(0.22, 1, 0.36, 1)로 감속한다. reduced-motion 설정에서는 전환을 생략한다.
 - 세트와 History 삭제 모두 기존 데이터 삭제/Undo 경로를 사용한다. 새 삭제는 10초 복구 시간을 다시 시작하며 저장 스키마와 장비별 기록 분리는 유지한다.
 
-- 다이나믹 아일랜드 남은 시간 표시는 향후 ActivityKit/WidgetKit Live Activity 확장과 네이티브 브리지를 추가하는 별도 작업이다. 현재 지원하지 않으며 새 iOS 빌드가 필요하다.
+### Live Activities (소스 구현, 네이티브 빌드 검증 대기)
+- iOS 16.2+에서 ActivityKit/WidgetKit을 사용한다. 기존 앱 최소 iOS 15는 유지하며 구형 OS·웹·플러그인 없는 구형 앱·Live Activities 비활성 상태에서는 기존 화면 타이머와 로컬 종료 알림을 사용한다.
+- 공유 모델: ios/App/App/RestActivityAttributes.swift. timerID와 ContentState(startedAt, endsAt)를 앱/위젯 양쪽 타깃에서 컴파일한다. ios/RestTimerActivity/RestTimerActivity.swift는 잠금 화면과 Dynamic Island expanded/compact/minimal 영역에 시스템 Text(timerInterval:countsDown:showsHours:) 카운트다운을 그린다. 앱의 초별 JS 실행이나 서버/APNs에 의존하지 않는다. 표시 우선순위·잠금 화면 노출 여부는 iOS 정책과 사용자 설정을 따른다.
+- RestLiveActivityPlugin은 start/end/getState Promise API를 제공하며 AppBridgeViewController에서 등록한다. iOS 메인 액터에서 작업을 직렬화하고 새 타이머는 기존 활동을 종료한 후 새 UUID로 시작한다. Skip/만료는 timerID가 일치하는 활동만 종료한다. getState는 만료/중복 활동을 정리하고 가장 늦게 끝나는 활동을 복원한다. 잘못된 시각·8시간을 넘는 요청·백그라운드 시작은 거부하고 UI 타이머는 유지한다.
+- JS 연결은 src/lib/restLiveActivity.js이며 네이티브 플러그인 존재 확인·직렬 Promise 큐·실패 격리를 수행한다. activeRestTimer.js의 시작/Skip/만료와 연결한다. Layout 초기화/visible 복귀에서 restoreRestTimer를 호출한다.
+- 앱이 실행 가능한 동안 native expiry Task와 JS deadline 검사로 종료한다. 앱 프로세스가 정지/종료되면 정확한 종료 시점에 Live Activity 제거를 보장하지 않는다. 화면의 숫자는 0에서 멈추고 staleDate를 종료 시각으로 설정한다. 다음 앱 복귀에서 만료 활동을 정리한다. 서버 없이 강제 백그라운드 실행이나 매초 푸시를 시도하지 않는다.
+- App Info.plist NSSupportsLiveActivities=true. RestTimerActivity.appex 타깃의 최소 iOS 16.2, APPLICATION_EXTENSION_API_ONLY=YES, SKIP_INSTALL=YES, Bundle ID com.choongchoongeestar.workout.RestTimerActivity. 앱과 동일한 version/build를 사용하며 App 타깃 의존성과 Embed App Extensions(PlugIns/13) 단계로 포함한다. app.json에도 확장 자격 증명 준비용 선언을 추가했다. App Groups·푸시 토큰·추가 서버는 사용하지 않는다.
+- scripts/verify-live-activity.mjs가 Xcode 프로젝트를 파싱해 앱/위젯의 공유 모델·위젯 소스·플러그인·의존성·embed·bundle/version을 확인하며 check:ios-release에 포함한다. 실제 Swift 컴파일/서명은 Xcode가 있는 macOS 또는 승인된 EAS 빌드에서 수행해야 한다.
+- 새 네이티브 runtime은 ios-9ba2dca70ede4ac6. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
+- 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 네이티브 컴파일과 위 검증은 아직 미실행이다.
 
 ### UndoToast
 - 10초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
@@ -693,3 +702,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 사용자 요청으로 운동명/장비 분리·다크모드·모든 운동 공통 장비와 Unspecified 기본값(소스 e68400e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `994d6843309ed5819dfdae4bfebb6f9ff8ae6957f384c51463b393707fde77fc`, ZIP 386661 bytes. 테스트 47개·장비/다크모드 브라우저 검사·lint·build·iOS 호환/native fingerprint 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 실제 iPhone 확인은 별도다.
 
 - 2026-09-07: 휴식 타이머를 Layout/앱 공통 store로 옮겨 탭 왕복 중 표시·카운트다운·종료/Skip을 유지한다. 스와이프 행 stacking context를 격리하고 nav z-30으로 하단 탭 침범을 수정했다. Settings 휴식 초 입력은 focus 시 비우며 빈 상태로 저장하면 기존 설정을 유지한다. Dips/Cable Dips 목록을 하나로 묶고 중복 운동 카드·장비별 기록·원본 중량 필드를 보존한다. 모든 장비의 구조화 Markdown export/import 왕복 및 Dips 타입 표시를 확인했다. 테스트 48개, scripts/verify-timer-navigation.mjs와 스와이프 회귀 브라우저 검사, lint·build를 통과했다. GitHub 반영과 별개로 OTA·실제 iPhone 검증은 별도다.
+
+- 2026-09-07: RestTimerActivity WidgetKit 확장·공유 ActivityAttributes·Capacitor Live Activity 플러그인·타이머 lifecycle/복원 연결을 구현했다. iOS 프로젝트 embed/타깃/서명 식별자를 준비하고 위젯 포함 새 runtime ios-9ba2dca70ede4ac6으로 분리했다. JS 테스트 51개·복원 경합/탭 이동 브라우저 검사·lint·웹 빌드·로컬 Capacitor sync·Xcode 프로젝트 정적 검사·iOS 구성 검사를 통과했다. Windows에서는 Swift/Xcode 컴파일 불가이며, EAS 빌드·서명·실기기·OTA 게시를 실행하지 않았다.

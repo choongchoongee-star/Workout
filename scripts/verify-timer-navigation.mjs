@@ -54,6 +54,31 @@ try {
   await timer.waitFor()
   await page.getByRole('link', { name: 'History', exact: true }).click()
   await timer.waitFor({ state: 'detached', timeout: 6000 })
+  // Simulate the native ActivityKit bridge returning a running activity after a WebView restart.
+  await page.evaluate(async () => {
+    const { restLiveActivity } = await import('/Workout/src/lib/restLiveActivity.js')
+    const { restoreRestTimer } = await import('/Workout/src/lib/activeRestTimer.js')
+    const original = restLiveActivity.getState
+    restLiveActivity.getState = async () => ({ status: 'active', timerID: 'restored', startedAt: Date.now() - 5000, endsAt: Date.now() + 15000 })
+    await restoreRestTimer()
+    restLiveActivity.getState = original
+  })
+  await timer.waitFor()
+  await timer.getByRole('button', { name: 'Skip' }).click()
+  // A delayed restore must never resurrect a timer after the user skips.
+  await page.evaluate(async () => {
+    const { restLiveActivity } = await import('/Workout/src/lib/restLiveActivity.js')
+    const { restoreRestTimer, skipRestTimer } = await import('/Workout/src/lib/activeRestTimer.js')
+    const original = restLiveActivity.getState
+    let resolve
+    restLiveActivity.getState = () => new Promise(done => { resolve = done })
+    const restoration = restoreRestTimer()
+    skipRestTimer()
+    resolve({ status: 'active', timerID: 'late', startedAt: Date.now(), endsAt: Date.now() + 15000 })
+    await restoration
+    restLiveActivity.getState = original
+  })
+  assert.equal(await timer.count(), 0)
   assert.deepEqual(errors, [])
   console.log('PASS: timer tab continuity/expiry/Skip, navigation stacking, one Dips, rest input clear/save')
 } finally { await browser.close() }

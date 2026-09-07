@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import RestTimer from './RestTimer'
-import { useRestTimer, skipRestTimer } from '../lib/activeRestTimer'
+import { useRestTimer, skipRestTimer, restoreRestTimer } from '../lib/activeRestTimer'
 import { otaUpdater } from '../lib/otaUpdate'
 
 const NAV = [
@@ -55,6 +55,10 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     void otaUpdater.check()
+    void restoreRestTimer()
+    const resume = () => { if (document.visibilityState === 'visible') void restoreRestTimer() }
+    document.addEventListener('visibilitychange', resume)
+    return () => document.removeEventListener('visibilitychange', resume)
   }, [])
 
   useEffect(() => {

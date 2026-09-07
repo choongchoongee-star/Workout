@@ -15,6 +15,7 @@ export async function nativeFingerprint() {
     }
   }
   await walk('ios/App/App')
+  await walk('ios/RestTimerActivity')
   const lock = JSON.parse(await readFile('package-lock.json', 'utf8'))
   for (const [path, value] of Object.entries(lock.packages).sort()) {
     if (/node_modules\/@(capacitor|capawesome)\//.test(path)) hash.update(`${path}:${value.version}`)
