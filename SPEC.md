@@ -27,7 +27,7 @@
 - **Capacitor v8** — iOS 네이티브 셸, Filesystem, Local Notifications, Share
 - **Capawesome Live Update v8** — 서명된 자체 호스팅 OTA, 네이티브 runtime별 배포, 시작 실패 시 내장 버전 복구
 - **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
-- 앱 아이콘: 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512 아이콘
+- 앱 아이콘: public/icon.svg를 원본으로 하는 평면 덤벨. 초록 #1D4533 전체 배경, 크림 #F7EAE0 바, 살구 #F9D2BA 원판 두 개로 구성한다. 글자·그라데이션·그림자는 없으며 iOS 시스템이 모서리를 마스킹하도록 원본 배경은 정사각형이다. 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512·favicon을 사용한다.
 
 ### vite.config.js 핵심
 ```js
@@ -56,7 +56,7 @@ mode !== 'capacitor' && VitePWA({
 | `ota:publish` | 승인 후 `ota-release/`를 gh-pages의 `ota/`에 추가 배포 (EAS 미사용) |
 | `lint` | `eslint .` |
 | `preview` | `vite preview` |
-| `icons` | `node generate-icons.mjs` (PWA 아이콘 생성) |
+| `icons` | `node scripts/generate-icons.mjs` (iOS/PWA 아이콘 생성) |
 | `build:site` | 앱 소개·지원·개인정보처리방침을 `site-dist/`에 구성 |
 | `deploy` | `scripts/deploy-site.mjs`로 안내 사이트만 게시, 이전 PWA 파일 제거 및 `ota/` 보존 |
 
@@ -716,3 +716,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-07: 사용자 승인으로 빌드 5 (EAS 356a9b7d-cb0a-4de9-a3de-59fbed4b24a6)를 TestFlight/App Store Connect에 제출했다. Submission 75773b57-e914-4609-b386-3e4c5f588ad0이 성공 종료했으며 Apple 업로드 완료를 확인했다. ASC 앱 6808960698에서 Apple 처리 중이다. TestFlight: https://appstoreconnect.apple.com/apps/6808960698/testflight/ios . Apple 처리 완료·테스터 설치·Live Activities 실기기 동작은 아직 확인하지 않았다.
 
 - 2026-09-07: 최종 제품명을 Steady Sets로 확정했다. 앱 표시 이름(app.json/Capacitor/iOS Info.plist), PWA 이름·브라우저 제목, Live Activity 표시, Settings 안내, 앱 내부/공개 개인정보처리방침과 소개 페이지 소스를 변경했다. 기존 bundle ID·EAS slug/workout-logger·프로젝트 ID·저장 키·백업 형식·지원/공개 URL은 유지한다. App Store Connect 표시 이름 변경, 공개 사이트 배포, 새 네이티브 빌드/제출은 아직 실행하지 않았다. 빌드 5의 설치 이름은 이전 이름이며 새 이름은 다음 네이티브 빌드에 포함한다. 스토어 이름 중복·상표 가용성은 미확인이다.
+
+- 2026-09-07: Steady Sets 아이콘을 앱 팔레트의 초록/크림/살구 평면 덤벨로 단순화했다. public/icon.svg·favicon.svg, iOS 1024 PNG와 PWA 192/512 PNG를 맞췄다. 추적되는 scripts/generate-icons.mjs와 npm run icons로 재생성하며 크기·알파 없음 검증을 포함한다. 새 아이콘은 소스 반영이며 네이티브 빌드·사이트/OTA 배포는 실행하지 않았다.

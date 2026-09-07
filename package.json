@@ -14,7 +14,7 @@
     "ota:publish": "gh-pages -d ota-release --dest ota --add",
     "lint": "eslint .",
     "preview": "vite preview",
-    "icons": "node generate-icons.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "build:site": "node scripts/build-site.mjs",
     "deploy": "node scripts/deploy-site.mjs"
   },
