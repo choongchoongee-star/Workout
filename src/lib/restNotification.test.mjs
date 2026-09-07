@@ -8,6 +8,78 @@ import {
   scheduleRestNotification,
 } from './restNotification.js'
 
+test('Skip waits for an in-flight native schedule so no alarm remains afterward', async () => {
+  let release, entered
+  const waiting = new Promise(resolve => { entered = resolve })
+  const gate = new Promise(resolve => { release = resolve })
+  let pending = false
+  const options = { isNativePlatform: () => true, notifications: {
+    checkPermissions: async () => ({ display: 'granted' }),
+    cancel: async () => { pending = false },
+    schedule: async () => { entered(); await gate; pending = true },
+  } }
+  const scheduling = scheduleRestNotification(Date.now() + 60000, options)
+  await waiting
+  const cancellation = cancelRestNotification(options)
+  release()
+  await Promise.all([scheduling, cancellation])
+  assert.equal(pending, false, 'Skip must remove even a late native schedule')
+})
+
+test('restart during native scheduling leaves only the newest deadline', async () => {
+  let release, entered
+  const waiting = new Promise(resolve => { entered = resolve })
+  const gate = new Promise(resolve => { release = resolve })
+  let deadline = null
+  const firstDeadline = Date.now() + 60000
+  const lastDeadline = firstDeadline + 60000
+  const options = { isNativePlatform: () => true, notifications: {
+    checkPermissions: async () => ({ display: 'granted' }),
+    cancel: async () => { deadline = null },
+    schedule: async ({ notifications }) => {
+      const at = notifications[0].schedule.at.getTime()
+      if (at === firstDeadline) { entered(); await gate }
+      deadline = at
+    },
+  } }
+  const first = scheduleRestNotification(firstDeadline, options)
+  await waiting
+  const last = scheduleRestNotification(lastDeadline, options)
+  release()
+  assert.deepEqual(await Promise.all([first, last]), [false, true])
+  assert.equal(deadline, lastDeadline)
+})
+
+test('Skip during permission prompt prevents a later grant from scheduling', async () => {
+  let grant, entered
+  const waiting = new Promise(resolve => { entered = resolve })
+  const permission = new Promise(resolve => { grant = resolve })
+  let schedules = 0
+  const options = { isNativePlatform: () => true, notifications: {
+    checkPermissions: async () => ({ display: 'prompt' }),
+    requestPermissions: () => { entered(); return permission },
+    cancel: async () => {},
+    schedule: async () => { schedules++ },
+  } }
+  const pending = scheduleRestNotification(Date.now() + 60000, options)
+  await waiting
+  await cancelRestNotification(options)
+  grant({ display: 'granted' })
+  assert.equal(await pending, false)
+  assert.equal(schedules, 0)
+})
+
+test('native scheduling failure does not block the next timer', async () => {
+  let attempts = 0
+  const options = { isNativePlatform: () => true, notifications: {
+    checkPermissions: async () => ({ display: 'granted' }),
+    cancel: async () => {},
+    schedule: async () => { if (++attempts === 1) throw Error('native failure') },
+  } }
+  assert.equal(await scheduleRestNotification(Date.now() + 60000, options), false)
+  assert.equal(await scheduleRestNotification(Date.now() + 60000, options), true)
+})
+
 function audioContext() {
   const calls = { start: 0, stop: 0 }
   return {
@@ -62,7 +134,7 @@ test('schedules and cancels the iOS system notification at the deadline', async 
     cancel: async () => { calls.cancelled += 1 },
     schedule: async options => { calls.scheduled = options.notifications[0] },
   }
-  const endsAt = 2_000_000
+  const endsAt = Date.now() + 60000
 
   assert.equal(await scheduleRestNotification(endsAt, {
     isNativePlatform: () => true,
@@ -87,4 +159,18 @@ test('reports and requests the native notification permission for Settings', asy
 
   assert.equal(await getRestNotificationPermission(options), 'prompt')
   assert.equal(await requestRestNotificationPermission(options), 'granted')
+})
+
+test('an expired deadline after permission handling is not scheduled in the past', async () => {
+  let scheduled = false
+  const result = await scheduleRestNotification(Date.now() - 1, {
+    isNativePlatform: () => true,
+    notifications: {
+      checkPermissions: async () => ({ display: 'granted' }),
+      cancel: async () => {},
+      schedule: async () => { scheduled = true },
+    },
+  })
+  assert.equal(result, false)
+  assert.equal(scheduled, false)
 })

@@ -5,6 +5,12 @@ const REST_NOTIFICATION_ID = 1101
 let preparedAudioContext = null
 let nativeNotificationScheduled = false
 let scheduleGeneration = 0
+let notificationQueue = Promise.resolve()
+function enqueueNotification(operation) {
+  const result = notificationQueue.then(operation)
+  notificationQueue = result.catch(() => {})
+  return result
+}
 
 function createBrowserAudioContext() {
   if (typeof window === 'undefined') return null
@@ -86,22 +92,25 @@ export async function scheduleRestNotification(endsAt, {
     }
     if (permission.display !== 'granted' || generation !== scheduleGeneration) return false
 
-    await notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] })
-    if (generation !== scheduleGeneration) return false
-    await notifications.schedule({
-      notifications: [{
-        id: REST_NOTIFICATION_ID,
-        title: 'Rest complete',
-        body: 'Time for your next set.',
-        schedule: { at: new Date(endsAt) },
-        sound: 'default',
-        foreground: true,
-      }],
+    return await enqueueNotification(async () => {
+      if (generation !== scheduleGeneration) return false
+      await notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] })
+      if (generation !== scheduleGeneration || !Number.isFinite(endsAt) || endsAt <= Date.now()) return false
+      await notifications.schedule({
+        notifications: [{
+          id: REST_NOTIFICATION_ID,
+          title: 'Rest complete',
+          body: 'Time for your next set.',
+          schedule: { at: new Date(endsAt) },
+          sound: 'default',
+          foreground: true,
+        }],
+      })
+      nativeNotificationScheduled = generation === scheduleGeneration
+      return nativeNotificationScheduled
     })
-    nativeNotificationScheduled = generation === scheduleGeneration
-    return nativeNotificationScheduled
   } catch {
-    nativeNotificationScheduled = false
+    if (generation === scheduleGeneration) nativeNotificationScheduled = false
     return false
   }
 }
@@ -114,7 +123,7 @@ export async function cancelRestNotification({
   nativeNotificationScheduled = false
   if (!isNativePlatform()) return
   try {
-    await notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] })
+    await enqueueNotification(() => notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }))
   } catch {
     // A missing or already-delivered notification needs no further action.
   }

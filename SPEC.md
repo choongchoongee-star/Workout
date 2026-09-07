@@ -453,6 +453,8 @@ Workout/
 - 세트와 History 삭제 모두 기존 데이터 삭제/Undo 경로를 사용한다. 새 삭제는 10초 복구 시간을 다시 시작하며 저장 스키마와 장비별 기록 분리는 유지한다.
 
 ### Live Activities (소스 구현, 네이티브 빌드 검증 대기)
+- 종료 로컬 알림의 cancel/schedule도 직렬 큐로 처리한다. 예약 처리 중 Skip을 눌러도 늦게 완료된 예약 뒤에 취소가 실행되며 연속 재시작은 마지막 타이머 알림만 남긴다. 권한 응답을 기다리는 동안 Skip한 요청과 이미 지난 종료 시각은 예약하지 않는다. 실패한 작업은 다음 예약을 차단하지 않는다.
+- 확장 검증: 지연된 네이티브 예약 중 Skip/재시작, 권한 응답 지연, 예약 오류 후 복구, 만료 알림 거부를 단위 테스트한다. 브라우저는 잘못된/만료된/미지원 복원 응답, 새 시작과 늦은 복원 응답 경합, 21회 시작/Skip ID 일치, interval 없이 시계가 진행한 뒤 pageshow 만료를 검증한다. 이는 JS/모의 bridge 검증이며 ActivityKit 실기기 동작 검증을 대신하지 않는다.
 - iOS 16.2+에서 ActivityKit/WidgetKit을 사용한다. 기존 앱 최소 iOS 15는 유지하며 구형 OS·웹·플러그인 없는 구형 앱·Live Activities 비활성 상태에서는 기존 화면 타이머와 로컬 종료 알림을 사용한다.
 - 공유 모델: ios/App/App/RestActivityAttributes.swift. timerID와 ContentState(startedAt, endsAt)를 앱/위젯 양쪽 타깃에서 컴파일한다. ios/RestTimerActivity/RestTimerActivity.swift는 잠금 화면과 Dynamic Island expanded/compact/minimal 영역에 시스템 Text(timerInterval:countsDown:showsHours:) 카운트다운을 그린다. 앱의 초별 JS 실행이나 서버/APNs에 의존하지 않는다. 표시 우선순위·잠금 화면 노출 여부는 iOS 정책과 사용자 설정을 따른다.
 - RestLiveActivityPlugin은 start/end/getState Promise API를 제공하며 AppBridgeViewController에서 등록한다. iOS 메인 액터에서 작업을 직렬화하고 새 타이머는 기존 활동을 종료한 후 새 UUID로 시작한다. Skip/만료는 timerID가 일치하는 활동만 종료한다. getState는 만료/중복 활동을 정리하고 가장 늦게 끝나는 활동을 복원한다. 잘못된 시각·8시간을 넘는 요청·백그라운드 시작은 거부하고 UI 타이머는 유지한다.
@@ -704,3 +706,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-07: 휴식 타이머를 Layout/앱 공통 store로 옮겨 탭 왕복 중 표시·카운트다운·종료/Skip을 유지한다. 스와이프 행 stacking context를 격리하고 nav z-30으로 하단 탭 침범을 수정했다. Settings 휴식 초 입력은 focus 시 비우며 빈 상태로 저장하면 기존 설정을 유지한다. Dips/Cable Dips 목록을 하나로 묶고 중복 운동 카드·장비별 기록·원본 중량 필드를 보존한다. 모든 장비의 구조화 Markdown export/import 왕복 및 Dips 타입 표시를 확인했다. 테스트 48개, scripts/verify-timer-navigation.mjs와 스와이프 회귀 브라우저 검사, lint·build를 통과했다. GitHub 반영과 별개로 OTA·실제 iPhone 검증은 별도다.
 
 - 2026-09-07: RestTimerActivity WidgetKit 확장·공유 ActivityAttributes·Capacitor Live Activity 플러그인·타이머 lifecycle/복원 연결을 구현했다. iOS 프로젝트 embed/타깃/서명 식별자를 준비하고 위젯 포함 새 runtime ios-9ba2dca70ede4ac6으로 분리했다. JS 테스트 51개·복원 경합/탭 이동 브라우저 검사·lint·웹 빌드·로컬 Capacitor sync·Xcode 프로젝트 정적 검사·iOS 구성 검사를 통과했다. Windows에서는 Swift/Xcode 컴파일 불가이며, EAS 빌드·서명·실기기·OTA 게시를 실행하지 않았다.
+- 2026-09-07: EAS 실행 없이 추가 검증하여 알림 예약 진행 중 Skip 시 예약이 뒤늦게 남는 경합을 실패 테스트로 재현하고 직렬 큐로 수정했다. 연속 재시작·권한 지연·예약 실패 후 복구·지난 종료 시각 방어를 검증했다. 전체 단위 테스트 56개, 확장 타이머 복원/21회 연속 조작/중단 후 만료 브라우저 검사, 스와이프 회귀(4개 화면 폭), lint·웹/Capacitor 웹 자산 빌드·iOS 정적 구성을 통과했다. Swift 컴파일·서명·실제 Dynamic Island/잠금 화면 확인은 여전히 별도이며 EAS 빌드와 배포는 실행하지 않았다.

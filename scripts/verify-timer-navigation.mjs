@@ -80,5 +80,65 @@ try {
   })
   assert.equal(await timer.count(), 0)
   assert.deepEqual(errors, [])
+  // Exercise the app store against delayed/malformed native responses, not just the bridge queue.
+  const lifecycle = await page.evaluate(async () => {
+    const { restLiveActivity } = await import('/Workout/src/lib/restLiveActivity.js')
+    const { restoreRestTimer, startRestTimer, skipRestTimer } = await import('/Workout/src/lib/activeRestTimer.js')
+    const original = { ...restLiveActivity }
+    const calls = []
+    const rendered = () => !!document.querySelector('[aria-label="Rest timer"]')
+    const render = () => new Promise(resolve => setTimeout(resolve, 30))
+    try {
+      restLiveActivity.start = async state => { calls.push(['start', state]); return { status: 'disabled' } }
+      restLiveActivity.end = async id => { calls.push(['end', id]); return { status: 'ended' } }
+      for (const state of [
+        { status: 'disabled' }, { status: 'unsupported' }, { status: 'unavailable' },
+        { status: 'active', timerID: 'expired', startedAt: Date.now() - 60000, endsAt: Date.now() - 1 },
+        { status: 'active', timerID: 'invalid', startedAt: NaN, endsAt: Date.now() + 60000 },
+        { status: 'active', timerID: 'invalid', startedAt: Date.now(), endsAt: Infinity },
+      ]) {
+        restLiveActivity.getState = async () => state
+        await restoreRestTimer()
+        await render()
+        if (rendered()) throw Error('Invalid or unavailable native state created a timer')
+      }
+      let resolve
+      restLiveActivity.getState = () => new Promise(done => { resolve = done })
+      const restoration = restoreRestTimer()
+      localStorage.setItem('wl_rest_seconds', '60')
+      startRestTimer()
+      resolve({ status: 'active', timerID: 'obsolete', startedAt: Date.now(), endsAt: Date.now() + 15000 })
+      await restoration
+      await render()
+      if (!rendered()) throw Error('Disabled Live Activities must preserve the app timer')
+      skipRestTimer()
+      for (let i = 0; i < 20; i++) { startRestTimer(); skipRestTimer() }
+      await render()
+      if (rendered()) throw Error('Rapid Skip left the app timer visible')
+      return calls
+    } finally { Object.assign(restLiveActivity, original) }
+  })
+  assert.equal(lifecycle.length, 42)
+  const ids = new Set()
+  for (let i = 0; i < lifecycle.length; i += 2) {
+    assert.equal(lifecycle[i][0], 'start')
+    const state = lifecycle[i][1]
+    assert.equal(state.endsAt - state.startedAt, 60000)
+    assert.equal(lifecycle[i + 1][1], state.timerID, 'Skip must target the new timer, never a late restored timer')
+    ids.add(state.timerID)
+  }
+  assert.equal(ids.size, 21)
+  // Simulate suspension: no interval callbacks run while wall time moves beyond the deadline.
+  await page.clock.install()
+  await page.evaluate(async () => {
+    const { startRestTimer } = await import('/Workout/src/lib/activeRestTimer.js')
+    startRestTimer()
+  })
+  await timer.waitFor()
+  await page.clock.setSystemTime(new Date(Date.now() + 120000))
+  await page.evaluate(() => window.dispatchEvent(new Event('pageshow')))
+  await timer.waitFor({ state: 'detached' })
+  assert.deepEqual(errors, [])
+  console.log('PASS: unavailable/invalid/expired restore, delayed restore versus new start, 21 start/Skip identities, suspended deadline expiry')
   console.log('PASS: timer tab continuity/expiry/Skip, navigation stacking, one Dips, rest input clear/save')
 } finally { await browser.close() }
