@@ -1,4 +1,4 @@
-# Workout Logger — 기획서 (재구성용 마스터 스펙)
+# Steady Sets — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-07
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Live Activities 포함 빌드 5 TestFlight 업로드 완료·Apple 처리 및 실기기 검증 대기
@@ -35,7 +35,7 @@ base: mode === 'capacitor' ? './' : '/Workout/',
 mode !== 'capacitor' && VitePWA({
   registerType: 'autoUpdate',
   manifest: {
-    name: 'Workout Logger', short_name: 'Workout',
+    name: 'Steady Sets', short_name: 'Steady Sets',
     theme_color: '#f7eae0', background_color: '#f7eae0',
     display: 'standalone', start_url: '/Workout/',
     icons: [192, 512]  // any maskable
@@ -462,7 +462,7 @@ Workout/
 - 앱이 실행 가능한 동안 native expiry Task와 JS deadline 검사로 종료한다. 앱 프로세스가 정지/종료되면 정확한 종료 시점에 Live Activity 제거를 보장하지 않는다. 화면의 숫자는 0에서 멈추고 staleDate를 종료 시각으로 설정한다. 다음 앱 복귀에서 만료 활동을 정리한다. 서버 없이 강제 백그라운드 실행이나 매초 푸시를 시도하지 않는다.
 - App Info.plist NSSupportsLiveActivities=true. RestTimerActivity.appex 타깃의 최소 iOS 16.2, APPLICATION_EXTENSION_API_ONLY=YES, SKIP_INSTALL=YES, Bundle ID com.choongchoongeestar.workout.RestTimerActivity. 앱과 동일한 version/build를 사용하며 App 타깃 의존성과 Embed App Extensions(PlugIns/13) 단계로 포함한다. app.json에도 확장 자격 증명 준비용 선언을 추가했다. App Groups·푸시 토큰·추가 서버는 사용하지 않는다.
 - scripts/verify-live-activity.mjs가 Xcode 프로젝트를 파싱해 앱/위젯의 공유 모델·위젯 소스·플러그인·의존성·embed·bundle/version을 확인하며 check:ios-release에 포함한다. 실제 Swift 컴파일/서명은 Xcode가 있는 macOS 또는 승인된 EAS 빌드에서 수행해야 한다.
-- 새 네이티브 runtime은 ios-d3289b7ac2e3c244. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
+- 새 이름 소스의 네이티브 runtime은 ios-e02d91392cd58bd2. 배포된 빌드 5의 runtime은 ios-d3289b7ac2e3c244. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
 - 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 빌드 5에서 네이티브 컴파일·서명·IPA 생성을 통과했으며 위 실기기 검증은 아직 미실행이다.
 
 ### UndoToast
@@ -714,3 +714,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-07: Apple 재로그인 및 App/RestTimerActivity 서명 설정 완료 후 사용자 승인으로 production iOS 빌드 5를 실행해 FINISHED를 확인했다. EAS build ID 356a9b7d-cb0a-4de9-a3de-59fbed4b24a6, 제출 소스 281e0e83c2b6ddded2cce77139d0159f8281ecc1 (89ba328 수정 포함), version 1.0 / build 5, runtime ios-d3289b7ac2e3c244. 앱과 위젯 컴파일·서명·archive·IPA 생성이 성공했다. 빌드 페이지: https://expo.dev/accounts/choongchoongee/projects/workout-logger/builds/356a9b7d-cb0a-4de9-a3de-59fbed4b24a6 . 원본 저장소의 app.json과 모든 CURRENT_PROJECT_VERSION을 5로 동기화하고 Info.plist의 버전 변수 참조는 유지한다. TestFlight 제출·실제 아이폰 Dynamic Island 검증은 아직 실행하지 않았다.
 
 - 2026-09-07: 사용자 승인으로 빌드 5 (EAS 356a9b7d-cb0a-4de9-a3de-59fbed4b24a6)를 TestFlight/App Store Connect에 제출했다. Submission 75773b57-e914-4609-b386-3e4c5f588ad0이 성공 종료했으며 Apple 업로드 완료를 확인했다. ASC 앱 6808960698에서 Apple 처리 중이다. TestFlight: https://appstoreconnect.apple.com/apps/6808960698/testflight/ios . Apple 처리 완료·테스터 설치·Live Activities 실기기 동작은 아직 확인하지 않았다.
+
+- 2026-09-07: 최종 제품명을 Steady Sets로 확정했다. 앱 표시 이름(app.json/Capacitor/iOS Info.plist), PWA 이름·브라우저 제목, Live Activity 표시, Settings 안내, 앱 내부/공개 개인정보처리방침과 소개 페이지 소스를 변경했다. 기존 bundle ID·EAS slug/workout-logger·프로젝트 ID·저장 키·백업 형식·지원/공개 URL은 유지한다. App Store Connect 표시 이름 변경, 공개 사이트 배포, 새 네이티브 빌드/제출은 아직 실행하지 않았다. 빌드 5의 설치 이름은 이전 이름이며 새 이름은 다음 네이티브 빌드에 포함한다. 스토어 이름 중복·상표 가용성은 미확인이다.

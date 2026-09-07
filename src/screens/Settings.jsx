@@ -64,7 +64,7 @@ export default function Settings() {
   async function handleOpenAppSettings() {
     setSettingsError('')
     if (!await openAppSettings()) {
-      setSettingsError('Could not open iPhone Settings. Open Settings → Apps → Workout Logger → Notifications.')
+      setSettingsError('Could not open iPhone Settings. Open Settings → Apps → Steady Sets → Notifications.')
     }
   }
 

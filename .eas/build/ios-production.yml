@@ -1,5 +1,5 @@
 build:
-  name: Workout Logger iOS production
+  name: Steady Sets iOS production
   steps:
     - eas/checkout
     - eas/install_node_modules

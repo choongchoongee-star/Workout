@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => ({
     ...(mode === 'capacitor' ? [] : [VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Workout Logger',
-        short_name: 'Workout',
+        name: 'Steady Sets',
+        short_name: 'Steady Sets',
         theme_color: '#f7eae0',
         background_color: '#f7eae0',
         display: 'standalone',

@@ -14,7 +14,7 @@ struct RestTimerActivity: Widget {
             HStack(spacing: 16) {
                 Image(systemName: "timer").font(.title).foregroundStyle(ice)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Workout Logger").font(.caption).foregroundStyle(.secondary)
+                    Text("Steady Sets").font(.caption).foregroundStyle(.secondary)
                     Text(context.isStale ? "Rest complete" : "Rest timer").font(.headline)
                 }
                 Spacer()
@@ -34,7 +34,7 @@ struct RestTimerActivity: Widget {
                     countdown(context.state).font(.title2.bold()).frame(width: 90)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.isStale ? "Rest complete · Ready for your next set" : "Workout Logger")
+                    Text(context.isStale ? "Rest complete · Ready for your next set" : "Steady Sets")
                         .font(.caption).foregroundStyle(ice)
                 }
             } compactLeading: {

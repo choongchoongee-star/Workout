@@ -25,7 +25,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-white font-semibold mb-2">Backups and sharing</h2>
-          <p>When you choose Export, the app creates a Markdown backup and opens the iOS share sheet. You decide where to save or send that file. Workout Logger does not receive a copy.</p>
+          <p>When you choose Export, the app creates a Markdown backup and opens the iOS share sheet. You decide where to save or send that file. Steady Sets does not receive a copy.</p>
         </section>
 
         <section>
