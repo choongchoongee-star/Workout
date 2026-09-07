@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-07
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·빌드 4 TestFlight 업로드 완료·Apple 처리 및 실기기 검증 대기
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Live Activities 포함 빌드 5 EAS 성공·TestFlight 제출 및 실기기 검증 대기 (빌드 4는 업로드 완료)
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -452,7 +452,7 @@ Workout/
 - 삭제 버튼은 행 뒤에 배치해 밀린 폭만큼만 드러낸다. 닫혀 있거나 드래그 중이면 disabled·aria-hidden·tabIndex=-1로 조작 및 접근성 탐색에서 제외한다. 행 포커스에서 Delete/ArrowLeft로 열고 ArrowRight/Escape로 닫는다. 스크린 리더용 Show delete 버튼도 제공한다. 상단에 짧은 스와이프 안내를 표시한다. 손가락 추적은 ref에 최신 위치를 보관하고 requestAnimationFrame마다 translate3d만 갱신해 매 이동의 React 재렌더링을 피한다. 드래그 중 transition은 끄고 손을 뗄 때 240ms cubic-bezier(0.22, 1, 0.36, 1)로 감속한다. reduced-motion 설정에서는 전환을 생략한다.
 - 세트와 History 삭제 모두 기존 데이터 삭제/Undo 경로를 사용한다. 새 삭제는 10초 복구 시간을 다시 시작하며 저장 스키마와 장비별 기록 분리는 유지한다.
 
-### Live Activities (소스 구현, 네이티브 빌드 검증 대기)
+### Live Activities (빌드 5 네이티브 컴파일·서명 완료, 실기기 검증 대기)
 - 종료 로컬 알림의 cancel/schedule도 직렬 큐로 처리한다. 예약 처리 중 Skip을 눌러도 늦게 완료된 예약 뒤에 취소가 실행되며 연속 재시작은 마지막 타이머 알림만 남긴다. 권한 응답을 기다리는 동안 Skip한 요청과 이미 지난 종료 시각은 예약하지 않는다. 실패한 작업은 다음 예약을 차단하지 않는다.
 - 확장 검증: 지연된 네이티브 예약 중 Skip/재시작, 권한 응답 지연, 예약 오류 후 복구, 만료 알림 거부를 단위 테스트한다. 브라우저는 잘못된/만료된/미지원 복원 응답, 새 시작과 늦은 복원 응답 경합, 21회 시작/Skip ID 일치, interval 없이 시계가 진행한 뒤 pageshow 만료를 검증한다. 이는 JS/모의 bridge 검증이며 ActivityKit 실기기 동작 검증을 대신하지 않는다.
 - iOS 16.2+에서 ActivityKit/WidgetKit을 사용한다. 기존 앱 최소 iOS 15는 유지하며 구형 OS·웹·플러그인 없는 구형 앱·Live Activities 비활성 상태에서는 기존 화면 타이머와 로컬 종료 알림을 사용한다.
@@ -463,7 +463,7 @@ Workout/
 - App Info.plist NSSupportsLiveActivities=true. RestTimerActivity.appex 타깃의 최소 iOS 16.2, APPLICATION_EXTENSION_API_ONLY=YES, SKIP_INSTALL=YES, Bundle ID com.choongchoongeestar.workout.RestTimerActivity. 앱과 동일한 version/build를 사용하며 App 타깃 의존성과 Embed App Extensions(PlugIns/13) 단계로 포함한다. app.json에도 확장 자격 증명 준비용 선언을 추가했다. App Groups·푸시 토큰·추가 서버는 사용하지 않는다.
 - scripts/verify-live-activity.mjs가 Xcode 프로젝트를 파싱해 앱/위젯의 공유 모델·위젯 소스·플러그인·의존성·embed·bundle/version을 확인하며 check:ios-release에 포함한다. 실제 Swift 컴파일/서명은 Xcode가 있는 macOS 또는 승인된 EAS 빌드에서 수행해야 한다.
 - 새 네이티브 runtime은 ios-d3289b7ac2e3c244. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
-- 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 네이티브 컴파일과 위 검증은 아직 미실행이다.
+- 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 빌드 5에서 네이티브 컴파일·서명·IPA 생성을 통과했으며 위 실기기 검증은 아직 미실행이다.
 
 ### UndoToast
 - 10초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
@@ -710,3 +710,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 - 2026-09-07: 승인된 EAS build 명령이 원격 작업 생성 전 Expo 타깃 탐색에서 실패했다. PBX 주석 없는 UUID 참조를 EAS가 `{ value }`로 가정한 것이 원인으로, 새 위젯 참조에 표준 PBX 주석을 추가했다. 설치된 EAS CLI의 실제 로컬 타깃 탐색 함수로 App → RestTimerActivity 서명 대상 인식을 확인하고 회귀 정적 검사를 보강했다. 수정 후 runtime은 ios-d3289b7ac2e3c244이며 원격 빌드 ID·Swift 컴파일·IPA는 아직 없다. 추가 EAS 실행은 재승인 대기다.
 - 2026-09-07: 사용자 재승인으로 소스 89ba328의 production iOS EAS build를 다시 실행했다. App/RestTimerActivity 타깃 인식은 정상 통과했으나 저장된 App Store Connect API 인증이 Apple 401로 거부됐다. App 프로파일 검증을 건너뛴 뒤 새 위젯 Bundle ID 등록 단계에서 Apple 재로그인을 요구하여 비대화형 실행이 종료됐다. 원격 빌드 ID·archive·IPA는 생성되지 않았으며 빌드 번호는 4를 유지한다. 다음 진행에는 Apple Developer 재인증과 위젯 서명 프로파일 준비가 필요하다. 인증 오류만으로 키 만료·권한 문제 등 구체 원인을 확정하지 않는다.
+
+- 2026-09-07: Apple 재로그인 및 App/RestTimerActivity 서명 설정 완료 후 사용자 승인으로 production iOS 빌드 5를 실행해 FINISHED를 확인했다. EAS build ID 356a9b7d-cb0a-4de9-a3de-59fbed4b24a6, 제출 소스 281e0e83c2b6ddded2cce77139d0159f8281ecc1 (89ba328 수정 포함), version 1.0 / build 5, runtime ios-d3289b7ac2e3c244. 앱과 위젯 컴파일·서명·archive·IPA 생성이 성공했다. 빌드 페이지: https://expo.dev/accounts/choongchoongee/projects/workout-logger/builds/356a9b7d-cb0a-4de9-a3de-59fbed4b24a6 . 원본 저장소의 app.json과 모든 CURRENT_PROJECT_VERSION을 5로 동기화하고 Info.plist의 버전 변수 참조는 유지한다. TestFlight 제출·실제 아이폰 Dynamic Island 검증은 아직 실행하지 않았다.
