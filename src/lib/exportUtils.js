@@ -1,4 +1,4 @@
-import { EQUIPMENT_LABELS, normalizeSessionEquipment } from './equipment.js'
+import { EQUIPMENT_LABELS, normalizeSessionEquipment, recordInputType } from './equipment.js'
 import { formatDate, localTodayStr } from './dateUtils.js'
 import { normalizeExercise } from './exerciseLibrary.js'
 
@@ -73,7 +73,7 @@ export function buildMarkdown(sessions, exercises) {
         lines.push(`- ${summarizeSet(sets[0], 'cardio')}`)
       } else {
         sets.forEach((s, i) => {
-          lines.push(`${i + 1}. ${summarizeSet(s, ex?.type)}`)
+          lines.push(`${i + 1}. ${summarizeSet(s, recordInputType(se, ex))}`)
         })
       }
       lines.push('')

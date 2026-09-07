@@ -121,6 +121,8 @@ input[type=number] { -moz-appearance: textfield; }
   min-height: clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem);
 }
 
+.swipe-delete { isolation: isolate; }
+
 .swipe-delete [data-swipe-content] {
   transform: translate3d(0, 0, 0);
   transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);

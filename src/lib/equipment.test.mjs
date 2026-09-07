@@ -141,3 +141,21 @@ test('equipment-bearing names display as movements while historical equipment st
   assert.equal(familyId(custom), custom.id)
   assert.deepEqual(old, before)
 })
+
+
+test('Dips is one choice and cable/bodyweight history plus every equipment survive export', () => {
+  const dips = exercises.find(ex => ex.id === 'dips')
+  assert.equal(exerciseChoices(exercises).filter(ex => movementName(ex) === 'Dips').length, 1)
+  const records = [{ id: '2020-01-02', date: '2020-01-02', exercises: [
+    { exerciseId: 'dips', equipment: 'unspecified', sets: [{ added_weight: 5, reps: 10, done: true }] },
+    { exerciseId: 'cable-dips', sets: [set(35)] },
+    ...equipmentOptions().map((equipment, i) => card(equipment, 20 + i)),
+  ] }]
+  const markdown = buildMarkdown(records, exercises)
+  for (const label of ['Unspecified', 'Barbell', 'Dumbbell', 'Smith', 'Machine', 'Cable']) assert(markdown.includes('- Equipment: ' + label))
+  const restored = parseWorkoutMarkdown(markdown)
+  assert.deepEqual(restored.sessions, records)
+  assert.equal(equipmentRecords(restored.sessions, restored.exercises, dips, 'cable')[0].sets[0].weight, 35)
+  assert.equal(equipmentRecords(restored.sessions, restored.exercises, dips, 'cable')[0].type, 'weight')
+  assert.equal(equipmentRecords(restored.sessions, restored.exercises, dips, 'unspecified')[0].sets[0].added_weight, 5)
+})

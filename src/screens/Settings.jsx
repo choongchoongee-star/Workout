@@ -155,6 +155,8 @@ export default function Settings() {
           <input
             type="number"
             min="0"
+            aria-label="Rest timer seconds"
+            onFocus={() => setRestSeconds('')}
             value={restSeconds}
             onChange={e => setRestSeconds(e.target.value)}
             className={inputCls}

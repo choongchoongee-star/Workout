@@ -1,4 +1,4 @@
-import { EQUIPMENT_LABELS, movementName, recordEquipment } from '../lib/equipment'
+import { EQUIPMENT_LABELS, movementName, recordEquipment, recordInputType } from '../lib/equipment'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate } from '../lib/dateUtils'
@@ -83,7 +83,7 @@ export default function SessionDetail() {
                   {se.sets.map((set, si) => (
                     <div key={si} className="flex items-center gap-3 text-sm">
                       <span className="text-zinc-600 w-4 text-right">{si + 1}</span>
-                      {exercise?.type === 'bodyweight' ? (
+                      {recordInputType(se, exercise) === 'bodyweight' ? (
                         <span className="text-zinc-300">
                           {formatWeight(set.added_weight ?? 0, unit)} × {set.reps} reps
                         </span>

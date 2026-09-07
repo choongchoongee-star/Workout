@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import RestTimer from './RestTimer'
+import { useRestTimer, skipRestTimer } from '../lib/activeRestTimer'
 import { otaUpdater } from '../lib/otaUpdate'
 
 const NAV = [
@@ -45,6 +47,7 @@ const NAV = [
 ]
 
 export default function Layout({ children }) {
+  const restTimer = useRestTimer()
   const mainRef = useRef(null)
   const scrollPositions = useRef({})
   const { pathname } = useLocation()
@@ -81,7 +84,8 @@ export default function Layout({ children }) {
         )}
         {children}
       </main>
-      <nav className="fixed bottom-0 left-0 right-0 bg-accent-600 border-t border-accent-700 flex pb-[env(safe-area-inset-bottom)]">
+      {restTimer.active && <RestTimer seconds={restTimer.remaining} total={restTimer.total} onSkip={skipRestTimer} />}
+      <nav className="fixed z-30 bottom-0 left-0 right-0 bg-accent-600 border-t border-accent-700 flex pb-[env(safe-area-inset-bottom)]">
         {NAV.map(({ to, label, icon }) => (
           <NavLink
             key={to}

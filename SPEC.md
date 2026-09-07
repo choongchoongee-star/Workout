@@ -1,6 +1,6 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-06
+> 마지막 업데이트: 2026-09-07
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — EAS 빌드 실패 원인 수정 완료·빌드 4 TestFlight 업로드 완료·Apple 처리 및 실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
@@ -430,7 +430,7 @@ Workout/
 ## 7. 공통 컴포넌트
 
 ### Layout
-- `<main>` 스크롤 컨테이너 + 하단 고정 `<nav>`(운동/기록/무게/설정).
+- `<main>` 스크롤 컨테이너 + 하단 고정 `<nav>`(운동/기록/무게/설정). nav는 z-30, 각 swipe-delete는 isolation:isolate로 자식 z-10을 행 내부에 한정해 스크롤한 행이 탭 위를 가리지 않게 한다. RestTimer는 z-40, 모달/Undo는 z-50이다.
 - 경로 전환 시 스크롤 맨 위로. 단 `/session`은 스크롤 위치 보존(`scrollPositions` ref) — 운동 중 모달 닫기 등에서 위치 유지.
 
 ### StepperInput
@@ -439,6 +439,7 @@ Workout/
 
 ### RestTimer
 - 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. [Skip] 버튼.
+- 타이머 상태와 구독은 `src/lib/activeRestTimer.js`의 앱 공통 외부 store/useSyncExternalStore가 관리한다. Session은 startRestTimer만 호출하고 Layout이 RestTimer를 표시하므로 History/Progress/Settings 왕복에도 표시·남은 시간·종료 알림이 유지된다. Skip은 어느 탭에서나 가능하다. 새 앱 프로세스/페이지 재로드까지의 상태 복원은 별도이며, iOS 예약 알림은 기존대로다.
 - 시작할 때 `endsAt = Date.now() + restSeconds * 1000`을 저장하고, `getRemainingSeconds(endsAt)`로 표시 시간을 계산한다. 250ms 폴링 외에 `visibilitychange`, `focus`, `pageshow`에서도 즉시 다시 계산하므로 브라우저가 백그라운드 타이머를 중단해도 경과 시간이 밀리지 않는다.
 - iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 알림 ID `1101`을 예약한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 또는 Settings의 `Enable alerts`에서 알림 권한을 요청한다.
 - [Skip]은 예약을 취소한다. 새 타이머는 같은 ID의 이전 예약을 취소·교체하며 generation 값으로 비동기 권한 요청 경합을 막는다. 네이티브 예약이 성공한 경우 타이머 종료 effect는 Web Audio를 중복 재생하지 않는다.
@@ -450,6 +451,8 @@ Workout/
 - 이동 범위는 0–88px, 44px 이상 열면 Delete를 완전히 노출한다. 취소 시 시작 위치로 돌아온다. 오른쪽 스와이프·열린 행 탭·외부 터치/포커스·Escape로 닫는다. 다른 행을 조작하면 기존 행이 닫힌다. 드래그 종료 클릭은 차단하여 숫자 수정·완료·상세 이동을 방지한다.
 - 삭제 버튼은 행 뒤에 배치해 밀린 폭만큼만 드러낸다. 닫혀 있거나 드래그 중이면 disabled·aria-hidden·tabIndex=-1로 조작 및 접근성 탐색에서 제외한다. 행 포커스에서 Delete/ArrowLeft로 열고 ArrowRight/Escape로 닫는다. 스크린 리더용 Show delete 버튼도 제공한다. 상단에 짧은 스와이프 안내를 표시한다. 손가락 추적은 ref에 최신 위치를 보관하고 requestAnimationFrame마다 translate3d만 갱신해 매 이동의 React 재렌더링을 피한다. 드래그 중 transition은 끄고 손을 뗄 때 240ms cubic-bezier(0.22, 1, 0.36, 1)로 감속한다. reduced-motion 설정에서는 전환을 생략한다.
 - 세트와 History 삭제 모두 기존 데이터 삭제/Undo 경로를 사용한다. 새 삭제는 10초 복구 시간을 다시 시작하며 저장 스키마와 장비별 기록 분리는 유지한다.
+
+- 다이나믹 아일랜드 남은 시간 표시는 향후 ActivityKit/WidgetKit Live Activity 확장과 네이티브 브리지를 추가하는 별도 작업이다. 현재 지원하지 않으며 새 iOS 빌드가 필요하다.
 
 ### UndoToast
 - 10초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
@@ -477,7 +480,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 ### 장비 선택과 운동 계열 (2026-09-06)
 - 구현: `src/lib/equipment.js`, `src/components/EquipmentSelect.jsx`. 표시 목록만 계열별로 묶으며 기존 운동 ID·정의·세트는 삭제/병합하지 않는다. 이름/category/type이 알려진 기본 정의와 일치할 때만 계열로 인식한다. 커스텀 운동은 계열을 임의 병합하지 않는다. 다만 이름의 명시적 Smith/Smith Machine/Barbell/EZ-bar/Dumbbell/Cable/Machine/Pec Deck 단어는 표시 이름에서 분리하고 구형 장비 미기입 기록에서만 해당 장비로 해석한다. 장비 단어가 없는 커스텀 이름은 그대로 둔다.
-- Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row, Dumbbell Fly/Pec Deck Fly→Fly, Cable Chest Press/Chest Press→Chest Press 계열로 묶는다. One-arm Dumbbell Row→One-arm Row, Reverse Pec Deck Fly→Reverse Fly, Cable Crossover→Crossover, Cable Dips→Dips, Cable Crunch→Crunch, Rowing Machine→Rowing으로 표시한다. 같은 이름이어도 체중/중량 입력 방식이 다른 운동은 병합하지 않는다. 원래 정의·백업 이름은 호환성을 위해 보존한다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
+- Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row, Dumbbell Fly/Pec Deck Fly→Fly, Cable Chest Press/Chest Press→Chest Press 계열로 묶는다. One-arm Dumbbell Row→One-arm Row, Reverse Pec Deck Fly→Reverse Fly, Cable Crossover→Crossover, Cable Dips→Dips, Cable Crunch→Crunch, Rowing Machine→Rowing으로 표시한다. Dips와 Cable Dips는 dips 계열로 묶어 검색/Progress/Library에서 Dips 하나만 표시한다. 원래 카드 ID와 세트는 보존한다. recordInputType은 기존 weight/added_weight 필드를 우선하고, 빈 Dips의 Machine/Cable 선택은 weight 입력을 사용한다. Progress는 각 원본 카드의 입력 타입으로 표시해 케이블 중량을 0kg 추가중량으로 잘못 표시하지 않는다. Crunch 등 다른 체중/중량 입력 차이는 기존대로다. 원래 정의·백업 이름은 호환성을 위해 보존한다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
 - SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/unspecified다. 구형 ezbar는 로드/가져오기/내보내기 및 이전 기록 조회 시 barbell로 정규화하며 세트·카드·운동 ID는 보존한다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
 - UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. 모든 기본·커스텀·맨몸·유산소 운동에서 Unspecified / Barbell / Dumbbell / Smith / Machine / Cable 여섯 선택지를 같은 순서로 제공한다. 운동별 제한은 없다.
 - 추가 기본값: 새 카드는 항상 unspecified로 시작한다. 과거 기록·마지막 기기 선택·원래 운동명에 포함된 장비를 새 카드 기본값으로 사용하지 않는다. Progress도 Unspecified로 시작하며 원하는 장비를 선택해 기록을 조회한다.
@@ -688,3 +691,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-06: 운동별 장비 제한을 없애고 모든 운동에 Unspecified/Barbell/Dumbbell/Smith/Machine/Cable을 제공한다. 새 카드·Progress 기본값은 항상 Unspecified이며 최근 장비 기억값은 사용하지 않는다. 기존 명시 장비·세트·중복 카드는 유지한다. 빈 유산소 카드의 장비 변경 후 입력 저장도 지원한다. 테스트 47개, 장비 전환·미정 기본값·유산소 입력 재로드·다크모드 브라우저 검사를 통과했다.
 
 - 2026-09-06: 사용자 요청으로 운동명/장비 분리·다크모드·모든 운동 공통 장비와 Unspecified 기본값(소스 e68400e)을 OTA 게시했다. runtime `ios-edab217484237bd7`, bundle `994d6843309ed5819dfdae4bfebb6f9ff8ae6957f384c51463b393707fde77fc`, ZIP 386661 bytes. 테스트 47개·장비/다크모드 브라우저 검사·lint·build·iOS 호환/native fingerprint 및 공개 manifest/ZIP SHA-256·RSA 검증을 통과했다. Settings → Check for updates에서 다운로드 후 완전 종료·재실행으로 적용한다. 실제 iPhone 확인은 별도다.
+
+- 2026-09-07: 휴식 타이머를 Layout/앱 공통 store로 옮겨 탭 왕복 중 표시·카운트다운·종료/Skip을 유지한다. 스와이프 행 stacking context를 격리하고 nav z-30으로 하단 탭 침범을 수정했다. Settings 휴식 초 입력은 focus 시 비우며 빈 상태로 저장하면 기존 설정을 유지한다. Dips/Cable Dips 목록을 하나로 묶고 중복 운동 카드·장비별 기록·원본 중량 필드를 보존한다. 모든 장비의 구조화 Markdown export/import 왕복 및 Dips 타입 표시를 확인했다. 테스트 48개, scripts/verify-timer-navigation.mjs와 스와이프 회귀 브라우저 검사, lint·build를 통과했다. GitHub 반영과 별개로 OTA·실제 iPhone 검증은 별도다.

@@ -1,0 +1,59 @@
+import assert from 'node:assert/strict'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
+const browser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHANNEL || 'msedge' })
+try {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const errors = []
+  page.on('pageerror', e => errors.push(e.message))
+  await page.addInitScript(() => {
+    if (localStorage.getItem('wl_workout_data_v1')) return
+    localStorage.setItem('wl_rest_seconds', '60')
+    localStorage.setItem('wl_workout_data_v1', JSON.stringify({ version: 1, exercises: [], sessions: Array.from({ length: 20 }, (_, i) => {
+      const date = `2020-01-${String(i + 1).padStart(2, '0')}`
+      return { id: date, date, exercises: [{ exerciseId: 'bench-press', equipment: 'barbell', sets: Array.from({ length: 10 }, () => ({ weight: 40, reps: 10, done: false })) }] }
+    }) }))
+  })
+  await page.goto(`${process.env.WORKOUT_URL || 'http://127.0.0.1:5174/Workout/'}session`)
+  await page.getByLabel('Workout date').fill('2020-01-20')
+  await page.getByRole('button', { name: 'Mark set as complete', exact: true }).first().click()
+  const timer = page.getByRole('region', { name: 'Rest timer', exact: true })
+  await timer.waitFor()
+  for (const tab of ['History', 'Progress', 'Settings', 'Workout']) {
+    await page.getByRole('link', { name: tab, exact: true }).click()
+    assert(await timer.isVisible())
+  }
+  await page.waitForTimeout(1200)
+  const text = await timer.innerText()
+  assert(!text.includes('1:00'), 'Countdown must continue rather than restart on navigation')
+  await timer.getByRole('button', { name: 'Skip' }).click()
+  assert.equal(await timer.count(), 0)
+  for (const tab of ['History', 'Workout']) {
+    await page.getByRole('link', { name: tab, exact: true }).click()
+    if (tab === 'Workout') await page.getByLabel('Workout date').fill('2020-01-20')
+    await page.locator('.swipe-delete').first().waitFor()
+    await page.locator('main').evaluate(el => el.scrollTo(0, 400))
+    const nav = await page.locator('nav').boundingBox()
+    for (const fraction of [0.2, 0.5, 0.8]) {
+      assert(await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('nav'), { x: nav.width * fraction, y: nav.y + 24 }), 'Scrolled/swiped rows cannot cover navigation')
+    }
+  }
+  await page.getByRole('link', { name: 'Progress', exact: true }).click()
+  await page.getByPlaceholder('Search exercises...').fill('Dips')
+  assert.equal(await page.getByRole('button', { name: 'Dips Chest', exact: true }).count(), 1)
+  await page.getByRole('link', { name: 'Settings', exact: true }).click()
+  const seconds = page.getByLabel('Rest timer seconds')
+  await seconds.click()
+  assert.equal(await seconds.inputValue(), '')
+  await seconds.fill('3')
+  await page.getByRole('button', { name: 'Save preferences', exact: true }).click()
+  await page.getByRole('link', { name: 'Workout', exact: true }).click()
+  await page.getByLabel('Workout date').fill('2020-01-20')
+  await page.getByRole('button', { name: 'Mark set as complete', exact: true }).first().click()
+  await timer.waitFor()
+  await page.getByRole('link', { name: 'History', exact: true }).click()
+  await timer.waitFor({ state: 'detached', timeout: 6000 })
+  assert.deepEqual(errors, [])
+  console.log('PASS: timer tab continuity/expiry/Skip, navigation stacking, one Dips, rest input clear/save')
+} finally { await browser.close() }

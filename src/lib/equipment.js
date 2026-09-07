@@ -15,6 +15,7 @@ export function normalizeSessionEquipment(session) {
 }
 
 const aliases = {
+  'cable-dips': ['dips', 'cable'],
   'pec-deck-fly': ['dumbbell-fly', 'machine'],
   'cable-chest-press': ['chest-press', 'cable'],
   'incline-dumbbell-press': ['incline-bench', 'dumbbell'],
@@ -63,6 +64,13 @@ export function recordEquipment(card, exercise) {
   if (named) return named.equipment
   return 'unspecified'
 }
+export function recordInputType(card, exercise) {
+  if (familyId(exercise) !== 'dips') return exercise?.type
+  const first = card.sets?.[0]
+  if (first && 'added_weight' in first) return 'bodyweight'
+  if (first && 'weight' in first) return 'weight'
+  return ['machine', 'cable'].includes(recordEquipment(card, exercise)) ? 'weight' : exercise?.type
+}
 export function exerciseChoices(exercises) {
   const choices = new Map()
   for (const ex of exercises) {
@@ -78,7 +86,7 @@ export function equipmentRecords(sessions, exercises, exercise, equipment) {
       const source = byId.get(card.exerciseId)
       if (!source || familyId(source) !== familyId(exercise) ||
         recordEquipment(card, source) !== equipment || !card.sets?.length) return []
-      return [{ date: session.date, index, sets: card.sets }]
+      return [{ date: session.date, index, sets: card.sets, type: recordInputType(card, source) }]
     }))
 }
 export function previousEquipmentSet(sessions, exercises, exercise, equipment, excludeDate) {

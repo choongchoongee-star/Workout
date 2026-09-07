@@ -84,7 +84,7 @@ export default function Weight() {
           <p className="text-zinc-600 text-sm text-center py-12">No history for this exercise yet.</p>
         ) : (
           <div className="space-y-4">
-            {records.map(({ date, index, sets }) => (
+            {records.map(({ date, index, sets, type }) => (
               <div key={`${date}:${index}`}>
                 <h2 className="text-zinc-400 text-sm font-medium mb-1.5">
                   {formatDate(date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
@@ -93,7 +93,7 @@ export default function Weight() {
                   {sets.map((set, i) => (
                     <div key={i} className="flex items-center gap-3 text-sm">
                       <span className="text-zinc-600 w-4 text-right flex-shrink-0">{i + 1}</span>
-                      <span className="text-zinc-200">{summarizeSet(set, selected.type, unit)}</span>
+                      <span className="text-zinc-200">{summarizeSet(set, type, unit)}</span>
                       {set.done && <span className="text-green-500 text-xs ml-auto">✓</span>}
                     </div>
                   ))}

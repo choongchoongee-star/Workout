@@ -1,5 +1,5 @@
 import EquipmentSelect from '../components/EquipmentSelect'
-import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, movementName, previousEquipmentSet, recordEquipment } from '../lib/equipment'
+import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, movementName, previousEquipmentSet, recordEquipment, recordInputType } from '../lib/equipment'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -7,14 +7,12 @@ import { storage } from '../lib/storage'
 import { displayWeight, storedWeight } from '../lib/weightUnits'
 import { calcCalories } from '../lib/calories'
 import StepperInput from '../components/StepperInput'
-import RestTimer from '../components/RestTimer'
+import { startRestTimer } from '../lib/activeRestTimer'
 import UndoToast from '../components/UndoToast'
 import SwipeToDelete from '../components/SwipeToDelete'
 import { CATEGORIES } from '../data/exercises'
 import { formatDate, localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
-import { getRemainingSeconds } from '../lib/restTimer'
-import { cancelRestNotification, notifyRestComplete, prepareRestNotification, scheduleRestNotification } from '../lib/restNotification'
 
 function newWeightSet(weight = 20, reps = 10) {
   return { weight, reps, done: false }
@@ -283,8 +281,6 @@ export default function Session() {
   }, [sessionDate, realToday, startTimeKey])
 
   const [showModal, setShowModal] = useState(false)
-  const [restTimer, setRestTimer] = useState({ active: false, remaining: 90, total: 90, endsAt: null })
-  const notifiedRestEndRef = useRef(null)
   const [undoData, setUndoData] = useState(null)
 
   // Auto-save in-progress session to context on every change
@@ -325,55 +321,6 @@ export default function Session() {
     exerciseCardRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [sessionExercises])
 
-  // Recalculate from the absolute deadline so background timer throttling cannot lose time.
-  useEffect(() => {
-    if (!restTimer.active || !restTimer.endsAt) return
-    const endsAt = restTimer.endsAt
-
-    function updateRemaining() {
-      const remaining = getRemainingSeconds(endsAt)
-      if (remaining <= 0) {
-        if (notifiedRestEndRef.current !== endsAt) {
-          notifiedRestEndRef.current = endsAt
-          void notifyRestComplete()
-        }
-        setRestTimer(t => t.active && t.endsAt === endsAt
-          ? { ...t, active: false, remaining: 0 }
-          : t)
-        return
-      }
-      setRestTimer(t => t.active && t.endsAt === endsAt && t.remaining !== remaining
-        ? { ...t, remaining }
-        : t)
-    }
-
-    updateRemaining()
-    const id = window.setInterval(updateRemaining, 250)
-    document.addEventListener('visibilitychange', updateRemaining)
-    window.addEventListener('focus', updateRemaining)
-    window.addEventListener('pageshow', updateRemaining)
-    return () => {
-      window.clearInterval(id)
-      document.removeEventListener('visibilitychange', updateRemaining)
-      window.removeEventListener('focus', updateRemaining)
-      window.removeEventListener('pageshow', updateRemaining)
-    }
-  }, [restTimer.active, restTimer.endsAt])
-
-  function startRestTimer() {
-    const secs = storage.getRestSeconds()
-    if (secs <= 0) return
-    prepareRestNotification()
-    const endsAt = Date.now() + secs * 1000
-    void scheduleRestNotification(endsAt)
-    setRestTimer({ active: true, remaining: secs, total: secs, endsAt })
-  }
-
-  function skipRestTimer() {
-    void cancelRestNotification()
-    setRestTimer(t => ({ ...t, active: false }))
-  }
-
   function addExercise(ex) {
     // 카디오는 단일 기록이라 빈 배열로 두면 폼이 없어지므로 그대로 한 개 생성
     const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
@@ -406,7 +353,7 @@ export default function Session() {
         if (!lastSet) {
           lastSet = previousEquipmentSet(sessions, exercises, exercise, recordEquipment(ex, exercise), sessionDate)
         }
-        if (exercise?.type === 'bodyweight') {
+        if (recordInputType(ex, exercise) === 'bodyweight') {
           ex.sets = [...ex.sets, { added_weight: lastSet?.added_weight ?? 0, reps: lastSet?.reps ?? 10, done: false }]
         } else {
           ex.sets = [...ex.sets, newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
@@ -572,7 +519,7 @@ export default function Session() {
                       key={`${sessionDate}-${setIdx}`}
                       setIdx={setIdx}
                       set={set}
-                      exerciseType={exercise?.type}
+                      exerciseType={recordInputType(se, exercise)}
                       exerciseName={movementName(exercise) || se.exerciseId}
                       onUpdate={(field, value) => updateSet(exIdx, setIdx, field, value)}
                       onDone={() => completeSet(exIdx, setIdx)}
@@ -602,13 +549,6 @@ export default function Session() {
         + Add exercise
       </button>
 
-      {restTimer.active && (
-        <RestTimer
-          seconds={restTimer.remaining}
-          total={restTimer.total}
-          onSkip={skipRestTimer}
-        />
-      )}
 
       {undoData && (
         <UndoToast
