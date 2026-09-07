@@ -1,7 +1,7 @@
 # Workout Logger — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-07
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Live Activities 포함 빌드 5 EAS 성공·TestFlight 제출 및 실기기 검증 대기 (빌드 4는 업로드 완료)
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Live Activities 포함 빌드 5 TestFlight 업로드 완료·Apple 처리 및 실기기 검증 대기
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
 > **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
@@ -712,3 +712,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-07: 사용자 재승인으로 소스 89ba328의 production iOS EAS build를 다시 실행했다. App/RestTimerActivity 타깃 인식은 정상 통과했으나 저장된 App Store Connect API 인증이 Apple 401로 거부됐다. App 프로파일 검증을 건너뛴 뒤 새 위젯 Bundle ID 등록 단계에서 Apple 재로그인을 요구하여 비대화형 실행이 종료됐다. 원격 빌드 ID·archive·IPA는 생성되지 않았으며 빌드 번호는 4를 유지한다. 다음 진행에는 Apple Developer 재인증과 위젯 서명 프로파일 준비가 필요하다. 인증 오류만으로 키 만료·권한 문제 등 구체 원인을 확정하지 않는다.
 
 - 2026-09-07: Apple 재로그인 및 App/RestTimerActivity 서명 설정 완료 후 사용자 승인으로 production iOS 빌드 5를 실행해 FINISHED를 확인했다. EAS build ID 356a9b7d-cb0a-4de9-a3de-59fbed4b24a6, 제출 소스 281e0e83c2b6ddded2cce77139d0159f8281ecc1 (89ba328 수정 포함), version 1.0 / build 5, runtime ios-d3289b7ac2e3c244. 앱과 위젯 컴파일·서명·archive·IPA 생성이 성공했다. 빌드 페이지: https://expo.dev/accounts/choongchoongee/projects/workout-logger/builds/356a9b7d-cb0a-4de9-a3de-59fbed4b24a6 . 원본 저장소의 app.json과 모든 CURRENT_PROJECT_VERSION을 5로 동기화하고 Info.plist의 버전 변수 참조는 유지한다. TestFlight 제출·실제 아이폰 Dynamic Island 검증은 아직 실행하지 않았다.
+
+- 2026-09-07: 사용자 승인으로 빌드 5 (EAS 356a9b7d-cb0a-4de9-a3de-59fbed4b24a6)를 TestFlight/App Store Connect에 제출했다. Submission 75773b57-e914-4609-b386-3e4c5f588ad0이 성공 종료했으며 Apple 업로드 완료를 확인했다. ASC 앱 6808960698에서 Apple 처리 중이다. TestFlight: https://appstoreconnect.apple.com/apps/6808960698/testflight/ios . Apple 처리 완료·테스터 설치·Live Activities 실기기 동작은 아직 확인하지 않았다.
