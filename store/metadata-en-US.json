@@ -1,0 +1,15 @@
+{
+  "name": "Steady Sets",
+  "subtitle": "Simple Workout Log",
+  "promotionalText": "Keep your focus on the next set. Log weights and reps, track your history, and time your rest with a simple workout journal for iPhone.",
+  "description": "A simple workout journal for steady progress.\n\nSteady Sets keeps the essentials close: your exercise, your weight, your reps, and your next set. Adjust numbers with visible plus and minus buttons and mark each set complete as you train.\n\nLOG YOUR TRAINING\nRecord strength and cardio exercises. Choose your equipment, keep equipment-specific history separate, and add the same exercise more than once in a workout. Use kilograms or pounds.\n\nLOOK BACK\nBrowse workouts by date and review your exercise history. Swipe to delete a set or workout, with an opportunity to undo.\n\nTAKE A REST\nSet your rest duration and start a countdown when you complete a set. On supported iPhones, Live Activities show your rest timer on the Lock Screen and Dynamic Island.\n\nKEEP YOUR RECORDS\nYour workout records stay on your device. No account, advertising, or analytics. Export a Markdown backup and restore it when needed. Keep a backup before deleting the app or changing phones.\n\nLight and dark appearances. No social feed. Just your training, one set at a time.",
+  "keywords": "gym,weightlifting,strength,reps,barbell,dumbbell,exercise,journal,rest,timer,training,offline",
+  "supportUrl": "https://choongchoongee-star.github.io/Workout/#support",
+  "marketingUrl": "https://choongchoongee-star.github.io/Workout/",
+  "privacyPolicyUrl": "https://choongchoongee-star.github.io/Workout/privacy/",
+  "category": "HEALTH_AND_FITNESS",
+  "reviewNotes": "Steady Sets is an offline workout journal. No login or demo account is required. Add an exercise on the Workout tab, enter weight and reps, and mark a set complete to start the rest timer. Enable notifications if you want a rest-complete alert. Live Activities require iOS 16.2 or later; Dynamic Island requires a supported iPhone. History, Progress, and Settings are available from the bottom tabs. Backup and Restore are in Settings. The app does not provide medical advice or use HealthKit. Workout data is stored on the device. Optional app-file update checks use GitHub Pages and do not transmit workout records.",
+  "releaseMode": "MANUAL",
+  "screenshots": "Provided separately by the owner",
+  "status": "Prepared locally; App Store Connect save pending browser login"
+}

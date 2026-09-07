@@ -11,7 +11,7 @@ export default function Privacy() {
       </div>
 
       <div className="space-y-6 text-sm leading-6">
-        <p className="text-zinc-500">Effective September 5, 2026</p>
+        <p className="text-zinc-500">Effective September 7, 2026</p>
 
         <section>
           <h2 className="text-white font-semibold mb-2">Data collection</h2>
@@ -30,7 +30,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-white font-semibold mb-2">Notifications</h2>
-          <p>If you allow notifications, the app schedules local rest timer alerts on your device. No notification server or remote push service is used.</p>
+          <p>If you allow notifications, the app schedules local rest timer alerts on your device. No notification server or remote push service is used. On supported iPhones, Live Activities display the rest countdown on your Lock Screen and Dynamic Island; they do not include exercise names, weights, or workout history.</p>
         </section>
 
         <section>
