@@ -11,21 +11,29 @@ Updated: 2026-09-07
 - Build 5 was uploaded to TestFlight. The final name and icon require the next native build.
 - Screenshots are supplied separately by the owner.
 
-## App Store Connect actions pending authenticated browser access
+## Saved in App Store Connect
 
-- Save name/subtitle and English version metadata; verify Apple's name availability response.
-- Set primary category to Health & Fitness, unless the current record already has it.
-- Enter support and privacy URLs from metadata-en-US.json.
-- Preserve existing review contact details if valid; request missing information privately rather than placing it in this repository.
+- Steady Sets / Simple Workout Log saved; reloaded app menu displays Steady Sets without a name-conflict error. This is not trademark clearance.
+- Primary category: Health & Fitness.
+- English promotional text, description, keywords, support/marketing URLs and review notes saved from metadata-en-US.json.
+- Privacy policy URL saved and visible on App Privacy page.
+- Login required disabled; manual release selected and saved.
+- Age questionnaire saved: no mature content, ads, social/chat, gambling, contests or unrestricted browsing; no medical/treatment information, health/wellness topics present. Apple computed 9+ in 172 regions, all ages in Korea and 12+ in Vietnam. No age override selected.
+
+## Remaining App Store Connect actions
+
+- Review contact fields and copyright are blank. Request owner details privately; do not commit contact details. Public support currently uses the GitHub issue link; a support email awaits the owner.
 - Pricing and country selection await the owner's decision. No price or territory changes have been made.
-- Complete age-rating questions from actual app content: no ads, chat, public user content, gambling, contests, unrestricted web browsing or mature content. This is a personal exercise logger, not a medical advice or treatment app. Read the current wellness-topic definition before answering that field. Do not choose an arbitrary rating; Apple derives it from the answers.
-- Verify App Privacy before publishing answers. Workouts remain local; no analytics/advertising/account SDK is present. GitHub Pages receives update requests, including ordinary network metadata. Review the host's handling against Apple's collection definition rather than automatically certifying "Data Not Collected" from local storage alone.
-- Use manual release after approval. Do not submit for review until the final binary and screenshots are ready.
+- App Privacy labels are not published. Workouts remain local; no analytics/advertising/account SDK is present. GitHub's privacy statement describes IP/request logging, while Apple's definition concerns off-device retention beyond serving a request. The exact update-host treatment and disclosure classification remain unresolved; do not certify "Data Not Collected" from local workout storage alone.
+- Content rights declaration is not set. Existing Apple standard EULA and non-trader status are preserved.
+- Regulated medical device declaration is not saved. Automatic approval review rejected saving No because this regulatory statement needs explicit owner approval. Do not retry until that approval arrives.
+- No final build selected and no screenshots uploaded. The next native build must contain the final name/icon. No EAS operation or formal review submission was performed in this preparation session.
 - Check any region-specific declarations shown by Apple once countries are selected. Do not accept legal agreements or invent business/trader information.
 
 ## Sources
 
 - https://developer.apple.com/app-store/app-privacy-details/
+- https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 - https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/
 - https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app
 - Related workout app: https://steady.rocks/

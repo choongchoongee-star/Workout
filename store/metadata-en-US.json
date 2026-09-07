@@ -11,5 +11,5 @@
   "reviewNotes": "Steady Sets is an offline workout journal. No login or demo account is required. Add an exercise on the Workout tab, enter weight and reps, and mark a set complete to start the rest timer. Enable notifications if you want a rest-complete alert. Live Activities require iOS 16.2 or later; Dynamic Island requires a supported iPhone. History, Progress, and Settings are available from the bottom tabs. Backup and Restore are in Settings. The app does not provide medical advice or use HealthKit. Workout data is stored on the device. Optional app-file update checks use GitHub Pages and do not transmit workout records.",
   "releaseMode": "MANUAL",
   "screenshots": "Provided separately by the owner",
-  "status": "Prepared locally; App Store Connect save pending browser login"
+  "status": "Saved in App Store Connect: name, subtitle, category, English version copy, support/marketing/privacy URLs, review notes and manual release. Review contact, copyright, pricing/territories, privacy labels, declarations, screenshots and final binary remain pending."
 }
