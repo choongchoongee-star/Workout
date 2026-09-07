@@ -27,7 +27,7 @@
 - **Capacitor v8** — iOS 네이티브 셸, Filesystem, Local Notifications, Share
 - **Capawesome Live Update v8** — 서명된 자체 호스팅 OTA, 네이티브 runtime별 배포, 시작 실패 시 내장 버전 복구
 - **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
-- 앱 아이콘: public/icon.svg를 원본으로 하는 평면 덤벨. 초록 #1D4533 전체 배경, 크림 #F7EAE0 바, 살구 #F9D2BA 원판 두 개로 구성한다. 글자·그라데이션·그림자는 없으며 iOS 시스템이 모서리를 마스킹하도록 원본 배경은 정사각형이다. 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512·favicon을 사용한다.
+- 앱 아이콘: public/icon.svg를 원본으로 하는 평면 덤벨. 초록 #1D4533 전체 배경, 크림 #F7EAE0 바, 살구 #F9D2BA 원판 네 개(양쪽 큰 원판 바깥에 작은 원판 한 개씩)로 구성한다. 글자·그라데이션·그림자는 없으며 iOS 시스템이 모서리를 마스킹하도록 원본 배경은 정사각형이다. 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512·favicon을 사용한다.
 
 ### vite.config.js 핵심
 ```js
@@ -718,3 +718,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-07: 최종 제품명을 Steady Sets로 확정했다. 앱 표시 이름(app.json/Capacitor/iOS Info.plist), PWA 이름·브라우저 제목, Live Activity 표시, Settings 안내, 앱 내부/공개 개인정보처리방침과 소개 페이지 소스를 변경했다. 기존 bundle ID·EAS slug/workout-logger·프로젝트 ID·저장 키·백업 형식·지원/공개 URL은 유지한다. App Store Connect 표시 이름 변경, 공개 사이트 배포, 새 네이티브 빌드/제출은 아직 실행하지 않았다. 빌드 5의 설치 이름은 이전 이름이며 새 이름은 다음 네이티브 빌드에 포함한다. 스토어 이름 중복·상표 가용성은 미확인이다.
 
 - 2026-09-07: Steady Sets 아이콘을 앱 팔레트의 초록/크림/살구 평면 덤벨로 단순화했다. public/icon.svg·favicon.svg, iOS 1024 PNG와 PWA 192/512 PNG를 맞췄다. 추적되는 scripts/generate-icons.mjs와 npm run icons로 재생성하며 크기·알파 없음 검증을 포함한다. 새 아이콘은 소스 반영이며 네이티브 빌드·사이트/OTA 배포는 실행하지 않았다.
+
+- 2026-09-07: 아이콘 양쪽 큰 원판 바깥에 작은 살구색 원판을 한 개씩 추가해 각 측면 두 장 구조로 변경했다. 바를 소폭 연장하고 4px 간격으로 원판 구분을 유지한다. SVG·favicon·PWA 192/512·iOS 1024 산출물을 동기화했다. 배포는 별도다.
