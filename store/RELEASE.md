@@ -22,11 +22,11 @@ Updated: 2026-09-07
 
 ## Remaining App Store Connect actions
 
-- Review contact fields and copyright are blank. Request owner details privately; do not commit contact details. Public support currently uses the GitHub issue link; a support email awaits the owner.
-- Pricing and country selection await the owner's decision. No price or territory changes have been made.
-- App Privacy labels are not published. Workouts remain local; no analytics/advertising/account SDK is present. GitHub's privacy statement describes IP/request logging, while Apple's definition concerns off-device retention beyond serving a request. The exact update-host treatment and disclosure classification remain unresolved; do not certify "Data Not Collected" from local workout storage alone.
-- Content rights declaration is not set. Existing Apple standard EULA and non-trader status are preserved.
-- Regulated medical device declaration is not saved. Automatic approval review rejected saving No because this regulatory statement needs explicit owner approval. Do not retry until that approval arrives.
+- Review contact fields and copyright are blank. The owner supplied a phone number, but ASC rejected saving it without first name, last name and email; the incomplete input was cleared and remains pending those details. Request owner details privately; do not commit contact details. Public support currently uses the GitHub issue link; a support email awaits the owner.
+- All 175 countries/regions and future territories are enabled for availability after release. Pricing remains unset pending the owner's decision.
+- App Privacy draft saved: Other Data Types, App Functionality, linked to user, not used for tracking. GitHub Pages explicitly retains visitor IP addresses for security; this is disclosed as security-related network data, not workout collection. No pre-collection anonymization is documented, so the label does not claim unlinked data. Apple includes security in App Functionality. Publication is pending owner confirmation of the final accuracy/legal-compliance/update-obligation agreement; the final Publish button has not been pressed.
+- Content rights saved: no third-party content. Existing Apple standard EULA and non-trader status are preserved.
+- After explicit owner confirmation, No was saved for regulated medical device status; ASC confirms the app is not a regulated medical device in any country/region.
 - No final build selected and no screenshots uploaded. The next native build must contain the final name/icon. No EAS operation or formal review submission was performed in this preparation session.
 - Check any region-specific declarations shown by Apple once countries are selected. Do not accept legal agreements or invent business/trader information.
 
@@ -37,3 +37,5 @@ Updated: 2026-09-07
 - https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/
 - https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app
 - Related workout app: https://steady.rocks/
+
+- GitHub Pages IP retention: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection
