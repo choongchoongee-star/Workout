@@ -1,6 +1,6 @@
 # Steady Sets release preparation
 
-Updated: 2026-09-07
+Updated: 2026-09-08
 
 ## Verified and prepared
 
@@ -22,9 +22,9 @@ Updated: 2026-09-07
 
 ## Remaining App Store Connect actions
 
-- Review contact fields and copyright are blank. The owner supplied a phone number, but ASC rejected saving it without first name, last name and email; the incomplete input was cleared and remains pending those details. Request owner details privately; do not commit contact details. Public support currently uses the GitHub issue link; a support email awaits the owner.
+- Review contact saved on 2026-09-08 with owner-provided first/last name, phone and email; reload confirmed the saved form. Private values are excluded from this repository. Copyright remains blank. Public support continues to use the GitHub issue link; the review email is not automatically a public support address.
 - All 175 countries/regions and future territories are enabled for availability after release. Pricing remains unset pending the owner's decision.
-- App Privacy draft saved: Other Data Types, App Functionality, linked to user, not used for tracking. GitHub Pages explicitly retains visitor IP addresses for security; this is disclosed as security-related network data, not workout collection. No pre-collection anonymization is documented, so the label does not claim unlinked data. Apple includes security in App Functionality. Publication is pending owner confirmation of the final accuracy/legal-compliance/update-obligation agreement; the final Publish button has not been pressed.
+- App Privacy draft saved: Other Data Types, App Functionality, linked to user, not used for tracking. GitHub Pages explicitly retains visitor IP addresses for security; this is disclosed as security-related network data, not workout collection. No pre-collection anonymization is documented, so the label does not claim unlinked data. Apple includes security in App Functionality. The owner approved publishing this draft, but automatic approval review blocked the final button on 2026-09-08 and requires execution-time confirmation of the accuracy/legal-compliance/update-obligation agreement. The draft remains unpublished; the confirmation dialog is open. App review submission and final release are explicitly on hold.
 - Content rights saved: no third-party content. Existing Apple standard EULA and non-trader status are preserved.
 - After explicit owner confirmation, No was saved for regulated medical device status; ASC confirms the app is not a regulated medical device in any country/region.
 - No final build selected and no screenshots uploaded. The next native build must contain the final name/icon. No EAS operation or formal review submission was performed in this preparation session.
