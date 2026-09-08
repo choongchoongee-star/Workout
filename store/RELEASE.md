@@ -22,8 +22,8 @@ Updated: 2026-09-08
 
 ## Remaining App Store Connect actions
 
-- Review contact saved on 2026-09-08 with owner-provided first/last name, phone and email; reload confirmed the saved form. Private values are excluded from this repository. Copyright remains blank. Public support continues to use the GitHub issue link; the review email is not automatically a public support address.
-- All 175 countries/regions and future territories are enabled for availability after release. Pricing remains unset pending the owner's decision.
+- Review contact saved on 2026-09-08 with owner-provided first/last name, phone and email; reload confirmed the saved form. Private values are excluded from this repository. Copyright saved and reloaded: 2026 Choonghyun Han. Public support continues to use the GitHub issue link; the review email is not automatically a public support address.
+- All 175 countries/regions and future territories are enabled for availability after release. Free pricing saved on 2026-09-08 by owner request; current USD price verified as Pricing remains unset pending the owner's decision..00, with worldwide zero prices confirmed.
 - App Privacy published on 2026-09-08: Other Data Types, App Functionality, linked to user, not used for tracking. GitHub Pages explicitly retains visitor IP addresses for security; this is disclosed as security-related network data, not workout collection. No pre-collection anonymization is documented, so the label does not claim unlinked data. Apple includes security in App Functionality. After execution-time owner confirmation of the accuracy/legal-compliance/update-obligation agreement, the final Publish action succeeded and ASC displayed the recent publication timestamp. App review submission and final release are explicitly on hold.
 - Content rights saved: no third-party content. Existing Apple standard EULA and non-trader status are preserved.
 - After explicit owner confirmation, No was saved for regulated medical device status; ASC confirms the app is not a regulated medical device in any country/region.
