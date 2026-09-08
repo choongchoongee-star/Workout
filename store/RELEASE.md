@@ -45,3 +45,5 @@ Updated: 2026-09-08
 - Source now supports iOS per-app Preferred Language (en/ko), without an in-app selector. Build 6 does not include this change.
 - Native runtime: ios-f732ac7ea13239d4. Existing backup formats and equipment keys are preserved.
 - A new approved native build and device checks are required before claiming Korean support in the store. No new build, upload, review submission or release was triggered by this implementation.
+
+- Extended local verification passed: 60 unit tests, bilingual SSR, browser input/persistence/export/import/delete flows, locale switching, and 320–430px layouts. No functional failure reproduced within this scope. Actual iPhone language settings and ActivityKit rendering still require the next native build.
