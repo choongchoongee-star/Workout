@@ -154,6 +154,7 @@ FA1700000000000000000028 /* RestTimerActivity */ = {isa = PBXNativeTarget; build
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+                ko,
 				en,
 				Base,
 			);

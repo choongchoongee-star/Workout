@@ -1,5 +1,7 @@
+import { localizedMovementName as movementName } from '../lib/exerciseLabels'
+import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
-import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, movementName, previousEquipmentSet, recordEquipment, recordInputType } from '../lib/equipment'
+import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, previousEquipmentSet, recordEquipment, recordInputType } from '../lib/equipment'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -70,18 +72,18 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
         ref={modalRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Add exercise"
+        aria-label={t("Add exercise")}
         className="bg-zinc-900 rounded-t-2xl mt-auto h-[80vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-          <h3 className="text-white font-semibold">Add exercise</h3>
-          <button onClick={onClose} aria-label="Close" className="text-zinc-400 active:text-white p-1">✕</button>
+          <h3 className="text-white font-semibold">{t("Add exercise")}</h3>
+          <button onClick={onClose} aria-label={t("Close")} className="text-zinc-400 active:text-white p-1">✕</button>
         </div>
         <div className="p-3 border-b border-zinc-800">
           <input
             type="text"
-            placeholder="Search exercises..."
+            placeholder={t("Search exercises...")}
             value={query}
             onChange={e => setQuery(e.target.value)}
             className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
@@ -90,14 +92,14 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
         <div className="category-filters shrink-0 p-3 border-b border-zinc-800">
           {categories.map(c => (
             <button
-              key={c}
+              key={t(c)}
               onClick={() => setActiveCategory(c)}
               aria-pressed={activeCategory === c}
               className={`min-h-11 min-w-0 text-sm px-1 py-2 rounded-lg transition-colors [overflow-wrap:anywhere] ${
                 activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-800 text-zinc-400'
               }`}
             >
-              {c}
+              {t(c)}
             </button>
           ))}
         </div>
@@ -119,14 +121,14 @@ function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loa
                 >
                   <span className="text-white">{movementName(ex)}</span>
                   <div className="flex items-center gap-2">
-                    {alreadyAdded && <span className="text-zinc-500 text-xs">Added</span>}
-                    <span className="text-zinc-500 text-xs">{ex.category}</span>
+                    {alreadyAdded && <span className="text-zinc-500 text-xs">{t("Added")}</span>}
+                    <span className="text-zinc-500 text-xs">{t(ex.category)}</span>
                   </div>
                 </button>
               )
             })
           ) : (
-            <p className="text-zinc-600 text-sm text-center py-8">No exercises found.</p>
+            <p className="text-zinc-600 text-sm text-center py-8">{t("No exercises found.")}</p>
           )}
         </div>
       </div>
@@ -141,7 +143,7 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
   const locked = set.done
 
   return (
-    <SwipeToDelete label={`Set ${setIdx + 1}`} onDelete={onRemove}>
+    <SwipeToDelete label={t('Set {number}', { number: setIdx + 1 })} onDelete={onRemove}>
     <div className="workout-set-row grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-2 border-b border-zinc-700/60">
       <div className="flex flex-col items-center">
         <span className={`text-center text-sm tabular-nums ${locked ? 'text-accent-400' : 'text-zinc-400'}`}>{setIdx + 1}</span>
@@ -151,8 +153,8 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
         onChange={v => onUpdate(isBodyweight ? 'added_weight' : 'weight', storedWeight(v, unit))}
         step={unit === 'lbs' ? 5 : 2.5}
         unit={unit}
-        label={isBodyweight ? 'Added weight' : 'Weight'}
-        contextLabel={`${exerciseName} · Set ${setIdx + 1}`}
+        label={isBodyweight ? t("Added weight") : 'Weight'}
+        contextLabel={`${exerciseName} · ${t('Set {number}', { number: setIdx + 1 })}`}
         disabled={locked}
       />
       <StepperInput
@@ -160,11 +162,11 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
         onChange={v => onUpdate('reps', v)}
         step={1}
         unit="reps"
-        contextLabel={`${exerciseName} · Set ${setIdx + 1}`}
+        contextLabel={`${exerciseName} · ${t('Set {number}', { number: setIdx + 1 })}`}
         disabled={locked}
       />
       <button type="button" onClick={onDone}
-        aria-label={locked ? 'Mark set as incomplete' : 'Mark set as complete'} aria-pressed={locked}
+        aria-label={locked ? t("Mark set as incomplete") : t("Mark set as complete")} aria-pressed={locked}
         className={`flex h-11 w-11 items-center justify-center border-l border-zinc-700/60 ${locked ? 'text-accent-400' : 'text-zinc-500 active:text-accent-300'}`}>
         <span className={`flex h-7 w-7 items-center justify-center rounded border ${locked ? 'border-accent-500/50 bg-accent-500/15' : 'border-zinc-700'}`}>
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="m5 12 4 4L19 6" /></svg>
@@ -195,13 +197,13 @@ function CardioForm({ record, exercise, onUpdate }) {
     <div className="space-y-3 py-2">
       <div className="grid grid-cols-2 gap-3">
         {[
-          { key: 'duration_min', label: 'Duration (min)', placeholder: '35' },
-          { key: 'distance_km', label: 'Distance (km)', placeholder: '5.2' },
-          { key: 'speed_kmh', label: 'Speed (km/h)', placeholder: '8.5' },
-          { key: 'incline_pct', label: 'Incline (%)', placeholder: '2.0' },
+          { key: 'duration_min', label: t("Duration (min)"), placeholder: '35' },
+          { key: 'distance_km', label: t("Distance (km)"), placeholder: '5.2' },
+          { key: 'speed_kmh', label: t("Speed (km/h)"), placeholder: '8.5' },
+          { key: 'incline_pct', label: t("Incline (%)"), placeholder: '2.0' },
         ].map(({ key, label, placeholder }) => (
           <div key={key}>
-            <label className="text-zinc-500 text-xs block mb-1">{label}</label>
+            <label className="text-zinc-500 text-xs block mb-1">{t(label)}</label>
             <input
               type="number"
               step="0.1"
@@ -215,13 +217,12 @@ function CardioForm({ record, exercise, onUpdate }) {
         ))}
       </div>
       <div>
-        <label className="text-zinc-500 text-xs block mb-1">
-          Calories (kcal){record.calories && record.duration_min ? ' — estimated automatically' : (!exercise?.met ? ' — manual entry' : '')}
+        <label className="text-zinc-500 text-xs block mb-1">{t("Calories (kcal)")}{record.calories && record.duration_min ? t(" — estimated automatically") : (!exercise?.met ? t(" — manual entry") : '')}
         </label>
         <input
           type="number"
           min="0"
-          placeholder="Calories"
+          placeholder={t("Calories")}
           value={record.calories ?? ''}
           onChange={e => onUpdate('calories', e.target.value === '' ? null : parseInt(e.target.value, 10))}
           className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500"
@@ -393,7 +394,7 @@ export default function Session() {
     const exerciseData = sessionExercises[exIdx]
     if (!exerciseData) return
     const removedSet = exerciseData.sets[setIdx]
-    const exerciseName = exercises.find(e => e.id === exerciseData.exerciseId)?.name || exerciseData.exerciseId
+    const exerciseName = movementName(exercises.find(e => e.id === exerciseData.exerciseId)) || exerciseData.exerciseId
 
     setSessionExercises(prev => {
       const copy = deepClone(prev)
@@ -402,12 +403,12 @@ export default function Session() {
       return copy
     })
 
-    setUndoData({ token: Date.now(), type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} — set ${setIdx + 1}` })
+    setUndoData({ token: Date.now(), type: 'set', setData: deepClone(removedSet), exIdx, setIdx, name: `${exerciseName} — ${t('Set {number}', { number: setIdx + 1 })}` })
   }
 
   function removeExercise(exIdx) {
     const removed = sessionExercises[exIdx]
-    const exerciseName = exercises.find(e => e.id === removed?.exerciseId)?.name || removed?.exerciseId
+    const exerciseName = movementName(exercises.find(e => e.id === removed?.exerciseId)) || removed?.exerciseId
     setSessionExercises(prev => prev.filter((_, i) => i !== exIdx))
     setUndoData({ token: Date.now(), type: 'exercise', data: removed, index: exIdx, name: exerciseName })
   }
@@ -443,14 +444,14 @@ export default function Session() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pt-2 px-1">
         <div>
-          <h1 className="text-xl font-bold text-white">Workout</h1>
+          <h1 className="text-xl font-bold text-white">{t("Workout")}</h1>
           <div className="relative mt-1">
             <p className="text-sm text-zinc-400 pointer-events-none underline decoration-dotted decoration-zinc-600 underline-offset-4">
               {formatDate(sessionDate, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
             </p>
             <input
               type="date"
-              aria-label="Workout date"
+              aria-label={t("Workout date")}
               value={sessionDate}
               max={realToday}
               onChange={e => e.target.value && setSessionDate(e.target.value)}
@@ -461,18 +462,16 @@ export default function Session() {
       </div>
 
       {syncError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          Could not save your workout on this device.
-        </div>
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">{t("Could not save your workout on this device.")}</div>
       )}
 
       {sessionExercises.length === 0 && (
-        <p className="text-zinc-600 text-sm text-center mt-2 mb-3">Tap below to add an exercise.</p>
+        <p className="text-zinc-600 text-sm text-center mt-2 mb-3">{t("Tap below to add an exercise.")}</p>
       )}
 
       {/* Exercise cards */}
       {sessionExercises.some(se => se.sets.length > 0 && exercises.find(ex => ex.id === se.exerciseId)?.type !== 'cardio') && (
-        <p className="mb-2 px-1 text-xs text-zinc-500">Swipe a set left to delete.</p>
+        <p className="mb-2 px-1 text-xs text-zinc-500">{t("Swipe a set left to delete.")}</p>
       )}
       <div className="space-y-3">
         {sessionExercises.map((se, exIdx) => {
@@ -495,11 +494,9 @@ export default function Session() {
                 <button
                   type="button"
                   onClick={() => removeExercise(exIdx)}
-                  aria-label="Delete exercise"
+                  aria-label={t("Delete exercise")}
                   className="h-11 px-2 text-sm text-zinc-400 active:text-red-300"
-                >
-                  Delete
-                </button>
+                >{t("Delete")}</button>
               </div>
               {isCardio ? (
                 <CardioForm
@@ -512,7 +509,7 @@ export default function Session() {
                   <div className="overflow-x-auto">
                   <div className="min-w-[18.5rem]">
                   <div aria-hidden="true" className="grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-b border-zinc-700/60 text-center text-sm text-zinc-300">
-                    <span>Set</span><span>{storage.getWeightUnit()}</span><span>Reps</span><span>Done</span>
+                    <span>{t("Set")}</span><span>{storage.getWeightUnit()}</span><span>{t("Reps")}</span><span>{t("Done")}</span>
                   </div>
                   {se.sets.map((set, setIdx) => (
                     <SetRow
@@ -532,9 +529,7 @@ export default function Session() {
                     ref={el => { addSetBtnRefs.current[exIdx] = el }}
                     onClick={() => addSet(exIdx)}
                     className="w-full h-11 text-accent-400 text-sm text-left pl-14 active:text-accent-300"
-                  >
-                    + Add set
-                  </button>
+                  >{t("+ Add set")}</button>
                 </>
               )}
             </div>
@@ -545,15 +540,13 @@ export default function Session() {
       <button
         onClick={() => setShowModal(true)}
         className="w-full mt-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
-      >
-        + Add exercise
-      </button>
+      >{t("+ Add exercise")}</button>
 
 
       {undoData && (
         <UndoToast
           key={undoData.token}
-          message={`${undoData.name} deleted`}
+          message={t('{name} deleted', { name: undoData.name })}
           onUndo={handleUndo}
           onDismiss={handleUndoDismiss}
         />

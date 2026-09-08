@@ -32,7 +32,7 @@ export function buildMarkdown(sessions, exercises) {
   const lines = []
   lines.push('# Workout history')
   lines.push('')
-  lines.push(`- Exported on: ${formatDate(localTodayStr(), { year: 'numeric', month: 'long', day: 'numeric' })}`)
+  lines.push(`- Exported on: ${formatDate(localTodayStr(), { year: 'numeric', month: 'long', day: 'numeric' }, 'en-US')}`)
   lines.push(`- Total sessions: ${sorted.length}`)
   lines.push('')
   // Keep the readable report, plus the original values needed for lossless restore.

@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { Share } from '@capacitor/share'
 import { downloadTextFile } from './exportUtils'
+import { t } from './i18n.js'
 
 export async function exportWorkoutFile(contents, filename) {
   if (!Capacitor.isNativePlatform()) {
@@ -16,8 +17,8 @@ export async function exportWorkoutFile(contents, filename) {
     encoding: Encoding.UTF8,
   })
   await Share.share({
-    title: 'Workout backup',
-    dialogTitle: 'Save or share workout backup',
+    title: t('Workout backup'),
+    dialogTitle: t('Save or share workout backup'),
     files: [result.uri],
   })
 }

@@ -6,7 +6,7 @@
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
-> **언어 규칙:** 사용자에게 표시되는 앱 UI, 날짜, 기본 운동 이름·카테고리, 오류 메시지, 새 Markdown 내보내기는 모두 영어다. 과거 Firebase 데이터에서 내보낸 백업과 2026-09-03 이전 한국어 Markdown 백업은 가져올 때 영어 기본 운동으로 정규화한다. 본 문서의 한국어 설명은 개발 문서용이며, 와이어프레임에 남은 한국어 표현보다 이 규칙과 실제 영문 UI 문구가 우선한다.
+> **언어 규칙:** 앱 내부 언어 메뉴 없이 iOS 설정 → 앱 → Steady Sets → 선호하는 언어에서 한국어/영어를 선택한다. CFBundleLocalizations(en/ko)와 AppSettings.getLanguage의 Bundle.main.preferredLocalizations로 언어를 결정하고 React 첫 렌더 전에 적용한다. 별도 선택 전에는 기기 언어 우선순위를 따르며 미지원 언어는 영어로 대체한다. 웹은 navigator.languages를 따른다. 화면·접근성 문구·날짜·기본 운동/분류/기구 표시·휴식 알림·개인정보 안내를 번역한다. 저장 ID/분류/기구 키·숫자·직접 등록한 이름·Markdown 백업 내용은 기존 형식으로 유지하고 내보내기 날짜도 영어로 고정한다. 기존 한국어 백업은 계속 영어 기본 정의로 정규화해 복원한다. 새 타이머의 Live Activity에는 앱 선택 언어를 전달하며, 이미 시작한 Activity는 생성 시 언어를 유지한다. 배포된 빌드 6에는 아직 이 기능이 없고 새 네이티브 빌드가 필요하다.
 
 ---
 
@@ -464,7 +464,7 @@ Workout/
 - 앱이 실행 가능한 동안 native expiry Task와 JS deadline 검사로 종료한다. 앱 프로세스가 정지/종료되면 정확한 종료 시점에 Live Activity 제거를 보장하지 않는다. 화면의 숫자는 0에서 멈추고 staleDate를 종료 시각으로 설정한다. 다음 앱 복귀에서 만료 활동을 정리한다. 서버 없이 강제 백그라운드 실행이나 매초 푸시를 시도하지 않는다.
 - App Info.plist NSSupportsLiveActivities=true. RestTimerActivity.appex 타깃의 최소 iOS 16.2, APPLICATION_EXTENSION_API_ONLY=YES, SKIP_INSTALL=YES, Bundle ID com.choongchoongeestar.workout.RestTimerActivity. 앱과 동일한 version/build를 사용하며 App 타깃 의존성과 Embed App Extensions(PlugIns/13) 단계로 포함한다. app.json에도 확장 자격 증명 준비용 선언을 추가했다. App Groups·푸시 토큰·추가 서버는 사용하지 않는다.
 - scripts/verify-live-activity.mjs가 Xcode 프로젝트를 파싱해 앱/위젯의 공유 모델·위젯 소스·플러그인·의존성·embed·bundle/version을 확인하며 check:ios-release에 포함한다. 실제 Swift 컴파일/서명은 Xcode가 있는 macOS 또는 승인된 EAS 빌드에서 수행해야 한다.
-- 새 이름 소스의 네이티브 runtime은 ios-e02d91392cd58bd2. 배포된 빌드 5의 runtime은 ios-d3289b7ac2e3c244. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
+- 한국어/영어 소스의 네이티브 runtime은 ios-f732ac7ea13239d4. 새 이름/아이콘이 포함된 빌드 6의 runtime은 ios-e02d91392cd58bd2. 배포된 빌드 5의 runtime은 ios-d3289b7ac2e3c244. ota-native.mjs는 위젯 디렉터리도 해시한다. 기존 배포 runtime ios-edab217484237bd7은 그대로 유지한다. 이 기능은 기존 바이너리에 OTA만으로 추가할 수 없다.
 - 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 빌드 5에서 네이티브 컴파일·서명·IPA 생성을 통과했으며 위 실기기 검증은 아직 미실행이다.
 
 ### UndoToast
@@ -730,3 +730,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-08: 사용자 승인으로 Apple 대화형 로그인 세션을 사용해 production iOS 빌드 6을 EAS에 업로드했다. App/RestTimerActivity 서명 검증 통과, build ID 046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2. 원본 저장소 app.json과 모든 CURRENT_PROJECT_VERSION을 6으로 동기화하고 Info.plist의 버전 변수 참조는 유지한다. 빌드 성공·IPA·TestFlight 제출은 미확인이며 정식 심사와 최종 출시는 보류한다.
 
 - 2026-09-08: 빌드 6(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2)의 FINISHED 및 IPA 생성을 확인하고 사용자 요청으로 App Store Connect에 업로드했다. Submission 9bf5b2d5-bcca-41c6-9ba4-93777b35403c가 성공 종료했다. Apple 처리 중이며 TestFlight 사용 가능 여부·심사 제출·최종 출시는 별도다.
+
+- 2026-09-08: 앱 내부 언어 메뉴 없이 iOS 앱별 한국어/영어 지원을 구현했다. src/lib/i18n.js·translations.js·appLanguage.js·exerciseLabels.js가 표시 번역/네이티브 선택/기본 운동명 표시를 담당한다. AppSettingsPlugin 언어 조회, 두 타깃 CFBundleLocalizations, Live Activity 생성 언어를 추가하고 신규 runtime ios-f732ac7ea13239d4로 분리했다. 저장 키/기록/영문 백업은 유지한다. 전체 59개 단위 테스트, 한국어/영어 SSR 화면 검사, lint·웹 빌드·Capacitor 동기화·iOS 구성 검사를 통과했다. 신규 EAS 빌드·업로드·OTA·심사 제출은 별도 승인 전 실행하지 않는다. iOS 언어 설정 노출과 Swift 컴파일·실기기 언어 전환은 새 빌드에서 확인해야 한다.

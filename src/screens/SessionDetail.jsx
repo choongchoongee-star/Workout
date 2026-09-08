@@ -1,4 +1,6 @@
-import { EQUIPMENT_LABELS, movementName, recordEquipment, recordInputType } from '../lib/equipment'
+import { localizedMovementName as movementName } from '../lib/exerciseLabels'
+import { t } from '../lib/i18n'
+import { EQUIPMENT_LABELS, recordEquipment, recordInputType } from '../lib/equipment'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { formatDate } from '../lib/dateUtils'
@@ -14,8 +16,8 @@ export default function SessionDetail() {
   const session = sessions.find(s => s.id === id)
   if (!session) return (
     <div className="p-4 text-center py-20">
-      <p className="text-zinc-500">Workout not found.</p>
-      <button onClick={() => navigate('/history')} className="text-accent-400 mt-4 text-sm">← Back to history</button>
+      <p className="text-zinc-500">{t("Workout not found.")}</p>
+      <button onClick={() => navigate('/history')} className="text-accent-400 mt-4 text-sm">{t("← Back to history")}</button>
     </div>
   )
 
@@ -27,29 +29,27 @@ export default function SessionDetail() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-6 pt-2">
-        <button onClick={() => navigate('/history')} aria-label="Go back" className="text-zinc-400 active:text-white">
+        <button onClick={() => navigate('/history')} aria-label={t("Go back")} className="text-zinc-400 active:text-white">
           ←
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-white font-bold text-lg">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</h1>
           {session.duration_min > 0 && (
-            <p className="text-zinc-500 text-sm">{session.duration_min} min</p>
+            <p className="text-zinc-500 text-sm">{session.duration_min}{t("min")}</p>
           )}
         </div>
         <div className="flex w-full items-center justify-end gap-6">
           <button
             onClick={() => navigate('/session', { state: { date: session.date } })}
             className="min-h-11 px-2 text-accent-400 text-sm active:text-accent-300"
-          >
-            Edit
-          </button>
-          <button onClick={handleDelete} className="min-h-11 px-2 text-red-500 text-sm active:text-red-400">Delete</button>
+          >{t("Edit")}</button>
+          <button onClick={handleDelete} className="min-h-11 px-2 text-red-500 text-sm active:text-red-400">{t("Delete")}</button>
         </div>
       </div>
 
       <div className="space-y-4">
         {(session.exercises ?? []).length === 0 && (
-          <p className="text-zinc-600 text-sm text-center py-8">No exercises recorded.</p>
+          <p className="text-zinc-600 text-sm text-center py-8">{t("No exercises recorded.")}</p>
         )}
         {(session.exercises ?? []).map((se, i) => {
           const exercise = exercises.find(e => e.id === se.exerciseId)
@@ -59,21 +59,21 @@ export default function SessionDetail() {
             <div key={i} className="bg-zinc-900 rounded-2xl p-4">
               <div className="flex flex-wrap items-center gap-2 mb-3 min-w-0">
                 <h3 className="text-white font-semibold truncate">{movementName(exercise) || se.exerciseId}</h3>
-                {recordEquipment(se, exercise) && <span className="text-zinc-400 text-sm">{EQUIPMENT_LABELS[recordEquipment(se, exercise)]}</span>}
-                <span className="text-zinc-600 text-xs flex-shrink-0">{exercise?.category}</span>
+                {recordEquipment(se, exercise) && <span className="text-zinc-400 text-sm">{t(EQUIPMENT_LABELS[recordEquipment(se, exercise)])}</span>}
+                <span className="text-zinc-600 text-xs flex-shrink-0">{t(exercise?.category)}</span>
               </div>
 
               {isCardio ? (
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {se.sets[0] && Object.entries({
-                    'Duration': se.sets[0].duration_min != null ? `${se.sets[0].duration_min} min` : null,
+                    'Duration': se.sets[0].duration_min != null ? `${se.sets[0].duration_min} ${t('min')}` : null,
                     'Distance': se.sets[0].distance_km != null ? `${se.sets[0].distance_km}km` : null,
                     'Speed': se.sets[0].speed_kmh != null ? `${se.sets[0].speed_kmh}km/h` : null,
                     'Incline': se.sets[0].incline_pct != null ? `${se.sets[0].incline_pct}%` : null,
                     'Calories': se.sets[0].calories != null ? `${se.sets[0].calories}kcal` : null,
                   }).filter(([, v]) => v !== null).map(([label, value]) => (
-                    <div key={label}>
-                      <span className="text-zinc-500 text-xs">{label}</span>
+                    <div key={t(label)}>
+                      <span className="text-zinc-500 text-xs">{t(label)}</span>
                       <p className="text-white">{value}</p>
                     </div>
                   ))}
@@ -85,10 +85,9 @@ export default function SessionDetail() {
                       <span className="text-zinc-600 w-4 text-right">{si + 1}</span>
                       {recordInputType(se, exercise) === 'bodyweight' ? (
                         <span className="text-zinc-300">
-                          {formatWeight(set.added_weight ?? 0, unit)} × {set.reps} reps
-                        </span>
+                          {formatWeight(set.added_weight ?? 0, unit)} × {set.reps}{t("reps")}</span>
                       ) : (
-                        <span className="text-zinc-300">{formatWeight(set.weight, unit)} × {set.reps} reps</span>
+                        <span className="text-zinc-300">{formatWeight(set.weight, unit)} × {set.reps}{t("reps")}</span>
                       )}
                       {set.done && <span className="text-green-500 text-xs ml-auto">✓</span>}
                     </div>

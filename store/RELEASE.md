@@ -39,3 +39,9 @@ Updated: 2026-09-08
 - Related workout app: https://steady.rocks/
 
 - GitHub Pages IP retention: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection
+
+## Next native build: Korean and English
+
+- Source now supports iOS per-app Preferred Language (en/ko), without an in-app selector. Build 6 does not include this change.
+- Native runtime: ios-f732ac7ea13239d4. Existing backup formats and equipment keys are preserved.
+- A new approved native build and device checks are required before claiming Korean support in the store. No new build, upload, review submission or release was triggered by this implementation.

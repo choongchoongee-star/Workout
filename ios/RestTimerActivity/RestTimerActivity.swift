@@ -15,7 +15,7 @@ struct RestTimerActivity: Widget {
                 Image(systemName: "timer").font(.title).foregroundStyle(ice)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Steady Sets").font(.caption).foregroundStyle(.secondary)
-                    Text(context.isStale ? "Rest complete" : "Rest timer").font(.headline)
+                    Text(context.isStale ? localized("Rest complete", "휴식 완료", context.attributes) : localized("Rest timer", "휴식 타이머", context.attributes)).font(.headline)
                 }
                 Spacer()
                 countdown(context.state).font(.system(size: 32, weight: .semibold, design: .rounded))
@@ -28,13 +28,13 @@ struct RestTimerActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Label("Rest", systemImage: "timer").foregroundStyle(ice)
+                    Label(localized("Rest", "휴식", context.attributes), systemImage: "timer").foregroundStyle(ice)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     countdown(context.state).font(.title2.bold()).frame(width: 90)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.isStale ? "Rest complete · Ready for your next set" : "Steady Sets")
+                    Text(context.isStale ? localized("Rest complete · Ready for your next set", "휴식 완료 · 다음 세트를 시작하세요", context.attributes) : "Steady Sets")
                         .font(.caption).foregroundStyle(ice)
                 }
             } compactLeading: {
@@ -46,6 +46,10 @@ struct RestTimerActivity: Widget {
             }
             .keylineTint(ice)
         }
+    }
+
+    private func localized(_ english: String, _ korean: String, _ attributes: RestActivityAttributes) -> String {
+        (attributes.language ?? "en").hasPrefix("ko") ? korean : english
     }
 
     private func countdown(_ state: RestActivityAttributes.ContentState) -> some View {

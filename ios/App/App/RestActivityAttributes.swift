@@ -8,4 +8,5 @@ struct RestActivityAttributes: ActivityAttributes {
         let endsAt: Date
     }
     let timerID: String
+    let language: String?
 }

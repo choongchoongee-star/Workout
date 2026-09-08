@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 import { useCallback, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -40,7 +41,7 @@ export default function History() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-4 pt-2">
-        <h1 className="text-xl font-bold text-white">Workout history</h1>
+        <h1 className="text-xl font-bold text-white">{t("Workout history")}</h1>
         {sessions.length > 0 && (
           <input
             type="date"
@@ -51,16 +52,14 @@ export default function History() {
         )}
       </div>
 
-      {sessions.length > 0 && <p className="mb-2 text-xs text-zinc-500">Swipe a workout left to delete.</p>}
+      {sessions.length > 0 && <p className="mb-2 text-xs text-zinc-500">{t("Swipe a workout left to delete.")}</p>}
 
       {syncError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          Could not save your workout on this device.
-        </div>
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">{t("Could not save your workout on this device.")}</div>
       )}
 
       {sessions.length === 0 ? (
-        <p className="text-zinc-600 text-sm text-center py-12">No workouts yet.</p>
+        <p className="text-zinc-600 text-sm text-center py-12">{t("No workouts yet.")}</p>
       ) : (
         <div className="space-y-2">
           {sessions.map(session => {
@@ -68,7 +67,7 @@ export default function History() {
             return (
               <SwipeToDelete
                 key={session.id}
-                label={`workout on ${session.date}`}
+                label={t('workout on {date}', { date: session.date })}
                 className="rounded-xl"
                 surfaceClassName="bg-zinc-900"
                 onDelete={() => { setUndoSession(session); deleteSession(session.id) }}
@@ -81,7 +80,7 @@ export default function History() {
                 <div className="flex items-center justify-between">
                   <span className="text-white font-medium">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</span>
                   {mainCategory && (
-                    <span className="text-accent-400 text-sm font-medium">{mainCategory}</span>
+                    <span className="text-accent-400 text-sm font-medium">{t(mainCategory)}</span>
                   )}
                 </div>
               </button>
@@ -94,7 +93,7 @@ export default function History() {
       {undoSession && (
         <UndoToast
           key={undoSession.id}
-          message="Workout deleted"
+          message={t("Workout deleted")}
           onUndo={handleUndoRestore}
           onDismiss={handleUndoDismiss}
         />

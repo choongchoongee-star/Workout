@@ -1,4 +1,6 @@
-import { exerciseChoices, movementName } from '../lib/equipment'
+import { localizedMovementName as movementName } from '../lib/exerciseLabels'
+import { t } from '../lib/i18n'
+import { exerciseChoices } from '../lib/equipment'
 import { useState } from 'react'
 import AddExerciseForm from '../components/AddExerciseForm'
 import { useApp } from '../context/AppContext'
@@ -26,20 +28,16 @@ export default function Library() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-4 pt-2">
-        <h1 className="text-xl font-bold text-white">Exercises</h1>
+        <h1 className="text-xl font-bold text-white">{t("Exercises")}</h1>
         <button
           onClick={() => setShowAdd(s => !s)}
           className="bg-accent-600 text-zinc-950 text-sm px-3 py-1.5 rounded-xl active:bg-accent-700"
-        >
-          + Add
-        </button>
+        >{t("+ Add")}</button>
       </div>
 
       {/* Local file save error warning */}
       {syncError && (
-        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">
-          Could not save your exercise library on this device.
-        </div>
+        <div className="bg-red-900/30 border border-red-800 rounded-xl p-3 mb-4 text-sm text-red-300">{t("Could not save your exercise library on this device.")}</div>
       )}
 
       {showAdd && <AddExerciseForm onCancel={() => setShowAdd(false)} onAdded={() => setShowAdd(false)} />}
@@ -47,7 +45,7 @@ export default function Library() {
       {/* Search */}
       <input
         type="text"
-        placeholder="Search exercises..."
+        placeholder={t("Search exercises...")}
         value={query}
         onChange={e => setQuery(e.target.value)}
         className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
@@ -57,14 +55,14 @@ export default function Library() {
       <div className="category-filters mb-4">
         {categories.map(c => (
           <button
-            key={c}
+            key={t(c)}
             onClick={() => setActiveCategory(c)}
             aria-pressed={activeCategory === c}
             className={`min-h-11 min-w-0 text-sm px-1 py-2 rounded-lg transition-colors [overflow-wrap:anywhere] ${
               activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-900 text-zinc-400'
             }`}
           >
-            {c}
+            {t(c)}
           </button>
         ))}
       </div>
@@ -87,10 +85,10 @@ export default function Library() {
             >
               <div className="flex-1">
                 <span className="text-white text-sm">{movementName(ex)}</span>
-                {isCustom && <span className="text-accent-400 text-xs ml-2">Custom</span>}
-                <span className="text-zinc-600 text-xs ml-2">{TYPE_LABELS[ex.type]}</span>
+                {isCustom && <span className="text-accent-400 text-xs ml-2">{t("Custom")}</span>}
+                <span className="text-zinc-600 text-xs ml-2">{t(TYPE_LABELS[ex.type])}</span>
               </div>
-              <span className="text-zinc-600 text-xs mr-3">{ex.category}</span>
+              <span className="text-zinc-600 text-xs mr-3">{t(ex.category)}</span>
               {isCustom && (
                 <button
                   onClick={() => deleteExercise(ex.id)}
@@ -103,7 +101,7 @@ export default function Library() {
           )
         })}
         {loaded && filtered.length === 0 && (
-          <p className="text-zinc-600 text-sm text-center py-8">No exercises found.</p>
+          <p className="text-zinc-600 text-sm text-center py-8">{t("No exercises found.")}</p>
         )}
       </div>
     </div>

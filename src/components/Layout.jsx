@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -82,8 +83,8 @@ export default function Layout({ children }) {
       <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {recoveryNotice && (
           <div role="status" className="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-amber-800 bg-amber-950/40 p-3 text-sm text-amber-200">
-            <p className="flex-1">{recoveryNotice}</p>
-            <button type="button" onClick={dismissRecoveryNotice} aria-label="Dismiss recovery message" className="text-amber-400">×</button>
+            <p className="flex-1">{t(recoveryNotice)}</p>
+            <button type="button" onClick={dismissRecoveryNotice} aria-label={t("Dismiss recovery message")} className="text-amber-400">×</button>
           </div>
         )}
         {children}
@@ -101,7 +102,7 @@ export default function Layout({ children }) {
             }
           >
             {icon}
-            <span>{label}</span>
+            <span>{t(label)}</span>
           </NavLink>
         ))}
       </nav>

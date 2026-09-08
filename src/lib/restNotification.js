@@ -1,3 +1,4 @@
+import { t } from './i18n.js'
 import { Capacitor } from '@capacitor/core'
 import { LocalNotifications } from '@capacitor/local-notifications'
 
@@ -99,8 +100,8 @@ export async function scheduleRestNotification(endsAt, {
       await notifications.schedule({
         notifications: [{
           id: REST_NOTIFICATION_ID,
-          title: 'Rest complete',
-          body: 'Time for your next set.',
+          title: t('Rest complete'),
+          body: t('Time for your next set.'),
           schedule: { at: new Date(endsAt) },
           sound: 'default',
           foreground: true,

@@ -8,7 +8,9 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<key>CFBundleDisplayName</key>
+	<key>CFBundleLocalizations</key>
+    <array><string>en</string><string>ko</string></array>
+    <key>CFBundleDisplayName</key>
         <string>Steady Sets</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>

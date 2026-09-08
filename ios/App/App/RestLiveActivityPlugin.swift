@@ -76,7 +76,7 @@ private final class RestActivityManager {
             let state = RestActivityAttributes.ContentState(
                 startedAt: Date(timeIntervalSince1970: startMS / 1000),
                 endsAt: Date(timeIntervalSince1970: endMS / 1000))
-            let activity = try Activity.request(attributes: RestActivityAttributes(timerID: timerID),
+            let activity = try Activity.request(attributes: RestActivityAttributes(timerID: timerID, language: Bundle.main.preferredLocalizations.first ?? "en"),
                 content: ActivityContent(state: state, staleDate: state.endsAt), pushType: nil)
             scheduleExpiry(activity)
             call.resolve(["status": "active", "timerID": timerID])

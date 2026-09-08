@@ -23,6 +23,8 @@ assert.equal(appConfig.ios.bundleIdentifier, capacitor.appId, 'bundle identifier
 assert.equal(appConfig.orientation, 'portrait', 'Expo orientation must be portrait')
 assert.deepEqual(appConfig.platforms, ['ios'], 'Expo platforms must be iOS-only')
 assert.equal(appConfig.ios.supportsTablet, false, 'tablet support must remain disabled')
+assert.deepEqual(appConfig.ios.infoPlist.CFBundleLocalizations, ['en', 'ko'])
+assert.match(plist, /CFBundleLocalizations[\s\S]*?<string>en<\/string><string>ko<\/string>/)
 assert.equal(appConfig.ios.infoPlist.ITSAppUsesNonExemptEncryption, false, 'encryption declaration must be present')
 assert.match(appConfig.extra?.eas?.projectId || '', /^[0-9a-f-]{36}$/, 'EAS project must be linked')
 

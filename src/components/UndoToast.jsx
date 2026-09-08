@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 import { useEffect, useState } from 'react'
 
 const DURATION = 10000
@@ -37,9 +38,7 @@ export default function UndoToast({ message, onUndo, onDismiss, bottomOffset = '
           <button
             onClick={handleUndo}
             className="text-accent-400 text-sm font-semibold ml-4 flex-shrink-0 active:text-accent-300"
-          >
-            Undo
-          </button>
+          >{t("Undo")}</button>
         </div>
         <div className="h-0.5 bg-zinc-700">
           <div

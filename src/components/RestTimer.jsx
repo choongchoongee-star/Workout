@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 export default function RestTimer({ seconds, total, onSkip }) {
   const pct = total > 0 ? (seconds / total) * 100 : 0
 
@@ -5,15 +6,13 @@ export default function RestTimer({ seconds, total, onSkip }) {
   const secs = seconds % 60
 
   return (
-    <div role="region" aria-label="Rest timer" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 mx-4 bg-zinc-900 border border-zinc-700 rounded-2xl p-4 shadow-xl z-40">
+    <div role="region" aria-label={t("Rest timer")} className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 mx-4 bg-zinc-900 border border-zinc-700 rounded-2xl p-4 shadow-xl z-40">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-zinc-400 text-sm">Rest</span>
+        <span className="text-zinc-400 text-sm">{t("Rest")}</span>
         <button
           onClick={onSkip}
           className="min-h-11 px-2 text-zinc-400 text-sm active:text-white"
-        >
-          Skip
-        </button>
+        >{t("Skip")}</button>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative w-14 h-14 flex-shrink-0">

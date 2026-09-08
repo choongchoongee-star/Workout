@@ -1,9 +1,11 @@
+import { getLocale } from './i18n.js'
+
 export function localTodayStr() {
   const d = new Date()
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
-export function formatDate(dateStr, options = {}) {
+export function formatDate(dateStr, options = {}, locale = getLocale()) {
   const [year, month, day] = dateStr.split('-').map(Number)
-  return new Date(year, month - 1, day).toLocaleDateString('en-US', options)
+  return new Date(year, month - 1, day).toLocaleDateString(locale, options)
 }

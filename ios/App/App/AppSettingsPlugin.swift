@@ -6,8 +6,13 @@ public class AppSettingsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "AppSettingsPlugin"
     public let jsName = "AppSettings"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getLanguage", returnType: CAPPluginReturnPromise)
     ]
+
+    @objc func getLanguage(_ call: CAPPluginCall) {
+        call.resolve(["language": Bundle.main.preferredLocalizations.first ?? "en"])
+    }
 
     @objc func open(_ call: CAPPluginCall) {
         DispatchQueue.main.async {

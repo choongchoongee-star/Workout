@@ -12,6 +12,7 @@
       "buildNumber": "6",
       "supportsTablet": false,
       "infoPlist": {
+        "CFBundleLocalizations": ["en", "ko"],
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true
       }

@@ -1,5 +1,7 @@
+import { localizedMovementName as movementName } from '../lib/exerciseLabels'
+import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
-import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices, movementName } from '../lib/equipment'
+import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices } from '../lib/equipment'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -12,17 +14,17 @@ import { formatWeight } from '../lib/weightUnits'
 function summarizeSet(set, type, unit) {
   if (type === 'cardio') {
     const parts = []
-    if (set.duration_min != null) parts.push(`${set.duration_min} min`)
+    if (set.duration_min != null) parts.push(`${set.duration_min} ${t('min')}`)
     if (set.distance_km != null) parts.push(`${set.distance_km}km`)
     if (set.speed_kmh != null) parts.push(`${set.speed_kmh}km/h`)
-    if (set.incline_pct != null) parts.push(`Incline ${set.incline_pct}%`)
+    if (set.incline_pct != null) parts.push(`${t('Incline')} ${set.incline_pct}%`)
     if (set.calories != null) parts.push(`${set.calories}kcal`)
-    return parts.join(' · ') || 'History'
+    return parts.join(' · ') || t("History")
   }
   if (type === 'bodyweight') {
-    return `${formatWeight(set.added_weight ?? 0, unit)} × ${set.reps ?? '?'} reps`
+    return `${formatWeight(set.added_weight ?? 0, unit)} × ${set.reps ?? '?'} ${t('reps')}`
   }
-  return `${formatWeight(set.weight, unit)} × ${set.reps ?? '?'} reps`
+  return `${formatWeight(set.weight, unit)} × ${set.reps ?? '?'} ${t('reps')}`
 }
 
 export default function Weight() {
@@ -64,14 +66,14 @@ export default function Weight() {
         <div className="flex items-center gap-3 mb-5 pt-2">
           <button
             onClick={() => setSelected(null)}
-            aria-label="Choose another exercise"
+            aria-label={t("Choose another exercise")}
             className="text-zinc-400 active:text-white text-lg"
           >
             ←
           </button>
           <div className="min-w-0">
             <h1 className="text-white font-bold text-lg truncate">{movementName(selected)}</h1>
-            <span className="text-zinc-500 text-xs">{selected.category}</span>
+            <span className="text-zinc-500 text-xs">{t(selected.category)}</span>
           </div>
         </div>
 
@@ -81,7 +83,7 @@ export default function Weight() {
             onChange={setSelectedEquipment} />
         </div>
         {records.length === 0 ? (
-          <p className="text-zinc-600 text-sm text-center py-12">No history for this exercise yet.</p>
+          <p className="text-zinc-600 text-sm text-center py-12">{t("No history for this exercise yet.")}</p>
         ) : (
           <div className="space-y-4">
             {records.map(({ date, index, sets, type }) => (
@@ -110,16 +112,14 @@ export default function Weight() {
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between gap-3 mb-4 pt-2">
-        <h1 className="text-xl font-bold text-white">Exercise history</h1>
-        <Link to="/library" className="flex min-h-11 shrink-0 items-center rounded-lg border border-zinc-700 px-3 text-sm text-zinc-400 active:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400">
-          Manage exercises
-        </Link>
+        <h1 className="text-xl font-bold text-white">{t("Exercise history")}</h1>
+        <Link to="/library" className="flex min-h-11 shrink-0 items-center rounded-lg border border-zinc-700 px-3 text-sm text-zinc-400 active:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400">{t("Manage exercises")}</Link>
       </div>
-      {syncError && <p role="alert" className="mb-4 text-sm text-red-300">Could not save your exercise library on this device.</p>}
+      {syncError && <p role="alert" className="mb-4 text-sm text-red-300">{t("Could not save your exercise library on this device.")}</p>}
 
       <input
         type="text"
-        placeholder="Search exercises..."
+        placeholder={t("Search exercises...")}
         value={query}
         onChange={e => setQuery(e.target.value)}
         className="w-full bg-zinc-900 text-white rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
@@ -128,14 +128,14 @@ export default function Weight() {
       <div className="category-filters mb-4">
         {categories.map(c => (
           <button
-            key={c}
+            key={t(c)}
             onClick={() => setActiveCategory(c)}
             aria-pressed={activeCategory === c}
             className={`min-h-11 min-w-0 text-sm px-1 py-2 rounded-lg transition-colors [overflow-wrap:anywhere] ${
               activeCategory === c ? 'bg-accent-600 text-zinc-950' : 'bg-zinc-900 text-zinc-400'
             }`}
           >
-            {c}
+            {t(c)}
           </button>
         ))}
       </div>
@@ -153,11 +153,11 @@ export default function Weight() {
               className="w-full flex items-center justify-between bg-zinc-900 rounded-xl px-4 py-3.5 text-left active:bg-zinc-800"
             >
               <span className="text-white text-sm">{movementName(ex)}</span>
-              <span className="text-zinc-500 text-xs">{ex.category}</span>
+              <span className="text-zinc-500 text-xs">{t(ex.category)}</span>
             </button>
           ))
         ) : (
-          <p className="text-zinc-600 text-sm text-center py-8">No exercises found.</p>
+          <p className="text-zinc-600 text-sm text-center py-8">{t("No exercises found.")}</p>
         )}
       </div>
     </div>

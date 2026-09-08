@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 const ACTION_WIDTH = 88
@@ -89,9 +90,9 @@ export default function SwipeToDelete({ children, label, onDelete, className = '
 
   return (
     <div ref={root} className={`swipe-delete relative overflow-hidden ${className}`}>
-      <span id={hintId} className="sr-only">Swipe left to show Delete. With a keyboard, press Delete or Arrow Left; Escape closes it.</span>
+      <span id={hintId} className="sr-only">{t("Swipe left to show Delete. With a keyboard, press Delete or Arrow Left; Escape closes it.")}</span>
 
-      <div ref={content} data-swipe-content tabIndex={0} role="group" aria-label={label} aria-describedby={hintId}
+      <div ref={content} data-swipe-content tabIndex={0} role="group" aria-label={t(label)} aria-describedby={hintId}
         className={`relative z-10 ${surfaceClassName} focus-visible:outline-2 focus-visible:outline-accent-500`}
         style={{ touchAction: 'pan-y' }}
         onPointerDown={start} onPointerMove={move} onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)}
@@ -112,13 +113,13 @@ export default function SwipeToDelete({ children, label, onDelete, className = '
         }}>
         {children}
         <button type="button" className="sr-only focus:not-sr-only focus:min-h-11 focus:px-3" onClick={() => settle(ACTION_WIDTH)}>
-          Show delete for {label}
+          {t('Show delete for {label}', { label })}
         </button>
       </div>
-      <button type="button" aria-label={`Delete ${label}`} aria-hidden={!open || dragging} tabIndex={open && !dragging ? 0 : -1} disabled={!open || dragging}
+      <button type="button" aria-label={t('Delete {label}', { label })} aria-hidden={!open || dragging} tabIndex={open && !dragging ? 0 : -1} disabled={!open || dragging}
         className="absolute inset-y-0 right-0 w-[88px] min-h-11 bg-red-500 text-zinc-950 text-sm font-semibold"
         onKeyDown={event => { if (event.key === 'Escape') { settle(0); root.current.querySelector('[data-swipe-content]').focus() } }}
-        onClick={() => { settle(0); onDelete() }}>Delete</button>
+        onClick={() => { settle(0); onDelete() }}>{t("Delete")}</button>
     </div>
   )
 }
