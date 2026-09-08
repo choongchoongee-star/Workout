@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import './verify-live-activity.mjs'
+import './verify-native-localizations.mjs'
 import { access, readFile } from 'node:fs/promises'
 import { nativeFingerprint } from './ota-native.mjs'
 
@@ -33,6 +34,7 @@ const nativeBuildNumbers = [...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]
 assert.ok(nativeBuildNumbers.length > 0)
 assert.ok(nativeBuildNumbers.every(version => version === appConfig.ios.buildNumber), 'all native build numbers must match app.json')
 const eas = JSON.parse(await read('eas.json')).build.production
+assert.equal(eas.env.NPM_CONFIG_LEGACY_PEER_DEPS, 'true', 'pinned dependency tree requires the verified install option')
 assert.ok(Number(eas.node?.split('.')[0]) >= 22, 'EAS must explicitly select Node 22 or newer')
 assert.ok(Number(eas.ios.image?.match(/xcode-(\d+)/)?.[1]) >= 26, 'EAS must explicitly select Xcode 26 or newer')
 const swiftPackage = await read('ios/App/CapApp-SPM/Package.swift')
@@ -54,6 +56,7 @@ for (const requiredStep of [
   'eas/install_node_modules',
   'eas/resolve_build_config',
   'npm run ios:sync',
+  'npm run check:ios-release',
   'eas/configure_ios_credentials',
   'eas/configure_ios_version',
   'eas/generate_gymfile_from_template',

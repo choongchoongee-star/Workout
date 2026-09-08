@@ -1,12 +1,14 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-08
-> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — Live Activities 포함 빌드 5 TestFlight 업로드 완료·사용자 실기기 확인 완료·스토어 출시 준비 중
+> 마지막 업데이트: 2026-09-09
+> 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
 > 본 문서는 **이 문서만으로 동일한 앱을 처음부터 재구성**할 수 있도록 작성한다. 화면별 와이어프레임·데이터 모델·핵심 로직·디자인 토큰을 모두 포함한다.
 
-> **언어 규칙:** 앱 내부 언어 메뉴 없이 iOS 설정 → 앱 → Steady Sets → 선호하는 언어에서 한국어/영어를 선택한다. CFBundleLocalizations(en/ko)와 AppSettings.getLanguage의 Bundle.main.preferredLocalizations로 언어를 결정하고 React 첫 렌더 전에 적용한다. 별도 선택 전에는 기기 언어 우선순위를 따르며 미지원 언어는 영어로 대체한다. 웹은 navigator.languages를 따른다. 화면·접근성 문구·날짜·기본 운동/분류/기구 표시·휴식 알림·개인정보 안내를 번역한다. 저장 ID/분류/기구 키·숫자·직접 등록한 이름·Markdown 백업 내용은 기존 형식으로 유지하고 내보내기 날짜도 영어로 고정한다. 기존 한국어 백업은 계속 영어 기본 정의로 정규화해 복원한다. 새 타이머의 Live Activity에는 앱 선택 언어를 전달하며, 이미 시작한 Activity는 생성 시 언어를 유지한다. 빌드 7에 이 기능을 포함해 네이티브 빌드와 IPA 생성을 완료했다. 빌드 7의 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료 및 실기기 언어 전환은 아직 확인하지 않았다.
+> **언어 규칙:** 앱 내부 언어 메뉴 없이 iOS 설정 → 앱 → Steady Sets → 선호하는 언어에서 한국어/영어를 선택한다. CFBundleLocalizations(en/ko)와 AppSettings.getLanguage의 Bundle.main.preferredLocalizations로 언어를 결정하고 React 첫 렌더 전에 적용한다. 별도 선택 전에는 기기 언어 우선순위를 따르며 미지원 언어는 영어로 대체한다. 웹은 navigator.languages를 따른다. 화면·접근성 문구·날짜·기본 운동/분류/기구 표시·휴식 알림·개인정보 안내를 번역한다. 저장 ID/분류/기구 키·숫자·직접 등록한 이름·Markdown 백업 내용은 기존 형식으로 유지하고 내보내기 날짜도 영어로 고정한다. 기존 한국어 백업은 계속 영어 기본 정의로 정규화해 복원한다. 새 타이머의 Live Activity에는 앱 선택 언어를 전달하며, 이미 시작한 Activity는 생성 시 언어를 유지한다. 빌드 7에 이 기능을 포함해 네이티브 빌드와 IPA 생성을 완료했다. 빌드 7의 App Store Connect 업로드 성공을 확인했다. Apple 처리 및 빌드 7 선택을 확인했고, 사용자가 실기기 확인 완료를 보고했다. ASC 빌드 7의 지원 언어에는 영어만 표시되어 새 바이너리 보완이 필요하다.
+
+> **2026-09-09 출시 전 보완:** App Store 지원 언어 인식에 필요한 실제 `en.lproj/InfoPlist.strings`와 `ko.lproj/InfoPlist.strings`를 앱(`ios/App/App`)과 위젯(`ios/RestTimerActivity`)에 둔다. 각 타깃의 Resources 단계는 PBXBuildFile → PBXVariantGroup → 두 언어 파일을 참조한다. 앱 표시명은 양쪽 모두 Steady Sets, 위젯 표시명은 Rest Timer/휴식 타이머다. `scripts/verify-native-localizations.mjs`는 xcode 3.0.1 파서로 타깃부터 실제 파일까지 연결을 검증하며 Resources 누락과 ko 누락을 거부하는 회귀 검사를 포함한다. `check:ios-release`에 연결하고 EAS 구성에서도 ios:sync 직후 archive 전에 실행한다. 새 네이티브 runtime은 `ios-df63450d92c09d12`; 빌드 번호는 아직 7이며 신규 빌드는 실행하지 않았다. ASC에서 Mac/Apple Vision Pro 배포는 꺼져 있고 무료·수동 출시를 유지한다. 한국어 스토어 소개 현지화는 앱 바이너리의 지원 언어와 별개이며 아직 추가하지 않았다.
 
 ---
 
@@ -738,3 +740,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-08: 사용자 승인으로 한국어/영어 지원 production iOS 빌드 7을 실행하여 Build finished와 IPA 생성을 확인했다. EAS ID 951b90dd-680f-43e3-81e5-641cfcbe5926, 기반 소스 8954e6a, runtime ios-f732ac7ea13239d4. 대화형 Apple 로그인 및 App/RestTimerActivity 서명 검증을 통과했다. 원본 app.json과 모든 CURRENT_PROJECT_VERSION을 7로 맞추고 Info.plist 버전 변수 참조는 유지했으며 iOS 구성 검사를 통과했다. App Store Connect 업로드·실기기 언어 메뉴/Live Activity 확인·심사 제출·최종 출시는 실행하지 않았다.
 
 - 2026-09-08: 사용자 요청으로 빌드 7(951b90dd-680f-43e3-81e5-641cfcbe5926)을 App Store Connect에 업로드했다. Submission 518375b8-5bba-4de5-bcd5-8eed8cbe9766가 성공 종료했으며 Apple 처리 중이다. 실기기 한국어/영어 전환·정식 심사 제출·최종 출시는 아직 실행하지 않았다.
+
+- 2026-09-09: 스토어 지원 언어를 위한 앱/위젯 en·ko 실제 리소스와 빌드 복사 연결, 신규 runtime, archive 전 자동 검증을 추가했다. 전체 단위 테스트 60개, 한국어/영어 SSR, 브라우저 저장 상태 대조 26회·장비/백업/타이머/삭제/언어 전환·4개 폭과 테마 검증, lint·웹 빌드·Capacitor 동기화 후 iOS 구성 검사를 통과했다. 기존 EAS 환경과 같은 NPM_CONFIG_LEGACY_PEER_DEPS=true로 npm ci dry-run을 통과했다(기본 옵션은 기존 Vite peer 조건 충돌). Windows에서 Xcode archive를 실행할 수 없으므로 실제 IPA의 en/ko.lproj와 Apple 처리 후 지원 언어 표시는 다음 승인된 빌드/업로드 뒤 확인해야 한다. 이번 작업에서 EAS·OTA·심사 제출·출시는 실행하지 않았다.

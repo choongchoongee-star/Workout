@@ -7,6 +7,9 @@ build:
     - run:
         name: Build web assets and sync Capacitor
         command: npm run ios:sync
+    - run:
+        name: Verify native release configuration before archive
+        command: npm run check:ios-release
     - eas/resolve_apple_team_id_from_credentials:
         id: resolve_apple_team_id_from_credentials
     - eas/configure_ios_credentials:

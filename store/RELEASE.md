@@ -1,6 +1,14 @@
 # Steady Sets release preparation
 
-Updated: 2026-09-08
+Updated: 2026-09-09
+
+## Current pre-build status (2026-09-09)
+
+- Build 7 is processed and selected in ASC; the owner completed real-device testing. The build metadata lists English only despite working in-app Korean/English.
+- App and widget now have en/ko InfoPlist.strings resources connected to their Resources phases. Local graph validation, 60 unit tests, bilingual SSR, browser flows (26 persisted-state checkpoints), lint, web build and Capacitor sync passed. Native compilation and IPA/ASC language verification require the next approved build.
+- New prepared runtime: ios-df63450d92c09d12. Build number remains 7; no new EAS operation was run.
+- Mac and Apple Vision Pro distribution are disabled. Free worldwide availability and manual release remain selected. Korean storefront copy is separate from binary language support and has not been added.
+- Earlier dated entries below are historical; formal review and final release remain on hold.
 
 ## Verified and prepared
 
