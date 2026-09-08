@@ -40,10 +40,10 @@ Updated: 2026-09-08
 
 - GitHub Pages IP retention: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection
 
-## Next native build: Korean and English
+## Build 7: Korean and English
 
 - Source now supports iOS per-app Preferred Language (en/ko), without an in-app selector. Build 6 does not include this change.
 - Native runtime: ios-f732ac7ea13239d4. Existing backup formats and equipment keys are preserved.
-- A new approved native build and device checks are required before claiming Korean support in the store. No new build, upload, review submission or release was triggered by this implementation.
+- Approved production build 7 finished on 2026-09-08; IPA generated. EAS build: 951b90dd-680f-43e3-81e5-641cfcbe5926. App Store Connect upload and device verification remain pending. Formal review submission and release remain on hold.
 
-- Extended local verification passed: 60 unit tests, bilingual SSR, browser input/persistence/export/import/delete flows, locale switching, and 320–430px layouts. No functional failure reproduced within this scope. Actual iPhone language settings and ActivityKit rendering still require the next native build.
+- Extended local verification passed: 60 unit tests, bilingual SSR, browser input/persistence/export/import/delete flows, locale switching, and 320–430px layouts. No functional failure reproduced within this scope. Actual iPhone language settings and ActivityKit rendering still require testing with build 7.
