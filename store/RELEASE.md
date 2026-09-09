@@ -4,7 +4,7 @@ Updated: 2026-09-09
 
 ## Current build status (2026-09-09)
 
-- Production build 10 succeeded: 3e5bd2ce-0ef6-45d9-a2bf-ca2ccc5d3293, source base 304735f, runtime ios-df63450d92c09d12. The downloaded IPA contains app/widget version 10 and both en/ko InfoPlist.strings resources. App Store Connect upload and processed language metadata verification are pending. Earlier failed-build notes below are historical.
+- Production build 10 succeeded: 3e5bd2ce-0ef6-45d9-a2bf-ca2ccc5d3293, source base 304735f, runtime ios-df63450d92c09d12. The downloaded IPA contains app/widget version 10 and both en/ko InfoPlist.strings resources. App Store Connect upload succeeded (submission 4415d835-b36c-4853-9f98-0fddcb2e704c). Apple processing and language metadata verification are pending. Earlier failed-build notes below are historical.
 
 - Build 7 is processed and selected in ASC; the owner completed real-device testing. The build metadata lists English only despite working in-app Korean/English.
 - App and widget now have en/ko InfoPlist.strings resources connected to their Resources phases. Local graph validation, 60 unit tests, bilingual SSR, browser flows (26 persisted-state checkpoints), lint, web build and Capacitor sync passed. Native compilation and IPA/ASC language verification require the next approved build.
@@ -61,3 +61,5 @@ Updated: 2026-09-09
 - Failed build 8: 72f57bb9-e725-4b12-a04e-1fdf36b56062. The pre-version-sync assertion rejected widget 7 versus app 8. Dependency installation, web build and Capacitor sync succeeded. Existing ASC build 7 remains available.
 
 - Build 9 (8a635822-6364-4fda-ae8d-89467e97f3bd) also failed before archive: EAS version configuration left the custom widget at 8 versus app 9. The server successfully verified bundled en/ko resources. Explicit sync-ios-versions.mjs now synchronizes all native configurations before the version gate. Verified against the actual failed checkout and with 62 tests; no further rebuild or submission has run. Current local build number: 9.
+
+- 2026-09-09: Build 10 uploaded successfully to ASC, submission 4415d835-b36c-4853-9f98-0fddcb2e704c. Apple is processing the binary. TestFlight group setup was skipped after an authentication error; this did not prevent successful binary upload. Review build selection, formal review and release were not changed.
