@@ -6,7 +6,7 @@ Updated: 2026-09-09
 
 - Build 7 is processed and selected in ASC; the owner completed real-device testing. The build metadata lists English only despite working in-app Korean/English.
 - App and widget now have en/ko InfoPlist.strings resources connected to their Resources phases. Local graph validation, 60 unit tests, bilingual SSR, browser flows (26 persisted-state checkpoints), lint, web build and Capacitor sync passed. Native compilation and IPA/ASC language verification require the next approved build.
-- New prepared runtime: ios-df63450d92c09d12. Build number remains 7; no new EAS operation was run.
+- New prepared runtime: ios-df63450d92c09d12. Build 8 was attempted and failed before archive; no IPA was produced. Remote version validation now runs after EAS synchronizes app/extension versions. Local reproduction and checks passed; no retry has been started.
 - Mac and Apple Vision Pro distribution are disabled. Free worldwide availability and manual release remain selected. Korean storefront copy is separate from binary language support and has not been added.
 - Earlier dated entries below are historical; formal review and final release remain on hold.
 
@@ -55,3 +55,5 @@ Updated: 2026-09-09
 - Approved production build 7 finished on 2026-09-08; IPA generated. EAS build: 951b90dd-680f-43e3-81e5-641cfcbe5926. App Store Connect upload succeeded on 2026-09-08 (submission 518375b8-5bba-4de5-bcd5-8eed8cbe9766). Apple processing completion and device verification remain pending. Formal review submission and release remain on hold.
 
 - Extended local verification passed: 60 unit tests, bilingual SSR, browser input/persistence/export/import/delete flows, locale switching, and 320–430px layouts. No functional failure reproduced within this scope. Actual iPhone language settings and ActivityKit rendering still require testing with build 7.
+
+- Failed build 8: 72f57bb9-e725-4b12-a04e-1fdf36b56062. The pre-version-sync assertion rejected widget 7 versus app 8. Dependency installation, web build and Capacitor sync succeeded. Existing ASC build 7 remains available.

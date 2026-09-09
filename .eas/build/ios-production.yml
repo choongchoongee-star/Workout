@@ -8,8 +8,8 @@ build:
         name: Build web assets and sync Capacitor
         command: npm run ios:sync
     - run:
-        name: Verify native release configuration before archive
-        command: npm run check:ios-release
+        name: Verify bundled language resources
+        command: node scripts/verify-native-localizations.mjs
     - eas/resolve_apple_team_id_from_credentials:
         id: resolve_apple_team_id_from_credentials
     - eas/configure_ios_credentials:
@@ -18,6 +18,9 @@ build:
     - eas/configure_ios_version:
         inputs:
           build_configuration: Release
+    - run:
+        name: Verify synchronized app and extension versions
+        command: node scripts/verify-live-activity.mjs
     - eas/generate_gymfile_from_template:
         inputs:
           credentials: ${ eas.job.secrets.buildCredentials }

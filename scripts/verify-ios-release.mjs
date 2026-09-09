@@ -56,7 +56,8 @@ for (const requiredStep of [
   'eas/install_node_modules',
   'eas/resolve_build_config',
   'npm run ios:sync',
-  'npm run check:ios-release',
+  'node scripts/verify-native-localizations.mjs',
+  'node scripts/verify-live-activity.mjs',
   'eas/configure_ios_credentials',
   'eas/configure_ios_version',
   'eas/generate_gymfile_from_template',
@@ -66,5 +67,7 @@ for (const requiredStep of [
   assert.ok(customBuild.includes(requiredStep), `custom build must include ${requiredStep}`)
 }
 assert.doesNotMatch(customBuild, /pod install|eas\/prebuild/, 'Capacitor SPM builds must not run CocoaPods or Expo prebuild')
+assert.ok(customBuild.indexOf('node scripts/verify-live-activity.mjs') > customBuild.indexOf('eas/configure_ios_version:'), 'app/extension version checks must follow EAS version synchronization')
+assert.doesNotMatch(customBuild, /command: npm run check:ios-release/, 'full source preflight runs locally, before EAS mutates native versions')
 
 console.log('iOS release configuration is internally consistent.')
