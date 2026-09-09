@@ -9,7 +9,7 @@
     ],
     "ios": {
       "bundleIdentifier": "com.choongchoongeestar.workout",
-      "buildNumber": "9",
+      "buildNumber": "10",
       "supportsTablet": false,
       "infoPlist": {
         "CFBundleLocalizations": ["en", "ko"],

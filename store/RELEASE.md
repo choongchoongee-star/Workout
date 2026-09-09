@@ -2,7 +2,9 @@
 
 Updated: 2026-09-09
 
-## Current pre-build status (2026-09-09)
+## Current build status (2026-09-09)
+
+- Production build 10 succeeded: 3e5bd2ce-0ef6-45d9-a2bf-ca2ccc5d3293, source base 304735f, runtime ios-df63450d92c09d12. The downloaded IPA contains app/widget version 10 and both en/ko InfoPlist.strings resources. App Store Connect upload and processed language metadata verification are pending. Earlier failed-build notes below are historical.
 
 - Build 7 is processed and selected in ASC; the owner completed real-device testing. The build metadata lists English only despite working in-app Korean/English.
 - App and widget now have en/ko InfoPlist.strings resources connected to their Resources phases. Local graph validation, 60 unit tests, bilingual SSR, browser flows (26 persisted-state checkpoints), lint, web build and Capacitor sync passed. Native compilation and IPA/ASC language verification require the next approved build.
