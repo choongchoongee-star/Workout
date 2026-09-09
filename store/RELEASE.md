@@ -2,7 +2,9 @@
 
 Updated: 2026-09-09
 
-## Current build status (2026-09-09)
+## Current review status (2026-09-09)
+
+- Submitted iOS 1.0 (10) to App Review with explicit owner authorization at 11:02 KST on 2026-09-09. Submission ede9102a-25ef-40bf-a5eb-3938f352c092 is Waiting for Review, verified on its details page. Required-field validation passed. Manual release remains enabled; the app has not been released. Previous preparation entries below are historical.
 
 - Production build 10 succeeded: 3e5bd2ce-0ef6-45d9-a2bf-ca2ccc5d3293, source base 304735f, runtime ios-df63450d92c09d12. The downloaded IPA contains app/widget version 10 and both en/ko InfoPlist.strings resources. App Store Connect upload succeeded (submission 4415d835-b36c-4853-9f98-0fddcb2e704c). Apple processing is complete: validated, English and Korean listed. Build 10 is selected and saved for iOS 1.0, verified by reopening the page. Earlier failed-build notes below are historical.
 
