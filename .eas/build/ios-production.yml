@@ -20,7 +20,7 @@ build:
           build_configuration: Release
     - run:
         name: Verify synchronized app and extension versions
-        command: node scripts/verify-live-activity.mjs
+        command: node scripts/sync-ios-versions.mjs && node scripts/verify-live-activity.mjs
     - eas/generate_gymfile_from_template:
         inputs:
           credentials: ${ eas.job.secrets.buildCredentials }

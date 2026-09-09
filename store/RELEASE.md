@@ -57,3 +57,5 @@ Updated: 2026-09-09
 - Extended local verification passed: 60 unit tests, bilingual SSR, browser input/persistence/export/import/delete flows, locale switching, and 320–430px layouts. No functional failure reproduced within this scope. Actual iPhone language settings and ActivityKit rendering still require testing with build 7.
 
 - Failed build 8: 72f57bb9-e725-4b12-a04e-1fdf36b56062. The pre-version-sync assertion rejected widget 7 versus app 8. Dependency installation, web build and Capacitor sync succeeded. Existing ASC build 7 remains available.
+
+- Build 9 (8a635822-6364-4fda-ae8d-89467e97f3bd) also failed before archive: EAS version configuration left the custom widget at 8 versus app 9. The server successfully verified bundled en/ko resources. Explicit sync-ios-versions.mjs now synchronizes all native configurations before the version gate. Verified against the actual failed checkout and with 62 tests; no further rebuild or submission has run. Current local build number: 9.

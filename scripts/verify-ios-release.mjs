@@ -58,6 +58,7 @@ for (const requiredStep of [
   'npm run ios:sync',
   'node scripts/verify-native-localizations.mjs',
   'node scripts/verify-live-activity.mjs',
+  'node scripts/sync-ios-versions.mjs && node scripts/verify-live-activity.mjs',
   'eas/configure_ios_credentials',
   'eas/configure_ios_version',
   'eas/generate_gymfile_from_template',
