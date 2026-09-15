@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-09
+> 마지막 업데이트: 2026-09-15
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -18,7 +18,7 @@
 - **핵심 철학:** "운동 중에 빠르게 기록" — 탭 수 최소화, 자동 입력(이전 값 재사용), 자동 저장
 - **핵심 제약사항:** 로그인·운동 데이터 백엔드·운동 기록 전송 없음, 기기 내 저장, 1일 1세션. 앱 업데이트 파일은 GitHub Pages에서 다운로드한다.
 - **주요 사용자:** Charlie (단일 사용자, 개인용)
-- **플랫폼:** Capacitor 기반 iOS 앱 우선. 동일 React 앱의 브라우저/PWA 빌드도 개발·미리보기용으로 유지. 세로형 `max-w-lg`, Settings에서 Light/Dark 선택 (기본 Light)
+- **플랫폼:** Capacitor 기반 iOS 앱과 Android 개발용 네이티브 셸. 동일 React 앱의 브라우저/PWA 빌드도 개발·미리보기용으로 유지. 세로형 `max-w-lg`, Settings에서 Light/Dark 선택 (기본 Light)
 
 ---
 
@@ -28,7 +28,7 @@
 - **React 19** + **Vite 8** (`@vitejs/plugin-react`)
 - **Tailwind CSS v4** (`@tailwindcss/vite` 플러그인 방식 — `tailwind.config` 없이 CSS-first)
 - **react-router-dom v7** (`BrowserRouter`, `basename="/Workout"`)
-- **Capacitor v8** — iOS 네이티브 셸, Filesystem, Local Notifications, Share
+- **Capacitor v8** — iOS/Android 네이티브 셸, Filesystem, Local Notifications, Share
 - **Capawesome Live Update v8** — 서명된 자체 호스팅 OTA, 네이티브 runtime별 배포, 시작 실패 시 내장 버전 복구
 - **vite-plugin-pwa v1** (`registerType: 'autoUpdate'`, Workbox `generateSW`)
 - 앱 아이콘: public/icon.svg를 원본으로 하는 평면 덤벨. 초록 #1D4533 전체 배경, 크림 #F7EAE0 바, 살구 #F9D2BA 원판 네 개(양쪽 큰 원판 바깥에 작은 원판 한 개씩)로 구성한다. 글자·그라데이션·그림자는 없으며 iOS 시스템이 모서리를 마스킹하도록 원본 배경은 정사각형이다. 불투명 1024×1024 iOS AppIcon + 동일 디자인의 PWA 192/512·favicon을 사용한다.
@@ -53,6 +53,10 @@ mode !== 'capacitor' && VitePWA({
 | `dev` | `vite` (로컬 개발 서버) |
 | `build` | `vite build` (→ `dist/`) |
 | `build:ios` | `vite build --mode capacitor` (상대 base, 서비스워커 제외) |
+| `build:android` | `vite build --mode capacitor` (상대 base, 서비스워커 제외) |
+| `android:sync` | Android 웹 빌드·Capacitor sync 후 Android 자산에서 iOS LiveUpdate 설정 제거 |
+| `android:open` | Android Studio로 android 프로젝트 열기 |
+| `icons:android` | public/icon.svg에서 Android 런처·adaptive 아이콘 생성 |
 | `ios:sync` | iOS 빌드 후 `cap sync ios` |
 | `ios:open` | macOS에서 Xcode 프로젝트 열기 |
 | `check:ios-release` | 번들 ID·버전·기기·방향·Scheme·EAS archive 절차의 일관성 검사 |
@@ -65,6 +69,17 @@ mode !== 'capacitor' && VitePWA({
 | `deploy` | `scripts/deploy-site.mjs`로 안내 사이트만 게시, 이전 PWA 파일 제거 및 `ota/` 보존 |
 
 ### 배포 (중요)
+#### Android 개발 준비 (2026-09-15)
+- `@capacitor/android` 8.5.1, `android/` Gradle 프로젝트. applicationId는 `com.choongchoongeestar.workout`, versionName 1.0/versionCode 1, min SDK 24, compile/target SDK 36. Android 버전 번호는 iOS와 독립적이다.
+- `npm run android:sync` 후 Android Studio에서 실행한다. CLI 빌드는 JDK 21과 Android SDK 36 환경에서 `android/gradlew.bat -p android assembleDebug`를 사용한다. 릴리스 AAB는 별도 업로드 키·서명 설정 후 Android Studio의 Generate Signed Bundle로 생성한다. 키·local.properties·빌드 산출물은 Git에 넣지 않는다.
+- 앱 설정 열기와 OS 앱별 언어 조회는 Android `AppSettingsPlugin`으로 구현한다. en/ko locale-config를 등록한다. 기존 React 화면·기기 저장·캐시 파일 공유 백업을 재사용한다. Android 자동 클라우드 백업·기기 이전은 제외하고 사용자 요청 파일 내보내기를 사용한다.
+- 알림 권한을 확인한 뒤 Android 일반 예약 알림을 사용한다. 정확한 알람 특별 접근을 자동 요청하지 않으며, 절전/백그라운드에서는 지연될 수 있다. 상태바 덤벨 아이콘과 기본 시스템 알림음을 사용한다. iOS의 Live Activity 잠금화면 타이머는 Android에 구현되지 않았다.
+- Android OTA는 활성화하지 않는다. Android sync 어댑터는 생성된 설정에서 iOS LiveUpdate 구성을 제거한다. iOS fingerprint 계산은 Android 전용 의존성을 제외하여 기존 iOS runtime을 유지한다. Android 수정 배포는 새 바이너리가 필요하다.
+- Windows 개발 환경은 Temurin JDK 21.0.12.1 LTS, Android Studio Quail 4 (2026.1.4) 안정 버전, SDK Platform 36, Build-Tools 35.0.0/36.0.0, Platform-Tools 37.0.1을 사용한다. Studio는 공식 ZIP을 사용자 프로그램 폴더에 설치하고 시작 메뉴 바로가기와 CAPACITOR_ANDROID_STUDIO_PATH를 설정했다. JAVA_HOME 및 ANDROID_HOME으로 CLI 빌드한다.
+- `assembleDebug` 네이티브 컴파일과 APK 생성이 통과했다. 산출물은 `android/app/build/outputs/apk/debug/app-debug.apk`이다. Android 36 전용 에뮬레이터에서 실제 WebView·네이티브 플러그인을 사용하는 `AndroidRuntimeTest`로 세트 수정/완료, 탭 이동 중 타이머 유지와 Skip, 기기 파일 저장 및 Activity 재실행 복원, 캐시 백업 파일 UTF-8 읽기/쓰기, Skip 후 예약 알림 제거, en→ko 앱 언어 전환을 검증했다. 화면 캡처에서 시스템 바와 콘텐츠 겹침이 없음을 확인했다. 시작 시 Capacitor SystemBars의 DOM 준비 전 CSS 주입 오류 로그가 있으나 화면 로드 후 인셋 적용과 실행은 정상이다.
+- 실행 테스트는 더미 운동 기록으로 앱 데이터를 덮어쓰므로 일회용 에뮬레이터(API 33 이상)에서만 `am instrument -w -e allowFixtureReset true -e class com.choongchoongeestar.workout.AndroidRuntimeTest com.choongchoongeestar.workout.test/androidx.test.runner.AndroidJUnitRunner`로 명시적으로 실행한다. 실기기 검증, 공유창을 통한 백업 내보내기/가져오기, 백그라운드 알림 도착·소리, 시스템 뒤로가기, 릴리스 AAB 서명 및 Play 심사는 미완료다. Play 계정·DUNS 진행과 독립적인 개발 준비 단계다.
+
+#### iOS 및 웹
 - **자동 CI 없음.** `master` 푸시는 소스만 올라감.
 - 공개 사이트 반영은 **수동으로 `npm run deploy`** 실행 → `site-dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙. 공개 루트는 `site/index.html`의 영문 iPhone 앱 소개·TestFlight 준비 상태·지원 링크이며 운동 기록 UI나 OTA 파일 링크를 표시하지 않는다. 개인정보처리방침은 `/privacy/`, OTA는 `/ota/<runtime>/`에 유지한다.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
@@ -754,3 +769,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-09: 사용자 요청으로 ASC iOS 1.0 연결 빌드를 7에서 10으로 교체·저장했다. 페이지 재접속 후 build 10(Apple build ID f6a7c308-aec8-48c9-b0b0-fbbbbca26bba)과 저장 비활성 상태를 확인했다. 빌드 메타데이터는 검증됨·현지화 영어 한국어를 표시한다. 수동 출시 유지, 심사에 추가/최종 심사 제출은 실행하지 않았다.
 
 - 2026-09-09: 사용자 최종 승인으로 ASC 필수 검증을 통과한 iOS 1.0 (10)을 App Review에 제출했다. 1개의 항목 제출됨 확인 후 제출 상세 화면에서 심사 대기 중, 버전 1.0 (10), 제출 시각 2026-09-09 11:02 KST를 확인했다. 심사 제출 ID ede9102a-25ef-40bf-a5eb-3938f352c092. 수동 출시 설정을 유지하며 최종 출시는 실행하지 않았다.
+
+- 2026-09-15: Google Play 계정 준비와 독립적인 Android 개발 기반과 JDK 21 LTS·Android Studio·SDK 36 환경을 구성했다. 단위 테스트 63개, lint, 웹/Capacitor 빌드 및 Android sync, 기존 iOS 구성 검사, Android assembleDebug와 APK 서명 검사를 통과했다. iOS runtime ios-df63450d92c09d12 유지 확인. Android 36 에뮬레이터에서 실제 APK 실행·네이티브 저장·재실행 복원·타이머·캐시 파일·언어 전환 instrumentation 검증과 화면 인셋 확인을 완료했다. 스토어 제출·배포는 실행하지 않았다.

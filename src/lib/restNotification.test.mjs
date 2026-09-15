@@ -8,6 +8,22 @@ import {
   scheduleRestNotification,
 } from './restNotification.js'
 
+test('Android schedules without forcing exact-alarm access or a nonexistent sound resource', async () => {
+  let scheduled
+  assert.equal(await scheduleRestNotification(Date.now() + 60000, {
+    isNativePlatform: () => true,
+    platform: () => 'android',
+    notifications: {
+      checkPermissions: async () => ({ display: 'granted' }),
+      cancel: async () => {},
+      schedule: async value => { scheduled = value.notifications[0] },
+    },
+  }), true)
+  assert.equal(scheduled.isExactNotification, false)
+  assert.equal(scheduled.smallIcon, 'ic_stat_rest')
+  assert.equal('sound' in scheduled, false)
+})
+
 test('Skip waits for an in-flight native schedule so no alarm remains afterward', async () => {
   let release, entered
   const waiting = new Promise(resolve => { entered = resolve })

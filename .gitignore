@@ -35,3 +35,8 @@ generate-icons.mjs
 *.sw?
 
 /workout-2026-09-05.md
+
+# Android signing material
+*.jks
+*.keystore
+keystore.properties

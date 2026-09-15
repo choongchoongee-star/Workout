@@ -80,6 +80,7 @@ export function playRestTone(context) {
 
 export async function scheduleRestNotification(endsAt, {
   isNativePlatform = () => Capacitor.isNativePlatform(),
+  platform = () => Capacitor.getPlatform(),
   notifications = LocalNotifications,
 } = {}) {
   if (!isNativePlatform()) return false
@@ -103,7 +104,9 @@ export async function scheduleRestNotification(endsAt, {
           title: t('Rest complete'),
           body: t('Time for your next set.'),
           schedule: { at: new Date(endsAt) },
-          sound: 'default',
+          ...(platform() === 'android'
+            ? { isExactNotification: false, smallIcon: 'ic_stat_rest' }
+            : { sound: 'default' }),
           foreground: true,
         }],
       })
