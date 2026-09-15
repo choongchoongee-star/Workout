@@ -1,4 +1,5 @@
 import { getLanguage, t } from '../lib/i18n'
+import { Capacitor } from '@capacitor/core'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { applyTheme } from '../lib/theme'
@@ -22,6 +23,7 @@ function Field({ label, hint, children }) {
 }
 
 export default function Settings() {
+  const isAndroid = Capacitor.getPlatform() === 'android'
   const { sessions, exercises, importWorkoutData, syncing, syncError, retrySave } = useApp()
   const [restSeconds, setRestSeconds] = useState(String(storage.getRestSeconds()))
   const [theme, setTheme] = useState(storage.getTheme)
@@ -65,7 +67,7 @@ export default function Settings() {
   async function handleOpenAppSettings() {
     setSettingsError('')
     if (!await openAppSettings()) {
-      setSettingsError(t("Could not open iPhone Settings. Open Settings → Apps → Steady Sets → Notifications."))
+      setSettingsError(t("Could not open device settings. Open Settings → Apps → Steady Sets → Notifications."))
     }
   }
 
@@ -179,7 +181,7 @@ export default function Settings() {
                 ? 'bg-green-900/40 text-green-300'
                 : 'bg-zinc-800 text-zinc-400'
             }`}>
-              {notificationPermission === 'granted' ? t("Enabled") : notificationPermission === 'checking' ? t("Checking…") : notificationPermission === 'web' ? t("iPhone only") : t("Disabled")}
+              {notificationPermission === 'granted' ? t("Enabled") : notificationPermission === 'checking' ? t("Checking…") : notificationPermission === 'web' ? t("App only") : t("Disabled")}
             </span>
           </div>
           {(notificationPermission === 'prompt' || notificationPermission === 'prompt-with-rationale') && (
@@ -187,14 +189,15 @@ export default function Settings() {
           )}
           {notificationPermission === 'denied' && (
             <div className="mt-3">
-              <p className="text-xs text-amber-300">{t("Notifications are blocked. Enable them in iPhone Settings to receive rest alerts.")}</p>
-              <button type="button" onClick={handleOpenAppSettings} className="mt-3 w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 active:bg-zinc-700">{t("Open iPhone Settings")}</button>
+              <p className="text-xs text-amber-300">{t("Notifications are blocked. Enable them in device settings to receive rest alerts.")}</p>
+              <button type="button" onClick={handleOpenAppSettings} className="mt-3 w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 active:bg-zinc-700">{t("Open device settings")}</button>
             </div>
           )}
           {settingsError && <p role="alert" className="mt-3 text-xs text-red-300">{settingsError}</p>}
           {notificationPermission === 'unavailable' && (
             <p className="mt-3 text-xs text-red-300">{t("Notification status could not be checked. Try reopening Settings.")}</p>
           )}
+          {isAndroid && <p className="mt-3 text-xs text-zinc-400">{t("Android may delay rest alerts while the device is idle or saving battery.")}</p>}
         </div>
         <div className="mt-4 flex items-center justify-end gap-3 border-t border-zinc-800 pt-4">
           <span role="status" className="text-sm text-green-300">
@@ -269,6 +272,7 @@ export default function Settings() {
 
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">
         <h2 className="text-zinc-300 font-medium mb-3">{t("App updates")}</h2>
+        {isAndroid ? <p className="text-zinc-400 text-xs">{t("Install new versions through Google Play. Your workouts stay on this device.")}</p> : <>
         <p className="text-zinc-400 text-xs mb-3">{t("Updates are downloaded in the background and applied the next time the app starts. Your workouts stay on this device.")}</p>
         <button type="button" disabled={updateStatus === 'checking'} onClick={async () => {
           setUpdateStatus('checking')
@@ -281,6 +285,7 @@ export default function Settings() {
           unavailable: t("Could not check for updates. You can keep using the app offline."),
           web: t("Updates are available in the iPhone app."),
         }[updateStatus]}</p>}
+        </>}
       </div>
 
       <div className="bg-zinc-900 rounded-2xl p-4 mb-4">

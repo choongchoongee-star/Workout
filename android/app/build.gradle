@@ -1,5 +1,18 @@
 apply plugin: 'com.android.application'
 
+// Supply secrets through the process environment; never commit upload keys/passwords.
+def uploadSigning = ['WORKOUT_UPLOAD_STORE_FILE', 'WORKOUT_UPLOAD_STORE_PASSWORD',
+                     'WORKOUT_UPLOAD_KEY_ALIAS', 'WORKOUT_UPLOAD_KEY_PASSWORD'].collectEntries {
+    [(it): System.getenv(it)]
+}
+def hasUploadSigning = uploadSigning.values().every { it != null && !it.isEmpty() }
+if (uploadSigning.values().any { it != null && !it.isEmpty() } && !hasUploadSigning) {
+    throw new GradleException('Set all four WORKOUT_UPLOAD_* signing environment variables, or none for unsigned validation.')
+}
+if (project.hasProperty('requireUploadSigning') && !hasUploadSigning) {
+    throw new GradleException('Upload signing is required. Configure all four WORKOUT_UPLOAD_* environment variables.')
+}
+
 android {
     namespace = "com.choongchoongeestar.workout"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +29,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasUploadSigning) {
+            upload {
+                storeFile file(uploadSigning.WORKOUT_UPLOAD_STORE_FILE)
+                storePassword uploadSigning.WORKOUT_UPLOAD_STORE_PASSWORD
+                keyAlias uploadSigning.WORKOUT_UPLOAD_KEY_ALIAS
+                keyPassword uploadSigning.WORKOUT_UPLOAD_KEY_PASSWORD
+            }
+        }
+    }
     buildTypes {
         release {
+            if (hasUploadSigning) signingConfig signingConfigs.upload
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

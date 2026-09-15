@@ -1,7 +1,9 @@
 import { t } from '../lib/i18n'
+import { Capacitor } from '@capacitor/core'
 import { useNavigate } from 'react-router-dom'
 
 export default function Privacy() {
+  const isAndroid = Capacitor.getPlatform() === 'android'
   const navigate = useNavigate()
 
   return (
@@ -26,7 +28,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-white font-semibold mb-2">{t("Backups and sharing")}</h2>
-          <p>{t("When you choose Export, the app creates a Markdown backup and opens the iOS share sheet. You decide where to save or send that file. Steady Sets does not receive a copy.")}</p>
+          <p>{t("When you choose Export, the app creates a Markdown backup and opens the device share sheet. You decide where to save or send that file. Steady Sets does not receive a copy.")}</p>
         </section>
 
         <section>
@@ -36,7 +38,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-white font-semibold mb-2">{t("App updates")}</h2>
-          <p>{t("The app checks GitHub Pages for updates and downloads signed app files. These requests do not include your workouts or a device identifier. GitHub may process technical request information, such as your IP address, under its privacy policy. The app continues to work offline.")}</p>
+          {isAndroid ? <p>{t("Android app updates are distributed through Google Play. The app does not download updates from GitHub Pages. Opening external support links is subject to the linked service's privacy policy.")}</p> : <p>{t("The app checks GitHub Pages for updates and downloads signed app files. These requests do not include your workouts or a device identifier. GitHub may process technical request information, such as your IP address, under its privacy policy. The app continues to work offline.")}</p>}
           <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noreferrer" className="text-accent-400 underline">{t("GitHub Privacy Statement")}</a>
         </section>
 

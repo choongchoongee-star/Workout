@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { androidRestState } from './androidRestState'
 import { storage } from './storage'
 import { getRemainingSeconds } from './restTimer'
 import { restLiveActivity } from './restLiveActivity'
@@ -19,6 +21,7 @@ function tick() {
   if (remaining === timer.remaining) return
   emit({ ...timer, remaining, active: remaining > 0 })
   if (!remaining) {
+    if (Capacitor.getPlatform() === 'android') androidRestState.clear()
     void notifyRestComplete()
     void restLiveActivity.end(timer.timerID)
   }
@@ -50,19 +53,21 @@ export function startRestTimer() {
   const startedAt = Date.now()
   const endsAt = startedAt + seconds * 1000
   const timerID = crypto.randomUUID()
+  if (Capacitor.getPlatform() === 'android') androidRestState.save({ timerID, startedAt, endsAt })
   void scheduleRestNotification(endsAt)
   emit({ active: true, remaining: seconds, total: seconds, endsAt, timerID })
   void restLiveActivity.start({ timerID, startedAt, endsAt })
 }
 export function skipRestTimer() {
   revision++
+  if (Capacitor.getPlatform() === 'android') androidRestState.clear()
   void cancelRestNotification()
   void restLiveActivity.end(timer.timerID)
   emit({ ...timer, active: false })
 }
 export async function restoreRestTimer() {
   const requestedRevision = revision
-  const state = await restLiveActivity.getState()
+  const state = Capacitor.getPlatform() === 'android' ? androidRestState.read() : await restLiveActivity.getState()
   if (revision !== requestedRevision || timer.active || state?.status !== 'active') return
   const remaining = getRemainingSeconds(state.endsAt)
   if (!remaining || !Number.isFinite(state.startedAt) || state.endsAt <= state.startedAt || typeof state.timerID !== 'string') return
