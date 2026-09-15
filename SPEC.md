@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-15
+> 마지막 업데이트: 2026-09-16
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -69,10 +69,10 @@ mode !== 'capacitor' && VitePWA({
 | `deploy` | `scripts/deploy-site.mjs`로 안내 사이트만 게시, 이전 PWA 파일 제거 및 `ota/` 보존 |
 
 ### 배포 (중요)
-#### Android 개발 준비 (2026-09-15)
+#### Android 개발·출시 준비 (2026-09-16)
 - `@capacitor/android` 8.5.1, `android/` Gradle 프로젝트. applicationId는 `com.choongchoongeestar.workout`, versionName 1.0/versionCode 1, min SDK 24, compile/target SDK 36. Android 버전 번호는 iOS와 독립적이다.
 - `npm run android:sync` 후 Android Studio에서 실행한다. CLI 빌드는 JDK 21과 Android SDK 36 환경에서 `android/gradlew.bat -p android assembleDebug`를 사용한다. 릴리스 AAB는 별도 업로드 키·서명 설정 후 Android Studio의 Generate Signed Bundle로 생성한다. 키·local.properties·빌드 산출물은 Git에 넣지 않는다.
-- CLI 릴리스 서명은 `WORKOUT_UPLOAD_STORE_FILE`(키 파일 절대 경로), `WORKOUT_UPLOAD_STORE_PASSWORD`, `WORKOUT_UPLOAD_KEY_ALIAS`, `WORKOUT_UPLOAD_KEY_PASSWORD` 환경 변수로 설정한다. 일부만 설정하면 빌드를 중단한다. 제출용 명령은 `android/gradlew.bat -p android bundleRelease -PrequireUploadSigning`이며 키 미설정 시 실패한다. 키 없이 `bundleRelease`로 만든 `android/app/build/outputs/bundle/release/app-release.aab`는 구조 검증용 미서명 파일로 Play 제출에 사용할 수 없다. 현재 업로드 키 생성·보관 및 실제 업로드 서명은 미완료다.
+- CLI 릴리스 서명은 `WORKOUT_UPLOAD_STORE_FILE`(키 파일 절대 경로), `WORKOUT_UPLOAD_STORE_PASSWORD`, `WORKOUT_UPLOAD_KEY_ALIAS`, `WORKOUT_UPLOAD_KEY_PASSWORD` 환경 변수로 설정한다. 일부만 설정하면 빌드를 중단한다. 제출용 명령은 `android/gradlew.bat -p android bundleRelease -PrequireUploadSigning`이며 키 미설정 시 실패한다. 키 없이 `bundleRelease`로 만든 `android/app/build/outputs/bundle/release/app-release.aab`는 구조 검증용 미서명 파일로 Play 제출에 사용할 수 없다. 업로드 키와 Windows DPAPI 암호 파일은 Git 제외 `.android-signing/`에 생성했다. `scripts/android-release.ps1`은 키 덮어쓰기를 거부하고 서명된 AAB/APK 생성·AAB 서명 검증·공개 인증서 내보내기를 수행한다. 키와 복호화한 암호의 다른 기기/암호 관리자 백업은 소유자 작업으로 남는다.
 - 앱 설정 열기와 OS 앱별 언어 조회는 Android `AppSettingsPlugin`으로 구현한다. en/ko locale-config를 등록한다. 기존 React 화면·기기 저장·캐시 파일 공유 백업을 재사용한다. Android 자동 클라우드 백업·기기 이전은 제외하고 사용자 요청 파일 내보내기를 사용한다.
 - 알림 권한을 확인한 뒤 Android 일반 예약 알림을 사용한다. 정확한 알람 특별 접근을 자동 요청하지 않으며, 절전/백그라운드에서는 지연될 수 있다. 상태바 덤벨 아이콘과 기본 시스템 알림음을 사용한다. iOS의 Live Activity 잠금화면 타이머는 Android에 구현되지 않았다.
 - Android OTA는 활성화하지 않는다. Android sync 어댑터는 생성된 설정에서 iOS LiveUpdate 구성을 제거한다. iOS fingerprint 계산은 Android 전용 의존성을 제외하여 기존 iOS runtime을 유지한다. Android 수정 배포는 새 바이너리가 필요하다.
@@ -80,8 +80,15 @@ mode !== 'capacitor' && VitePWA({
 - Android 시스템 뒤로가기는 키보드 → 열린 숫자 편집창 → React Router 이전 화면 순서로 처리하고, 이동 기록이 없으면 OS 기본 동작을 사용한다. `OnBackPressedDispatcher`를 사용한다. Android 휴식 타이머는 기기 localStorage에 ID·시작/종료 시각을 저장하며 WebView 재생성 후 남은 시간을 복원한다. Skip·만료 시 저장 상태를 제거하고 손상된 상태는 무시한다. iOS Live Activity 복원 경로는 유지한다.
 - Windows 개발 환경은 Temurin JDK 21.0.12.1 LTS, Android Studio Quail 4 (2026.1.4) 안정 버전, SDK Platform 36, Build-Tools 35.0.0/36.0.0, Platform-Tools 37.0.1을 사용한다. Studio는 공식 ZIP을 사용자 프로그램 폴더에 설치하고 시작 메뉴 바로가기와 CAPACITOR_ANDROID_STUDIO_PATH를 설정했다. JAVA_HOME 및 ANDROID_HOME으로 CLI 빌드한다.
 - `assembleDebug` 네이티브 컴파일과 APK 생성이 통과했다. 산출물은 `android/app/build/outputs/apk/debug/app-debug.apk`이다. Android 36 전용 에뮬레이터에서 실제 WebView·네이티브 플러그인을 사용하는 `AndroidRuntimeTest`로 세트 수정/완료, 탭 이동 중 타이머 유지와 Skip, 기기 파일 저장 및 Activity 재실행 복원, 캐시 백업 파일 UTF-8 읽기/쓰기, Skip 후 예약 알림 제거, en→ko 앱 언어 전환을 검증했다. 화면 캡처에서 시스템 바와 콘텐츠 겹침이 없음을 확인했다. 시작 시 Capacitor SystemBars의 DOM 준비 전 CSS 주입 오류 로그가 있으나 화면 로드 후 인셋 적용과 실행은 정상이다.
-- 실행 테스트는 더미 운동 기록으로 앱 데이터를 덮어쓰므로 일회용 에뮬레이터(API 33 이상)에서만 `am instrument -w -e allowFixtureReset true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#nativeStorageTimerBackupAndLanguage com.choongchoongeestar.workout.test/androidx.test.runner.AndroidJUnitRunner`로 명시적으로 실행한다. 백업 검증은 실제 Settings 내보내기·Filesystem·FileProvider 공유 URI·터치로 여는 HTML 파일 선택·미리보기·저장·중복 날짜 방지를 사용한다. 외부 공유 수신 앱과 파일 선택 결과는 instrumentation이 제공하므로 외부 앱 자체의 저장 UI 검증을 뜻하지 않는다. 백그라운드 알림 검증은 Activity stopped 상태에서 OS NotificationManager 도착 및 채널 소리 설정을 확인한다. 실기기 청취·장시간 절전/화면 잠금·제조사별 동작·외부 공유 앱의 실제 저장 UI·업로드 서명·Play 심사는 별도로 남아 있다.
+- 실행 테스트는 더미 운동 기록으로 앱 데이터를 덮어쓰므로 일회용 에뮬레이터(API 33 이상)에서만 `am instrument -w -e allowFixtureReset true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#nativeStorageTimerBackupAndLanguage com.choongchoongeestar.workout.test/androidx.test.runner.AndroidJUnitRunner`로 명시적으로 실행한다. 백업 검증은 실제 Settings 내보내기·Filesystem·FileProvider 공유 URI·터치로 여는 HTML 파일 선택·미리보기·저장·중복 날짜 방지를 사용한다. 외부 공유 수신 앱과 파일 선택 결과는 instrumentation이 제공하므로 외부 앱 자체의 저장 UI 검증을 뜻하지 않는다. 백그라운드 알림 검증은 Activity stopped 상태에서 OS NotificationManager 도착 및 채널 소리 설정을 확인한다. 실기기 청취·장시간 절전/화면 잠금·제조사별 동작·외부 공유 앱의 실제 저장 UI·Play 내부 테스트와 심사는 별도로 남아 있다.
 - 최종 통합 검증은 Android 13(API 33)·Android 16(API 36) 에뮬레이터에서 통과했다. 알림 거절 검증은 전용 에뮬레이터에서 POST_NOTIFICATIONS를 revoke하고 user-set/user-fixed를 설정한 뒤 `-e testDeniedPermission true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#deniedNotificationsKeepWorkoutUsable`로 실행하며, 종료 후 플래그와 권한을 복원한다. 알림 켜기 요청의 거절 안내·기록 화면 접근·타이머 시작/Skip을 검증했다. 단위 테스트 65개, 소스 lint, 웹 빌드, iOS 구성 검사, debug APK·release AAB 컴파일을 통과했다. Android lintRelease는 오류 0개·경고 34개(템플릿 미사용/중복 리소스, 아이콘, 버전·방향 관련 등)다. 미서명 AAB 확인과 키 미설정 시 제출용 빌드 차단 검사도 통과했다.
+
+#### Android 출시 자료 및 서명 자동화
+
+- `scripts/android-release.ps1`은 PowerShell 7/JDK 21/Android SDK 환경에서 실행한다. 최초 `-CreateKey`로만 3072-bit RSA 업로드 키를 생성하며 기존 키/암호 파일이 있으면 중단한다. 암호는 난수로 생성하고 Windows 사용자 DPAPI로 암호화한다. Gradle에는 프로세스 환경 변수로 전달하고 종료 시 기존 값을 복원한다. `:app:bundleRelease`, `:app:assembleRelease`와 AAB 서명 확인 및 공개 인증서 내보내기를 수행한다. `.android-signing/`과 `release-artifacts/`는 Git 제외다. DPAPI 파일은 다른 PC용 백업이 아니므로 키+암호의 별도 보관이 필요하다.
+- Google Play 한국어/영어 메타데이터는 `store/google-play-ko-KR.json`, `store/google-play-en-US.json`, 데이터 보안·권한·스토어·서명 준비는 `store/GOOGLE_PLAY_RELEASE.md`에 둔다. `scripts/google-play-assets.mjs`는 기존 덤벨 아이콘과 녹색/크림색 디자인으로 512px 아이콘과 1024×500 홍보 PNG를 생성한다. 실제 에뮬레이터 화면은 테스트용 데이터만 포함하며 Git에 넣지 않는다.
+- `AndroidRuntimeTest`의 허용 알림 시나리오는 재설치 뒤에도 POST_NOTIFICATIONS를 명시적으로 허용한다. 언어 전환은 Activity 종료 → LocaleManager 설정 및 반영 대기 → 재실행으로 검사하여 OS 자동 재생성과 수동 recreate 경합을 방지한다. `captureStoreScreens=true`는 영어 운동/기록/설정과 한국어 운동 화면을 외부 앱 파일 폴더에 저장한다. Gradle이 테스트 종료 뒤 앱을 제거할 수 있으므로 이미지 보존은 직접 adb instrumentation 실행 후 pull로 수행한다.
+- 2026-09-16: Android 16 전용 에뮬레이터의 주요 네이티브 흐름과 알림 거절 흐름 각각 통과, 실제 스토어 캡처 4장 생성·확인. 최종 서명 AAB/APK 생성 및 암호학적 서명 검사, release APK 설치·덮어쓰기 설치·화면 실행 확인. 단위 테스트 65개, lint, 웹 빌드, 한국어/영어 SSR 검사, 사이트 빌드와 iOS 구성 검사 통과. Play 전달 설치·업데이트 후 운동 기록 유지, 실제 제조사 절전 동작과 외부 공유 앱 UI는 미검증이다.
 
 #### iOS 및 웹
 - **자동 CI 없음.** `master` 푸시는 소스만 올라감.
@@ -181,7 +188,7 @@ Workout/
 - manifest는 `/Workout/ota/<runtime>/latest.json`의 `{schema:1,runtime,bundle:{bundleId,url,checksum,signature}}` 형식. bundle ID는 ZIP SHA-256이며 URL은 동일 경로의 `<bundleId>.zip`만 허용한다. `bundle:null`은 다음 실행 시 내장 버전 복원 요청이다.
 - `scripts/ota-native.mjs`는 Swift·plist·스토리보드·네이티브 프로젝트·SPM·플러그인 버전·Capacitor 설정으로 fingerprint를 계산한다. `ota:prepare`와 `check:ios-release`는 native runtime 불일치 시 중단한다. 네이티브 변경 후 기존 runtime으로 OTA만 배포하면 안 된다.
 - `scripts/ota-prepare.mjs`는 fresh Capacitor 빌드만 ZIP으로 만들고 서명을 재검증한 뒤 Git 제외 폴더 `ota-release/`에 산출한다. 개인키 `.ota-keys/private.pem`은 별도 비공개 백업이 필요하며 Git·배포에 포함하지 않는다. 최초 초기화는 `scripts/ota-init.mjs`이며 기존 키가 있으면 중단한다.
-- 공개 정책에 OTA 요청과 GitHub의 IP 등 기술 정보 처리를 고지한다. 운동·기기 식별자는 업데이트 요청에 포함하지 않는다. GitHub Pages 게시와 정책 갱신은 별도 배포 승인을 받은 뒤 진행한다. 안내 사이트 배포는 제거 대상에서 `ota/`를 제외해 모든 기존 OTA runtime을 보존한다.
+- 공개 정책에 OTA 요청과 GitHub의 IP 등 기술 정보 처리를 고지한다. 운동 기록은 업데이트 요청에 포함하지 않는다. 현재 iOS 네이티브 LiveUpdate 8.4.2는 ZIP 다운로드 요청의 X-Capawesome-Device-Id 헤더에 IDFV를 포함한다. 제거 수정 및 새 네이티브 빌드가 완료되기 전에는 식별자 미전송을 주장하지 않는다. Android는 OTA 호출을 사용하지 않는다. GitHub Pages 게시와 정책 갱신은 별도 배포 승인을 받은 뒤 진행한다. 안내 사이트 배포는 제거 대상에서 `ota/`를 제외해 모든 기존 OTA runtime을 보존한다.
 - 첫 EAS 빌드는 웹 자산 생성 단계에서 실패했으며 설치 환경 보정 후 build 4의 Release archive·서명·IPA 생성이 완료됐다. OTA 플러그인이 포함된 iPhone 앱 설치 후 정상/변조 ZIP·오프라인·시작 실패 복구·운동 중 비재시작을 TestFlight에서 검증해야 한다. 저장 형식 변경은 이전 bundle과 호환되어야 한다.
 
 ---

@@ -1,0 +1,6 @@
+{
+  "title": "Steady Sets",
+  "shortDescription": "Log sets, weights and reps. Track your workouts with a simple offline journal.",
+  "fullDescription": "Keep a clear record of every workout. Steady Sets is a simple workout journal that stores your training history on your phone.\n\n• Log weights, reps and sets\n• Keep equipment-specific records for barbells, dumbbells, Smith machines, machines and cables\n• Browse workout history and track progress\n• Rest timer with local notifications\n• Add your own exercises\n• Switch between kg and lb\n• Export and import Markdown backups\n• English and Korean support\n\nNo account or ads. Your workout records stay on your device and are not sent to a developer server. Export a backup in Settings before changing phones or deleting the app.\n\nNotifications require your permission. Battery-saving and notification settings can affect when alerts arrive.",
+  "releaseNotes": "First Android release with workout logging, a rest timer, equipment-specific records, file backups, and English and Korean support."
+}

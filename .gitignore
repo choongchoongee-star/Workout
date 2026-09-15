@@ -40,3 +40,5 @@ generate-icons.mjs
 *.jks
 *.keystore
 keystore.properties
+.android-signing/
+release-artifacts/

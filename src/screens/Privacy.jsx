@@ -38,7 +38,7 @@ export default function Privacy() {
 
         <section>
           <h2 className="text-white font-semibold mb-2">{t("App updates")}</h2>
-          {isAndroid ? <p>{t("Android app updates are distributed through Google Play. The app does not download updates from GitHub Pages. Opening external support links is subject to the linked service's privacy policy.")}</p> : <p>{t("The app checks GitHub Pages for updates and downloads signed app files. These requests do not include your workouts or a device identifier. GitHub may process technical request information, such as your IP address, under its privacy policy. The app continues to work offline.")}</p>}
+          {isAndroid ? <p>{t("Android app updates are distributed through Google Play. The app does not download updates from GitHub Pages. Opening external support links is subject to the linked service's privacy policy.")}</p> : <p>{t("The iOS app checks GitHub Pages for updates and downloads signed app files. These requests do not include your workouts. The iOS update component includes a vendor-specific device identifier in download requests. GitHub may process technical request information, such as your IP address, under its privacy policy. The app continues to work offline.")}</p>}
           <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noreferrer" className="text-accent-400 underline">{t("GitHub Privacy Statement")}</a>
         </section>
 

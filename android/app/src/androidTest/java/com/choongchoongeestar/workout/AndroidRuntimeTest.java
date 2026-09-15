@@ -120,6 +120,28 @@ public class AndroidRuntimeTest {
         assertEquals("Keyboard visibility", expected, shown.get());
     }
 
+    private void captureStoreScreen(Context context, String name) throws Exception {
+        if (!"true".equals(InstrumentationRegistry.getArguments().getString("captureStoreScreens"))) return;
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        js("window.captureReady=false; requestAnimationFrame(()=>requestAnimationFrame(()=>window.captureReady=true))");
+        until("window.captureReady===true");
+        var bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+        assertNotNull("Screenshot unavailable", bitmap);
+        try (var output = new java.io.FileOutputStream(new File(context.getExternalFilesDir(null), name + ".png"))) {
+            assertTrue(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output));
+        } finally { bitmap.recycle(); }
+    }
+
+    private void setLanguage(Context context, String language) {
+        context.getSystemService(LocaleManager.class).setApplicationLocales(LocaleList.forLanguageTags(language));
+        long deadline = SystemClock.elapsedRealtime() + 10000;
+        while (!language.equals(context.getResources().getConfiguration().getLocales().get(0).getLanguage()) && SystemClock.elapsedRealtime() < deadline) {
+            SystemClock.sleep(100);
+        }
+        assertEquals(language, context.getResources().getConfiguration().getLocales().get(0).getLanguage());
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+    }
+
     // The real app produces and consumes the content URI. Only the external
     // share receiver/file picker result is supplied by the instrumentation.
     private void backupRoundTrip(Context context, File data) throws Exception {
@@ -221,7 +243,11 @@ public class AndroidRuntimeTest {
             "true".equals(InstrumentationRegistry.getArguments().getString("allowFixtureReset")));
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("com.choongchoongeestar.workout", context.getPackageName());
-        context.getSystemService(LocaleManager.class).setApplicationLocales(LocaleList.forLanguageTags("en"));
+        // This scenario tests granted notifications; denial is exercised separately.
+        // Gradle reinstalls the APK, so never depend on a previous emulator grant.
+        InstrumentationRegistry.getInstrumentation().getUiAutomation().grantRuntimePermission(
+            context.getPackageName(), android.Manifest.permission.POST_NOTIFICATIONS);
+        setLanguage(context, "en");
         String today = java.time.LocalDate.now().toString();
         File data = new File(context.getFilesDir(), "workout-data.json");
         String fixture = "{\"version\":1,\"exercises\":[{\"id\":\"bench-press\",\"name\":\"Bench Press\",\"category\":\"Chest\",\"type\":\"weight\"}],\"sessions\":[{\"id\":\"" + today + "\",\"date\":\"" + today + "\",\"duration_min\":40,\"exercises\":[{\"exerciseId\":\"bench-press\",\"equipment\":\"barbell\",\"sets\":[{\"weight\":40,\"reps\":10,\"done\":false}]}]}]}";
@@ -275,8 +301,12 @@ public class AndroidRuntimeTest {
             js("window.probe=null; Capacitor.nativePromise('LocalNotifications','getPending',{}).then(x=>window.probe=x.notifications.length).catch(e=>window.probe='ERROR:'+e.message)");
             until("window.probe!==null");
             assertEquals("0", js("window.probe"));
+            captureStoreScreen(context, "01-workout-en");
+            tab("/history");
+            captureStoreScreen(context, "02-history-en");
             tab("/settings");
             until("document.body.innerText.includes('Google Play')");
+            captureStoreScreen(context, "03-settings-en");
             assertEquals("false", js("document.body.innerText.includes('Check for updates')"));
             js("document.querySelector('a[href=\"/privacy\"]').click()");
             until("location.pathname==='/privacy'");
@@ -296,10 +326,14 @@ public class AndroidRuntimeTest {
             until("!document.querySelector('dialog[open]')");
             until("location.pathname==='/session'");
             backgroundAlert(context);
-            context.getSystemService(LocaleManager.class).setApplicationLocales(LocaleList.forLanguageTags("ko"));
-            scenario.recreate();
+            // LocaleManager can recreate the activity itself. Close before changing
+            // language so an explicit recreate cannot race the OS recreation.
+            scenario.close();
+            setLanguage(context, "ko");
+            scenario = ActivityScenario.launch(MainActivity.class);
             until("document.documentElement.lang==='ko'");
             until("document.body.innerText.includes('벤치프레스')");
+            captureStoreScreen(context, "04-workout-ko");
             assertEquals(11, new JSONObject(new String(Files.readAllBytes(data.toPath()), StandardCharsets.UTF_8)).getJSONArray("sessions").getJSONObject(0)
                 .getJSONArray("exercises").getJSONObject(0).getJSONArray("sets").getJSONObject(0).getInt("reps"));
         } finally {
@@ -312,7 +346,7 @@ public class AndroidRuntimeTest {
         assumeTrue("Run separately after revoking POST_NOTIFICATIONS on the disposable emulator",
             "true".equals(InstrumentationRegistry.getArguments().getString("testDeniedPermission")));
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        context.getSystemService(LocaleManager.class).setApplicationLocales(LocaleList.forLanguageTags("en"));
+        setLanguage(context, "en");
         scenario = ActivityScenario.launch(MainActivity.class);
         try {
             until("!!document.querySelector('a[href=\"/settings\"]')");
