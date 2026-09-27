@@ -237,7 +237,7 @@ Workout/
 - **weight:** `{ "weight": 80, "reps": 10, "done": false }`
 - **bodyweight:** `{ "added_weight": 0, "reps": 10, "done": false }` (weight 없음)
 - **cardio:** `{ "duration_min": 35, "distance_km": 5.2, "speed_kmh": 8.5, "incline_pct": 2.0, "calories": 338 }` — cardio는 항상 sets 길이 1 (단일 기록)
-- `done`: 세트 완료 체크. true면 입력 잠금(다시 눌러야 수정)
+- `done`: 세트 완료 체크. false면 빈 테두리 체크박스, true면 체크 표시와 입력 잠금(다시 누르면 체크 표시 제거 및 수정 가능).
 
 ### 4.6 localStorage (`storage.js`)
 | 키 | 의미 | 기본값 | 비고 |
@@ -784,3 +784,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-15: Google Play 계정 준비와 독립적인 Android 개발 기반과 JDK 21 LTS·Android Studio·SDK 36 환경을 구성했다. 단위 테스트 63개, lint, 웹/Capacitor 빌드 및 Android sync, 기존 iOS 구성 검사, Android assembleDebug와 APK 서명 검사를 통과했다. iOS runtime ios-df63450d92c09d12 유지 확인. Android 36 에뮬레이터에서 실제 APK 실행·네이티브 저장·재실행 복원·타이머·캐시 파일·언어 전환 instrumentation 검증과 화면 인셋 확인을 완료했다. 스토어 제출·배포는 실행하지 않았다.
 
 - 2026-09-27: 운동 탭의 중량·횟수 보조 dialog를 인라인 숫자 입력으로 교체했다. 숫자 선택·유효 값 즉시 저장·빈 값/음수 저장 방지·포커스 해제 시 복원과 상시 ±·완료 잠금을 유지한다. 단위 테스트 63개, 한국어/영어 브라우저 검사(저장 상태 32회 대조·4개 화면 너비·테마 포함), lint·웹 빌드를 통과했다. 실기기 키보드 확인과 앱 배포는 별도다.
+
+- 2026-09-27: 미완료 세트의 완료 버튼은 빈 테두리 체크박스로 표시하고, 완료한 세트에만 체크 아이콘을 표시한다. 다시 눌러 완료를 해제하면 빈칸으로 돌아온다.

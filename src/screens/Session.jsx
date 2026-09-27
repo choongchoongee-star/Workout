@@ -169,7 +169,7 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
         aria-label={locked ? t("Mark set as incomplete") : t("Mark set as complete")} aria-pressed={locked}
         className={`flex h-11 w-11 items-center justify-center border-l border-zinc-700/60 ${locked ? 'text-accent-400' : 'text-zinc-500 active:text-accent-300'}`}>
         <span className={`flex h-7 w-7 items-center justify-center rounded border ${locked ? 'border-accent-500/50 bg-accent-500/15' : 'border-zinc-700'}`}>
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="m5 12 4 4L19 6" /></svg>
+          {locked && <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5"><path d="m5 12 4 4L19 6" /></svg>}
         </span>
       </button>
     </div>
