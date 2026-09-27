@@ -13,7 +13,7 @@ import { startRestTimer } from '../lib/activeRestTimer'
 import UndoToast from '../components/UndoToast'
 import SwipeToDelete from '../components/SwipeToDelete'
 import { CATEGORIES } from '../data/exercises'
-import { formatDate, localTodayStr } from '../lib/dateUtils'
+import { localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
 
 function newWeightSet(weight = 20, reps = 10) {
@@ -440,25 +440,18 @@ export default function Session() {
   }, [])
 
   return (
-    <div className="p-3 max-w-lg mx-auto pb-8">
+    <div className="px-3 pt-4 max-w-lg mx-auto pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pt-2 px-1">
-        <div>
-          <h1 className="text-xl font-bold text-white">{t("Workout")}</h1>
-          <div className="relative mt-1">
-            <p className="text-sm text-zinc-400 pointer-events-none underline decoration-dotted decoration-zinc-600 underline-offset-4">
-              {formatDate(sessionDate, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
-            </p>
-            <input
-              type="date"
-              aria-label={t("Workout date")}
-              value={sessionDate}
-              max={realToday}
-              onChange={e => e.target.value && setSessionDate(e.target.value)}
-              className="absolute inset-0 w-full opacity-0 cursor-pointer"
-            />
-          </div>
-        </div>
+      <div className="flex items-center gap-3 mb-4 pt-2 px-1">
+        <h1 className="text-xl font-bold text-white">{t("Workout")}</h1>
+        <input
+          type="date"
+          aria-label={t("Workout date")}
+          value={sessionDate}
+          max={realToday}
+          onChange={e => e.target.value && setSessionDate(e.target.value)}
+          className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
+        />
       </div>
 
       {syncError && (
