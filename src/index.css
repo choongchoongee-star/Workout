@@ -121,6 +121,27 @@ input[type=number] { -moz-appearance: textfield; }
   min-height: clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem);
 }
 
+.history-scrollbar {
+  position: fixed;
+  z-index: 20;
+  right: 0;
+  top: calc(env(safe-area-inset-top) + 8px);
+  bottom: calc(5rem + env(safe-area-inset-bottom));
+  width: 14px;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+.history-scrollbar-track, .history-scrollbar-thumb {
+  position: absolute;
+  right: 3px;
+  top: 0;
+  border-radius: 999px;
+}
+.history-scrollbar-track { width: 4px; height: 100%; background: var(--color-zinc-700); opacity: 0.35; }
+.history-scrollbar-thumb { width: 4px; background: var(--color-zinc-500); }
+.history-scrollbar:focus-visible { outline: 2px solid var(--color-accent-400); outline-offset: -2px; }
+
 .swipe-delete { isolation: isolate; }
 
 .swipe-delete [data-swipe-content] {
