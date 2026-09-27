@@ -1,5 +1,10 @@
 // English keys are presentation text only; persisted values remain unchanged.
 export const ko = {
+  'Edit history': '편집', 'History date': '기록 날짜', 'Select all': '전체 선택',
+  'Delete selected ({count})': '선택 삭제 ({count})',
+  'Select workout on {date}': '{date} 기록 선택',
+  'Delete workout on {date}': '{date} 기록 삭제',
+  '{count} workouts deleted': '운동 기록 {count}개를 삭제했습니다',
   'Open notification settings': '알림 설정 열기',
   'Workout backup': '운동 기록 백업', 'Save or share workout backup': '운동 기록 백업 저장 또는 공유',
   'Could not load your workouts': '운동 기록을 불러오지 못했습니다',
