@@ -527,7 +527,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row, Dumbbell Fly/Pec Deck Fly→Fly, Cable Chest Press/Chest Press→Chest Press 계열로 묶는다. One-arm Dumbbell Row→One-arm Row, Reverse Pec Deck Fly→Reverse Fly, Cable Crossover→Crossover, Cable Dips→Dips, Cable Crunch→Crunch, Rowing Machine→Rowing으로 표시한다. Dips와 Cable Dips는 dips 계열로 묶어 검색/Progress/Library에서 Dips 하나만 표시한다. 원래 카드 ID와 세트는 보존한다. recordInputType은 기존 weight/added_weight 필드를 우선하고, 빈 Dips의 Machine/Cable 선택은 weight 입력을 사용한다. Progress는 각 원본 카드의 입력 타입으로 표시해 케이블 중량을 0kg 추가중량으로 잘못 표시하지 않는다. Crunch 등 다른 체중/중량 입력 차이는 기존대로다. 원래 정의·백업 이름은 호환성을 위해 보존한다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
 - SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/unspecified다. 구형 ezbar는 로드/가져오기/내보내기 및 이전 기록 조회 시 barbell로 정규화하며 세트·카드·운동 ID는 보존한다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
 - UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. 모든 기본·커스텀·맨몸·유산소 운동에서 Unspecified / Barbell / Dumbbell / Smith / Machine / Cable 여섯 선택지를 같은 순서로 제공한다. 운동별 제한은 없다.
-- 추가 기본값: 새 카드는 항상 unspecified로 시작한다. 과거 기록·마지막 기기 선택·원래 운동명에 포함된 장비를 새 카드 기본값으로 사용하지 않는다. Progress도 Unspecified로 시작하며 원하는 장비를 선택해 기록을 조회한다.
+- 추가 기본값: 새 카드는 같은 운동 계열의 전체 저장 기록에서 세트가 1개 이상 있는 카드 수가 가장 많은 equipment를 선택한다(세트 수나 완료 여부가 아닌 기록 카드 건수, 같은 날짜 중복 카드도 각각 집계). 동률이면 해당 형태의 최근 기록 날짜를 우선하고 날짜까지 같으면 공통 선택지 순서로 결정한다. 구형 기록은 기존 장비 해석 규칙으로 집계하며 빈 카드는 제외한다. 기록이 없으면 unspecified로 시작한다. Progress는 기존처럼 Unspecified로 시작하며 원하는 장비를 선택해 기록을 조회한다.
 - 0세트 카드는 제자리 변경한다. 장비 변경으로 추가된 빈 유산소 카드도 첫 입력에서 cardio 기록 객체를 생성해 저장한다. 세트가 하나라도 있으면 입력/완료 여부에 관계없이 기존 카드와 세트를 보존하고 선택한 장비의 0세트 카드를 맨 아래 추가·스크롤한다. 현재 장비 재선택은 추가하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
 - 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동의 구형 기록은 Unspecified로 해석한다. 명시된 기존 equipment는 변경하지 않는다.
 - History 상세는 장비를 함께 표시한다. Progress는 운동 선택 후 장비 필터로 분리하고 같은 날짜·장비의 모든 카드를 date:index 키로 각각 표시한다. 기본 장비 기록이 없고 Unspecified 과거 기록이 있으면 처음부터 Unspecified를 표시한다.
@@ -795,3 +795,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-28: 중량·횟수 숫자 아래 구분선을 제거하고 완료 세트의 ±에 opacity 0.5를 적용해 기존 비활성 표시보다 흐리게 조정했다.
 
 - 2026-09-28: 기록 탭 오른쪽 끝에 상시 세로 스크롤바를 추가했다. 목록 위치 표시와 드래그·트랙·키보드 이동을 지원하며 짧은 목록에서는 숨긴다.
+
+- 2026-09-28: 운동 추가 시 가장 기록 카드 수가 많은 형태를 자동 선택한다. 동률은 최근 날짜, 기록 없음은 미정으로 처리하고 구형 운동 계열·장비 해석을 재사용한다.

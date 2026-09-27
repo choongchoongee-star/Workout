@@ -327,7 +327,7 @@ export default function Session() {
     const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
     // 새 운동은 목록 맨 아래에 추가되므로 추가 후 그 카드로 스크롤
     pendingScrollCardIdx.current = sessionExercises.length
-    const equipment = defaultEquipment()
+    const equipment = defaultEquipment(ex, sessions, exercises)
     setSessionExercises(prev => [...prev, { exerciseId: ex.id, ...(equipment ? { equipment } : {}), sets }])
     setShowModal(false)
   }

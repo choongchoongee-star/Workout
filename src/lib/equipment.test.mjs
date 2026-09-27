@@ -36,14 +36,48 @@ test('progress includes every duplicate card and previous sets use the last matc
   assert.equal(previousEquipmentSet(sessions, exercises, bench, 'dumbbell', '2026-09-05'), null)
 })
 
-test('all movements including custom, bodyweight and cardio start unspecified regardless of history', () => {
+test('all movements including custom, bodyweight and cardio start unspecified without history', () => {
   for (const exercise of [...exercises, { id: 'custom', name: 'Custom move', type: 'weight' }]) {
     assert.deepEqual(equipmentOptions(exercise), ['unspecified', 'barbell', 'dumbbell', 'smith', 'machine', 'cable'])
-    assert.equal(defaultEquipment(exercise, sessions, exercises, 'smith'), 'unspecified')
+    assert.equal(defaultEquipment(exercise, [], exercises), 'unspecified')
     const cards = [{ exerciseId: exercise.id, equipment: 'unspecified', sets: [] }]
     assert.equal(changeCardEquipment(cards, 0, exercise, 'machine')[0].equipment, 'machine')
     assert.equal(changeCardEquipment([{ ...cards[0], equipment: 'barbell' }], 0, exercise, 'unspecified')[0].equipment, 'unspecified')
   }
+})
+
+test('new exercises prefer the most recorded equipment, counting populated cards rather than sets', () => {
+  const history = [
+    { date: '2026-09-05', exercises: [{ ...card('smith', 40), sets: Array.from({ length: 10 }, () => set(40)) }] },
+    { date: '2026-09-04', exercises: [card('barbell', 60), card('barbell', 65)] },
+    { date: '2026-09-03', exercises: [{ ...card('dumbbell', 20), sets: [] }] },
+  ]
+  const before = structuredClone(history)
+  assert.equal(defaultEquipment(bench, history, exercises), 'barbell')
+  assert.equal(defaultEquipment(incline, history, exercises), 'unspecified')
+  assert.deepEqual(history, before)
+})
+
+test('equipment count ties prefer the latest date, with deterministic same-date fallback', () => {
+  assert.equal(defaultEquipment(bench, [
+    { date: '2026-09-01', exercises: [card('barbell', 60)] },
+    { date: '2026-09-05', exercises: [card('smith', 40)] },
+  ], exercises), 'smith')
+  assert.equal(defaultEquipment(bench, [{ date: '2026-09-05', exercises: [card('smith', 40), card('unspecified', 40)] }], exercises), 'unspecified')
+})
+
+test('equipment defaults include legacy aliases and unspecified records without merging unrelated custom movements', () => {
+  const custom = { id: 'custom-bench', name: 'My bench', type: 'weight' }
+  const history = [{ date: '2026-09-05', exercises: [
+    { exerciseId: inclineDb.id, sets: [set(20)] },
+    { exerciseId: incline.id, equipment: 'dumbbell', sets: [set(25)] },
+    { exerciseId: incline.id, equipment: 'barbell', sets: [set(40)] },
+    { exerciseId: bench.id, sets: [set(60)] },
+    card('machine', 20, custom.id),
+  ] }]
+  assert.equal(defaultEquipment(incline, history, [...exercises, custom]), 'dumbbell')
+  assert.equal(defaultEquipment(bench, history, [...exercises, custom]), 'unspecified')
+  assert.equal(defaultEquipment(custom, history, [...exercises, custom]), 'machine')
 })
 
 test('legacy unknown equipment stays separate; explicit dumbbell aliases share one movement', () => {

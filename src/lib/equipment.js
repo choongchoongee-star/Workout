@@ -94,8 +94,20 @@ export function previousEquipmentSet(sessions, exercises, exercise, equipment, e
   const latest = records.filter(r => r.date === records[0]?.date).at(-1)
   return latest?.sets.at(-1) ?? null
 }
-export function defaultEquipment() {
-  return 'unspecified'
+export function defaultEquipment(exercise, sessions = [], exercises = []) {
+  let selected = 'unspecified'
+  let mostRecords = 0
+  let latestDate = ''
+  for (const equipment of equipmentOptions(exercise)) {
+    const records = equipmentRecords(sessions, exercises, exercise, equipment)
+    const date = records[0]?.date ?? ''
+    if (records.length > mostRecords || (records.length === mostRecords && date > latestDate)) {
+      selected = equipment
+      mostRecords = records.length
+      latestDate = date
+    }
+  }
+  return selected
 }
 export function changeCardEquipment(cards, index, exercise, equipment) {
   const card = cards[index]
