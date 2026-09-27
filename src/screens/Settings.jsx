@@ -66,7 +66,7 @@ export default function Settings() {
 
   async function handleOpenAppSettings() {
     setSettingsError('')
-    if (!await openAppSettings()) {
+    if (!await openAppSettings({ notifications: true })) {
       setSettingsError(t("Could not open device settings. Open Settings → Apps → Steady Sets → Notifications."))
     }
   }
@@ -176,13 +176,16 @@ export default function Settings() {
               <p className="text-zinc-300 text-sm font-medium">{t("Rest timer alerts")}</p>
               <p className="text-zinc-600 text-xs mt-1">{t("Alerts at the end of a rest period, including while the app is in the background.")}</p>
             </div>
-            <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs ${
+            <button type="button" onClick={handleOpenAppSettings}
+              disabled={!['granted', 'denied'].includes(notificationPermission)}
+              aria-label={`${notificationPermission === 'granted' ? t("Enabled") : notificationPermission === 'checking' ? t("Checking…") : notificationPermission === 'web' ? t("App only") : t("Disabled")}${['granted', 'denied'].includes(notificationPermission) ? ` — ${t("Open notification settings")}` : ''}`}
+              className={`min-h-11 min-w-11 shrink-0 rounded-full px-2.5 py-1 text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400 ${
               notificationPermission === 'granted'
                 ? 'bg-green-900/40 text-green-300'
                 : 'bg-zinc-800 text-zinc-400'
             }`}>
               {notificationPermission === 'granted' ? t("Enabled") : notificationPermission === 'checking' ? t("Checking…") : notificationPermission === 'web' ? t("App only") : t("Disabled")}
-            </span>
+            </button>
           </div>
           {(notificationPermission === 'prompt' || notificationPermission === 'prompt-with-rationale') && (
             <button type="button" onClick={enableRestAlerts} className="mt-3 w-full rounded-xl bg-zinc-800 py-2.5 text-sm text-zinc-200 active:bg-zinc-700">{t("Enable alerts")}</button>

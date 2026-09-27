@@ -1,5 +1,6 @@
 // English keys are presentation text only; persisted values remain unchanged.
 export const ko = {
+  'Open notification settings': '알림 설정 열기',
   'Workout backup': '운동 기록 백업', 'Save or share workout backup': '운동 기록 백업 저장 또는 공유',
   'Could not load your workouts': '운동 기록을 불러오지 못했습니다',
   'The local workout file could not be read.': '기기의 운동 기록 파일을 읽을 수 없습니다.',

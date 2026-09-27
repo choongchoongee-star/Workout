@@ -15,8 +15,15 @@ public class AppSettingsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func open(_ call: CAPPluginCall) {
+        let notifications = call.getBool("notifications") ?? false
         DispatchQueue.main.async {
-            guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            let settingsURL: String
+            if notifications, #available(iOS 16.0, *) {
+                settingsURL = UIApplication.openNotificationSettingsURLString
+            } else {
+                settingsURL = UIApplication.openSettingsURLString
+            }
+            guard let url = URL(string: settingsURL) else {
                 call.reject("Could not create the iPhone Settings URL.")
                 return
             }

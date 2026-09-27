@@ -1,6 +1,7 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-09-28
+> 현재 소스 runtime: ios-d4e3d0e662cadb0b. 알림 설정 직접 이동을 위한 네이티브 변경을 포함하며 신규 빌드·배포는 아직 실행하지 않았다. 기존 배포 빌드 10의 runtime은 ios-df63450d92c09d12다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -451,7 +452,7 @@ Workout/
 ```
 - 영문 UI 섹션: `Preferences`, `Backup / Restore`, `App updates`, `Privacy`. 계정·로그아웃 UI는 없다.
 - `Weight unit`에서 kg/lbs를 선택하고 `Save preferences`로 휴식 시간과 함께 저장한다. 기기 설정 키는 `wl_weight_unit`, 기본값은 kg다. Workout 입력·History 상세·Progress 기록의 무게 표기에 적용하며, 본 문서의 kg 표기 예시는 기본 설정 기준이다. kg 증감은 2.5, lbs 증감은 5다. 기존 기록과 새 입력의 내부 저장 및 Markdown 백업은 kg를 유지하고 1 lb = 0.45359237 kg로 변환한다. 표시만 소수 둘째 자리까지 반올림하며 단위 설정 변경은 기록 데이터를 수정하지 않는다. 거리·속도 및 칼로리 계산 체중은 기존 단위를 유지한다. 변환은 `src/lib/weightUnits.js`, 변환·설정 저장 테스트는 `src/lib/weightUnits.test.mjs`에 정의한다.
-- Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 최초 상태에서는 `Enable alerts`로 iOS 권한을 요청한다. 거부 상태의 `Open iPhone Settings`는 Capacitor에 등록한 `AppSettingsPlugin`을 통해 `UIApplication.openSettingsURLString`을 열고, 실패하면 수동 경로를 표시한다. 앱이 다시 활성화되면 권한 상태를 새로 확인한다.
+- Preferences에는 `Rest timer alerts` 권한 상태를 `Enabled/Disabled`로 표시한다. 허용/거부 상태 배지는 최소 44px 버튼으로, 누르면 앱 밖의 기기 설정을 연다. 최초 상태에서는 `Enable alerts`로 권한을 요청하며 확인 중/앱 전용/권한 미결정/조회 불가 상태 배지는 비활성이다. 거부 상태의 별도 `Open device settings` 버튼도 같은 동작을 한다. AppSettings.open({ notifications: true })는 iOS 16 이상에서 UIApplication.openNotificationSettingsURLString으로 Steady Sets 알림 설정을 직접 연다. 이전 iOS와 notifications 옵션 없는 호출은 일반 앱 설정을 연다. 기존 설치 바이너리는 옵션을 무시하고 일반 앱 설정을 여는 하위 호환 경로를 유지하며 Android도 기존 일반 앱 설정 경로를 유지한다. 실패하면 수동 경로를 표시한다. 앱으로 돌아오면 권한 상태를 다시 확인한다. 알림 설정 직접 이동은 변경된 Swift 코드가 포함된 신규 iOS 빌드가 필요하다.
 - 내보내기: `buildMarkdown(sessions, exercises)` → `workout-YYYY-MM-DD.md`. iOS는 Cache에 파일을 만든 뒤 네이티브 Share sheet를 열고, 웹은 Blob으로 다운로드한다. 사람이 읽는 영문 보고서와 손실 없는 복원을 위한 `workout-backup:v1` JSON 메타데이터를 같은 파일에 넣는다.
 - 가져오기: `.md`만 허용하고 10MB를 상한으로 둔다. 파일 전체를 검증한 뒤 미리보기에서 추가할 세션·건너뛸 날짜·새 운동 수를 보여준다. 사용자가 `Import`를 눌러야 상태를 변경한다.
 - 병합: 앱은 날짜별 한 세션만 허용하므로 기존 날짜는 절대 덮어쓰지 않고 누락된 날짜만 추가한다. 같은 파일을 반복 가져오면 변경이 없다. 저장 실패 시 `Retry save`를 표시한다.
@@ -797,3 +798,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-28: 기록 탭 오른쪽 끝에 상시 세로 스크롤바를 추가했다. 목록 위치 표시와 드래그·트랙·키보드 이동을 지원하며 짧은 목록에서는 숨긴다.
 
 - 2026-09-28: 운동 추가 시 가장 기록 카드 수가 많은 형태를 자동 선택한다. 동률은 최근 날짜, 기록 없음은 미정으로 처리하고 구형 운동 계열·장비 해석을 재사용한다.
+
+- 2026-09-28: 휴식 종료 알림 상태 배지를 외부 설정 열기 버튼으로 변경했다. iOS AppSettings 브리지의 notifications 옵션으로 공식 알림 설정 URL을 열며 iOS 16 미만은 일반 앱 설정을 사용한다. 신규 runtime ios-d4e3d0e662cadb0b로 분리하고 단위 테스트 67개·lint·웹/Capacitor 빌드·로컬 iOS 동기화/구성 검사를 통과했다. Swift 컴파일과 실제 iPhone 설정 이동은 새 빌드에서 확인해야 하며 EAS·배포는 실행하지 않았다.
