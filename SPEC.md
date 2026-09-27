@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-16
+> 마지막 업데이트: 2026-09-27
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -77,7 +77,7 @@ mode !== 'capacitor' && VitePWA({
 - 알림 권한을 확인한 뒤 Android 일반 예약 알림을 사용한다. 정확한 알람 특별 접근을 자동 요청하지 않으며, 절전/백그라운드에서는 지연될 수 있다. 상태바 덤벨 아이콘과 기본 시스템 알림음을 사용한다. iOS의 Live Activity 잠금화면 타이머는 Android에 구현되지 않았다.
 - Android OTA는 활성화하지 않는다. Android sync 어댑터는 생성된 설정에서 iOS LiveUpdate 구성을 제거한다. iOS fingerprint 계산은 Android 전용 의존성을 제외하여 기존 iOS runtime을 유지한다. Android 수정 배포는 새 바이너리가 필요하다.
 - Android 설정의 업데이트 영역은 Google Play 업데이트를 안내하며 iOS OTA 확인 버튼을 표시하지 않는다. 알림 권한 안내는 기기 설정으로 표현하고 Android 절전 상태에서 알림이 지연될 수 있음을 표시한다. 앱 내부 개인정보 안내도 기기 공유창·Google Play 업데이트 경로를 반영한다.
-- Android 시스템 뒤로가기는 키보드 → 열린 숫자 편집창 → React Router 이전 화면 순서로 처리하고, 이동 기록이 없으면 OS 기본 동작을 사용한다. `OnBackPressedDispatcher`를 사용한다. Android 휴식 타이머는 기기 localStorage에 ID·시작/종료 시각을 저장하며 WebView 재생성 후 남은 시간을 복원한다. Skip·만료 시 저장 상태를 제거하고 손상된 상태는 무시한다. iOS Live Activity 복원 경로는 유지한다.
+- Android 시스템 뒤로가기는 키보드 → 열린 dialog(있는 경우) → React Router 이전 화면 순서로 처리하고, 이동 기록이 없으면 OS 기본 동작을 사용한다. `OnBackPressedDispatcher`를 사용한다. Android 휴식 타이머는 기기 localStorage에 ID·시작/종료 시각을 저장하며 WebView 재생성 후 남은 시간을 복원한다. Skip·만료 시 저장 상태를 제거하고 손상된 상태는 무시한다. iOS Live Activity 복원 경로는 유지한다.
 - Windows 개발 환경은 Temurin JDK 21.0.12.1 LTS, Android Studio Quail 4 (2026.1.4) 안정 버전, SDK Platform 36, Build-Tools 35.0.0/36.0.0, Platform-Tools 37.0.1을 사용한다. Studio는 공식 ZIP을 사용자 프로그램 폴더에 설치하고 시작 메뉴 바로가기와 CAPACITOR_ANDROID_STUDIO_PATH를 설정했다. JAVA_HOME 및 ANDROID_HOME으로 CLI 빌드한다.
 - `assembleDebug` 네이티브 컴파일과 APK 생성이 통과했다. 산출물은 `android/app/build/outputs/apk/debug/app-debug.apk`이다. Android 36 전용 에뮬레이터에서 실제 WebView·네이티브 플러그인을 사용하는 `AndroidRuntimeTest`로 세트 수정/완료, 탭 이동 중 타이머 유지와 Skip, 기기 파일 저장 및 Activity 재실행 복원, 캐시 백업 파일 UTF-8 읽기/쓰기, Skip 후 예약 알림 제거, en→ko 앱 언어 전환을 검증했다. 화면 캡처에서 시스템 바와 콘텐츠 겹침이 없음을 확인했다. 시작 시 Capacitor SystemBars의 DOM 준비 전 CSS 주입 오류 로그가 있으나 화면 로드 후 인셋 적용과 실행은 정상이다.
 - 실행 테스트는 더미 운동 기록으로 앱 데이터를 덮어쓰므로 일회용 에뮬레이터(API 33 이상)에서만 `am instrument -w -e allowFixtureReset true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#nativeStorageTimerBackupAndLanguage com.choongchoongeestar.workout.test/androidx.test.runner.AndroidJUnitRunner`로 명시적으로 실행한다. 백업 검증은 실제 Settings 내보내기·Filesystem·FileProvider 공유 URI·터치로 여는 HTML 파일 선택·미리보기·저장·중복 날짜 방지를 사용한다. 외부 공유 수신 앱과 파일 선택 결과는 instrumentation이 제공하므로 외부 앱 자체의 저장 UI 검증을 뜻하지 않는다. 백그라운드 알림 검증은 Activity stopped 상태에서 OS NotificationManager 도착 및 채널 소리 설정을 확인한다. 실기기 청취·장시간 절전/화면 잠금·제조사별 동작·외부 공유 앱의 실제 저장 UI·Play 내부 테스트와 심사는 별도로 남아 있다.
@@ -126,7 +126,7 @@ Workout/
 │   ├── components/
 │   │   ├── Layout.jsx        # 하단 네비(운동/기록/무게/설정) + 스크롤 위치 관리
 │   │   ├── EquipmentSelect.jsx # 운동 카드/Progress 장비 선택
-│   │   ├── StepperInput.jsx  # 상시 ± 조절 + 숫자 버튼/보조 dialog
+│   │   ├── StepperInput.jsx  # 상시 ± 조절 + 인라인 숫자 입력
 │   │   ├── RestTimer.jsx     # 휴식 타이머 (원형 진행 + 바)
 │   │   ├── SwipeToDelete.jsx # 세트/History 공통 스와이프 삭제
 │   │   └── UndoToast.jsx     # 10초 되돌리기 토스트
@@ -313,7 +313,7 @@ Workout/
 - **운동 추가:** [+ 운동 추가] 버튼은 **운동 목록 맨 아래**에 위치(2026-06-14 상단→하단 이동). 탭 → 바텀시트(`h-[80vh]` 고정). 상단 검색 input(**autoFocus 없음** — 키보드 자동 노출 방지, 2026-06-14), 카테고리 칩(전체+7), 운동 리스트. 기본 카테고리 = 현재 세션 메인 카테고리 → 없으면 과거 세션 메인 → 없으면 '전체'. 이미 추가된 운동은 흐리게 + "추가됨". Escape/배경 탭으로 닫기, Tab 포커스 트랩.
 - **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가(cardio는 빈 기록 1개 자동 생성). **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
 - **세트 추가:** 첫 세트면 **같은 운동 계열·장비의 과거 마지막 세트 값**을 기본값으로(previousEquipmentSet), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
-- **숫자 수정:** 목록의 밑줄 숫자를 누르면 해당 운동명·세트 번호·Weight/Added weight/Reps가 표시된 native dialog를 연다. 목록의 ± 버튼은 항상 표시하며 한 번 누르면 즉시 값에 반영하고 자동 저장한다. 큰 dialog는 숫자 직접 입력을 위한 보조 경로이며 ± 조작에 필수 단계가 아니다. 창에는 56px ± 버튼, 30px 숫자 직접 입력, 단위, 48px 이상 Cancel/Apply 버튼이 있다. kg 증감 2.5 / lbs 증감 5 / reps 증감 1. 입력을 누르면 전체 선택한다. dialog 안의 초안은 Apply만 값을 반영하고 Cancel·Escape·창 배경 클릭은 버린다. 빈 값·유한하지 않은 값·최솟값 미만은 적용할 수 없다. dialog가 열릴 때 제목에 포커스를 두어 키보드를 자동 표시하지 않는다. 완료 세트의 숫자 수정은 잠긴다.
+- **숫자 수정:** 목록의 중량(kg/lbs·맨몸 추가 중량)과 횟수는 직접 입력칸이다. 숫자를 누르면 전체 선택되어 그 자리에서 키보드로 수정하며 팝업이나 적용 버튼은 없다. 유효한 숫자는 입력 즉시 자동 저장한다. 빈 값·유한하지 않은 값·최솟값 미만은 저장하지 않으며 포커스를 벗어나거나 Enter/Escape를 누르면 마지막 유효 값으로 표시한다. 무게는 소수 키보드, 횟수는 숫자 키보드를 요청한다. 입력 접근성 이름에는 운동명·세트 번호·항목·단위를 포함한다. 목록의 ± 버튼은 항상 표시하며 kg 증감 2.5 / lbs 증감 5 / reps 증감 1을 즉시 반영한다. 완료 세트의 입력과 ±는 잠긴다.
 - **세트 행 밀도와 조작 구분:** 한 운동 5세트와 운동명·열 제목·Add set 영역이 일반 iPhone 화면 높이 약 60%를 차지하는 구성을 기준으로 한다. 2개 운동/10세트 한 화면 압축은 목표가 아니다. `.workout-set-row` 최소 높이는 `clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem)`로 화면 높이에 따라 변한다. 390×844·430×932에서는 약 60%를 목표로 하며, 작은 화면에서는 44px 증감 버튼을 보존하기 위한 최소 행 높이를 우선한다. 첫 5세트는 하단 탭 위에 모두 보인다. 4열은 Set(번호만 표시), kg/lbs, Reps, Done이다. 각 입력기는 24px 숫자를 위에, 항상 보이는 ±를 아래에 둔다. 증감·삭제·완료 클릭 영역은 최소 44×44px다. 삭제는 행을 왼쪽으로 밀어 노출하는 별도 Delete 버튼, 완료는 오른쪽 체크로 분리하고 초록 완료 상태와 입력 잠금을 유지한다. 운동명 16px, 번호·열 제목·Add set은 14px다. 키보드가 닫힌 기본 글자 크기 기준이다. 페이지 줌은 제한하고 일반 세로 스크롤은 유지한다. 실제 iPhone 확인은 별도다.
 - **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
 - **bodyweight:** added_weight 스테퍼(kg step 2.5 / lbs step 5) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
@@ -574,7 +574,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - **상태색:** 세트 완료와 성공·알림 허용은 짙은 초록, 오류·위험은 짙은 적갈색 `red-300/400/500 #8a3228`, 경고는 갈색 `amber-200/300/400 #5e3122`. 상태 배너 배경은 연한 초록 또는 살구색이며 밝은 배경에서 기존의 옅은 상태 글자가 흐려지지 않도록 토큰을 조정한다.
 - **커스텀 운동(라이브러리 전용):** `bg-accent-950/50 + border-accent-800/50`.
 - **모양:** Workout은 얇은 선 목록. 다른 카드 `rounded-2xl`은 12px, `rounded-xl`은 8px로 정의하며 칩은 full을 허용한다. 모달은 바텀시트(`rounded-t-2xl mt-auto`).
-- **숫자 조절과 확대:** 기록 목록의 각 무게·횟수에 ±를 항상 표시한다. 이 반복 버튼은 앱의 빠른 조작을 위한 핵심 기능이며 디자인 단순화를 이유로 숨기지 않는다. 무게·횟수 모두 열 중앙의 최대 112px 영역을 사용하며 숫자는 위, 44px 폭 ± 버튼은 아래에 배치한다. 큰 숫자 dialog는 선택적 보조 입력이다. 큰 시스템 글자나 매우 좁은 화면에서는 최소 18.5rem의 표 너비와 표 내부 가로 스크롤을 보존해 버튼 겹침을 방지한다. dialog는 최대 384px, 작은 화면에서는 좌우 16px 여백을 두며 native focus trap과 Escape를 지원한다. viewport를 initial/minimum/maximum-scale=1.0, user-scalable=no로 설정하고 html의 touch-action: pan-x pan-y로 핀치·더블탭 페이지 확대를 제한한다. 한 손가락 스크롤은 유지한다. text-sm/text-xs 입력·선택·textarea는 최소 16px로 표시해 iOS 입력 포커스 자동 확대를 방지하고 큰 숫자 입력은 유지한다. 브라우저 자체의 확대 정책이나 OS 접근성 확대는 앱이 제어하지 않는다. 200% 루트 글자 크기에서 조절창 열기·닫기를 브라우저로 확인했다.
+- **숫자 조절과 확대:** 기록 목록의 각 무게·횟수에 ±를 항상 표시한다. 이 반복 버튼은 앱의 빠른 조작을 위한 핵심 기능이며 디자인 단순화를 이유로 숨기지 않는다. 무게·횟수 모두 열 중앙의 최대 112px 영역을 사용하며 숫자는 위, 44px 폭 ± 버튼은 아래에 배치한다. 숫자는 해당 위치에서 바로 수정하는 인라인 입력이다. 큰 시스템 글자나 매우 좁은 화면에서는 최소 18.5rem의 표 너비와 표 내부 가로 스크롤을 보존해 버튼 겹침을 방지한다. viewport를 initial/minimum/maximum-scale=1.0, user-scalable=no로 설정하고 html의 touch-action: pan-x pan-y로 핀치·더블탭 페이지 확대를 제한한다. 한 손가락 스크롤은 유지한다. text-sm/text-xs 입력·선택·textarea는 최소 16px로 표시해 iOS 입력 포커스 자동 확대를 방지하고 큰 숫자 입력은 유지한다. 브라우저 자체의 확대 정책이나 OS 접근성 확대는 앱이 제어하지 않는다. 숫자 입력은 Enter/Escape 또는 포커스 이동으로 편집을 끝낸다.
 - **인터랙션:** 모바일이라 hover 대신 `active:` 사용. 부위 필터는 4열×2행으로 전체 노출하며 `aria-pressed`로 선택 상태를 전달한다.
 - **애니메이션:** `animate-slide-up`(토스트), `animate-pulse`(스켈레톤/동기화).
 - **접근성:** 모달 `role="dialog" aria-modal`, Escape 닫기 + Tab 포커스 트랩, 아이콘 버튼 `aria-label`, 세트 완료 `aria-pressed`.
@@ -782,3 +782,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-09: 사용자 최종 승인으로 ASC 필수 검증을 통과한 iOS 1.0 (10)을 App Review에 제출했다. 1개의 항목 제출됨 확인 후 제출 상세 화면에서 심사 대기 중, 버전 1.0 (10), 제출 시각 2026-09-09 11:02 KST를 확인했다. 심사 제출 ID ede9102a-25ef-40bf-a5eb-3938f352c092. 수동 출시 설정을 유지하며 최종 출시는 실행하지 않았다.
 
 - 2026-09-15: Google Play 계정 준비와 독립적인 Android 개발 기반과 JDK 21 LTS·Android Studio·SDK 36 환경을 구성했다. 단위 테스트 63개, lint, 웹/Capacitor 빌드 및 Android sync, 기존 iOS 구성 검사, Android assembleDebug와 APK 서명 검사를 통과했다. iOS runtime ios-df63450d92c09d12 유지 확인. Android 36 에뮬레이터에서 실제 APK 실행·네이티브 저장·재실행 복원·타이머·캐시 파일·언어 전환 instrumentation 검증과 화면 인셋 확인을 완료했다. 스토어 제출·배포는 실행하지 않았다.
+
+- 2026-09-27: 운동 탭의 중량·횟수 보조 dialog를 인라인 숫자 입력으로 교체했다. 숫자 선택·유효 값 즉시 저장·빈 값/음수 저장 방지·포커스 해제 시 복원과 상시 ±·완료 잠금을 유지한다. 단위 테스트 63개, 한국어/영어 브라우저 검사(저장 상태 32회 대조·4개 화면 너비·테마 포함), lint·웹 빌드를 통과했다. 실기기 키보드 확인과 앱 배포는 별도다.
