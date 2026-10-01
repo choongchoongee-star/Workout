@@ -1,7 +1,12 @@
-## Latest TestFlight delivery (2026-10-02)
+## Latest delivery status (2026-10-02)
+
+- Apple rejected build 11 (1.0) after upload: ITMS-90186 (closed 1.0 train) and ITMS-90062 (marketing version must exceed approved 1.0), confirmed by the owner-provided Apple email. Build 11 is not available for testing.
+- Version 1.0.1 is prepared for both app and widget; the next approved production build will auto-increment 11 to 12. Runtime ios-326d6b3c3dd1fbb3. Local version consistency, lint, web/Capacitor builds and iOS sync passed. No new remote build or submission has started.
+
+### Previous upload result
 
 - iOS 1.0 (11) production build succeeded on 2026-10-01 at 21:23 KST: b37f8762-a95b-4cbd-a572-178c6426eabd. Source base 915ec59, EAS version commit 2bcf507, runtime ios-628045f03aa0c3aa.
-- TestFlight binary upload succeeded on 2026-10-02 (CLI confirmed successfully uploaded); Apple is processing it. Submission b8e311e6-64e8-4e05-90e6-b0be69e58dab. Automatic group setup was skipped after Apple authentication failed. Apple processing and tester availability are unverified. This operation does not submit build 11 for App Review or release it publicly.
+- TestFlight binary upload succeeded on 2026-10-02 (CLI confirmed successfully uploaded); Apple subsequently rejected it as recorded above. Submission b8e311e6-64e8-4e05-90e6-b0be69e58dab. Automatic group setup was skipped after Apple authentication failed. This upload did not produce a usable TestFlight build. This operation does not submit build 11 for App Review or release it publicly.
 - Local app/widget build numbers are synchronized to 11. iOS release checks, lint and web build passed. On-device Live Activity cancellation verification remains pending.
 
 # Steady Sets release preparation

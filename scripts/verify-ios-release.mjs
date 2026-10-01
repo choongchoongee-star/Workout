@@ -29,7 +29,9 @@ assert.match(plist, /CFBundleLocalizations[\s\S]*?<string>en<\/string><string>ko
 assert.equal(appConfig.ios.infoPlist.ITSAppUsesNonExemptEncryption, false, 'encryption declaration must be present')
 assert.match(appConfig.extra?.eas?.projectId || '', /^[0-9a-f-]{36}$/, 'EAS project must be linked')
 
-assert.match(project, /MARKETING_VERSION = 1\.0;/, 'native marketing version must be 1.0')
+const marketingVersions = [...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(match => match[1])
+assert.ok(marketingVersions.length >= 4, 'app and widget Debug/Release marketing versions must exist')
+assert.ok(marketingVersions.every(version => version === appConfig.version), 'all native marketing versions must match app.json')
 const nativeBuildNumbers = [...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(match => match[1])
 assert.ok(nativeBuildNumbers.length > 0)
 assert.ok(nativeBuildNumbers.every(version => version === appConfig.ios.buildNumber), 'all native build numbers must match app.json')

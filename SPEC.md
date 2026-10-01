@@ -1,7 +1,7 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-10-02
-> 현재 소스 runtime: ios-628045f03aa0c3aa. 알림 설정 직접 이동과 Live Activity 취소 버튼을 포함한 iOS 1.0 (11) production 빌드가 2026-10-01 성공했다. TestFlight 업로드는 2026-10-02 성공했고 Apple 처리 완료는 미확인이다. 기존 배포 빌드 10의 runtime은 ios-df63450d92c09d12다.
+> 현재 소스 runtime: ios-326d6b3c3dd1fbb3. iOS 버전 1.0.1 재빌드 준비 완료. 빌드 11(1.0)은 업로드 후 Apple 검증에서 ITMS-90186/ITMS-90062로 거절됐다. 신규 빌드·재업로드는 아직 실행하지 않았다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -814,3 +814,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-01: iOS 17 이상 Live Activity에 일시정지 없는 × 취소 버튼을 구현했다. timerID/notificationID로 해당 휴식·예약 알림만 취소하고 앱 상태와 동기화한다. runtime ios-628045f03aa0c3aa로 분리했다. 단위 테스트 69개, 취소 경합 회귀 검사, lint·웹/Capacitor 빌드·로컬 iOS 동기화/구성 검사를 통과했다. Windows에서 Swift 컴파일/잠금 화면 실기기 검증은 불가하며 신규 EAS 빌드·배포는 실행하지 않았다.
 
 - 2026-10-02: iOS 1.0 (11), EAS 빌드 b37f8762-a95b-4cbd-a572-178c6426eabd가 2026-10-01 21:23 KST에 성공한 것을 확인했다. 소스 기반 915ec59, EAS 자동 버전 커밋 2bcf507, runtime ios-628045f03aa0c3aa. 사용자 요청으로 TestFlight 제출 b8e311e6-64e8-4e05-90e6-b0be69e58dab가 성공 종료했으며 CLI에서 binary successfully uploaded를 확인했다. Apple 처리 및 테스터 사용 가능 여부는 아직 미확인이다. 그룹 자동 설정은 인증 오류로 건너뛰었지만 바이너리 업로드는 성공했다. 원본 app.json 및 앱/위젯 빌드 번호를 11로 맞추고 iOS 구성 검사·lint·웹 빌드를 통과했다. 실기기 Live Activity 취소 동작 확인은 별도다.
+
+- 2026-10-02: 사용자 제공 Apple 이메일로 빌드 11(1.0)의 후속 검증 거절을 확인했다. 승인된 1.0 배포 버전이 닫혀 ITMS-90186 및 ITMS-90062가 발생했다. app.json과 앱/위젯 모든 MARKETING_VERSION을 1.0.1로 변경하고 검사 스크립트가 하드코딩된 1.0 대신 모든 구성의 app.json 버전 일치를 확인하도록 보완했다. runtime ios-326d6b3c3dd1fbb3, 현재 소스 빌드 번호 11이며 다음 승인된 EAS production 빌드는 autoIncrement로 12가 된다. lint·웹/Capacitor 빌드·iOS 동기화 및 구성 검사를 통과했다. 새 원격 빌드와 TestFlight 재업로드는 승인 전이며 실행하지 않았다.
