@@ -1,7 +1,7 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-09-28
-> 현재 소스 runtime: ios-d4e3d0e662cadb0b. 알림 설정 직접 이동을 위한 네이티브 변경을 포함하며 신규 빌드·배포는 아직 실행하지 않았다. 기존 배포 빌드 10의 runtime은 ios-df63450d92c09d12다.
+> 마지막 업데이트: 2026-10-01
+> 현재 소스 runtime: ios-628045f03aa0c3aa. 알림 설정 직접 이동과 Live Activity 취소 버튼을 위한 네이티브 변경을 포함하며 신규 빌드·배포는 아직 실행하지 않았다. 기존 배포 빌드 10의 runtime은 ios-df63450d92c09d12다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -477,9 +477,13 @@ Workout/
 - 세트 완료 시 하단(`bottom-20`) 오버레이. 원형 SVG 진행 + 가로 바. [Skip] 버튼.
 - 타이머 상태와 구독은 `src/lib/activeRestTimer.js`의 앱 공통 외부 store/useSyncExternalStore가 관리한다. Session은 startRestTimer만 호출하고 Layout이 RestTimer를 표시하므로 History/Progress/Settings 왕복에도 표시·남은 시간·종료 알림이 유지된다. Skip은 어느 탭에서나 가능하다. 새 네이티브 앱에서는 시작/화면 복귀 시 진행 중인 Live Activity에서 timerID·시작/종료 시각을 복원한다. 복원 요청 중 사용자가 새 타이머를 시작하거나 Skip하면 revision 검사로 오래된 응답을 버린다. Live Activity가 없거나 미지원이면 재로드 복원은 하지 않으며, iOS 예약 알림은 기존대로다.
 - 시작할 때 `endsAt = Date.now() + restSeconds * 1000`을 저장하고, `getRemainingSeconds(endsAt)`로 표시 시간을 계산한다. 250ms 폴링 외에 `visibilitychange`, `focus`, `pageshow`에서도 즉시 다시 계산하므로 브라우저가 백그라운드 타이머를 중단해도 경과 시간이 밀리지 않는다.
-- iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 알림 ID `1101`을 예약한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 또는 Settings의 `Enable alerts`에서 알림 권한을 요청한다.
-- [Skip]은 예약을 취소한다. 새 타이머는 같은 ID의 이전 예약을 취소·교체하며 generation 값으로 비동기 권한 요청 경합을 막는다. 네이티브 예약이 성공한 경우 타이머 종료 effect는 Web Audio를 중복 재생하지 않는다.
+- iOS에서는 타이머 시작 순간 `@capacitor/local-notifications`에 종료 시각, 기본 시스템 사운드, foreground 표시를 가진 타이머별 알림을 예약한다. iOS 알림 ID는 wl_rest_notification_id에 저장한 증가 정수(1102 이상, 32비트 범위 순환)를 사용하며 Android는 기존 1101을 유지한다. 앱이 백그라운드 또는 중단 상태여도 iOS가 종료 순간 전달하며, 기기 무음·알림 설정에 따른 소리/햅틱 처리는 시스템에 맡긴다. 첫 예약 때 또는 Settings의 `Enable alerts`에서 알림 권한을 요청한다.
+- [Skip]은 예약을 취소한다. 새 타이머는 이전 ID의 예약을 취소하고 새 예약을 생성하며 generation 값으로 비동기 권한 요청 경합을 막는다. 네이티브 예약이 성공한 경우 타이머 종료 effect는 Web Audio를 중복 재생하지 않는다.
 - 웹/PWA에서는 Web Audio로 0.25초 톤을 1회 재생하고, 오디오 시작이 실패하면 지원 브라우저에서 250ms 진동을 1회 요청한다. 이는 브라우저를 떠나 있는 동안의 즉시 알림을 보장하지 않으며 iOS 앱의 네이티브 알림이 정식 동작이다.
+
+- iOS 17 이상 잠금 화면 Live Activity와 펼친 Dynamic Island의 왼쪽에 48px 원형 × 버튼을 표시한다. 일시정지는 제공하지 않는다. compact/minimal 표시는 기존 카운트다운을 유지한다. iOS 16 또는 notificationID가 없는 구형 Activity는 기존 타이머 아이콘을 표시한다.
+- 앱·위젯 공용 RestActivityAttributes.swift의 CancelRestTimerIntent는 LiveActivityIntent로 앱 프로세스에서 실행되며 앱 화면을 열지 않는다. 해당 notificationID의 예약/전달 알림을 제거하고 일치하는 timerID의 Activity만 즉시 종료한다. 취소 timerID는 UserDefaults에 보존하고 RestLiveActivity의 cancelled 이벤트로 실행 중인 앱에 전달한다. 앱 복귀/재시작 getState에서도 cancelled 상태를 반환해 타이머가 부활하지 않도록 한다. 새 타이머와 ID가 다르면 취소 이벤트를 무시한다.
+- 알림 예약이 완료(또는 거부/실패)된 뒤에만 Live Activity를 생성한다. 그 사이 Skip/재시작한 경우 revision으로 늦은 생성을 차단한다. scripts/verify-live-activity-cancellation.mjs는 Vite SSR과 네이티브 mock으로 예약 순서·취소 ID 격리·복귀 동기화·지연 생성 억제를 검증한다. 실제 Swift 컴파일·잠금 상태 실행·백그라운드 알림 취소는 새 iPhone 빌드에서 검증해야 한다.
 
 ### SwipeToDelete
 
@@ -806,3 +810,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-28: 운동 탭의 날짜를 제목 아래 텍스트에서 기록 탭과 같은 제목 오른쪽 native date 입력으로 변경했다. 스타일과 상단·좌우 위치를 맞추고 날짜 전환·미래 날짜 제한을 유지한다.
 
 - 2026-09-28: 기록 탭 날짜 왼쪽에 편집/완료 버튼을 추가했다. 편집 모드의 개별 체크·상시 삭제·전체 선택·선택 삭제와 묶음 10초 Undo를 지원한다. 한국어/영어 브라우저 회귀 검사로 선택한 기록만 삭제, 데이터 전체 복원, 전체 삭제 후 재로드 유지 및 4개 화면 폭을 확인했다.
+
+- 2026-10-01: iOS 17 이상 Live Activity에 일시정지 없는 × 취소 버튼을 구현했다. timerID/notificationID로 해당 휴식·예약 알림만 취소하고 앱 상태와 동기화한다. runtime ios-628045f03aa0c3aa로 분리했다. 단위 테스트 69개, 취소 경합 회귀 검사, lint·웹/Capacitor 빌드·로컬 iOS 동기화/구성 검사를 통과했다. Windows에서 Swift 컴파일/잠금 화면 실기기 검증은 불가하며 신규 EAS 빌드·배포는 실행하지 않았다.

@@ -4,7 +4,7 @@ import { androidRestState } from './androidRestState'
 import { storage } from './storage'
 import { getRemainingSeconds } from './restTimer'
 import { restLiveActivity } from './restLiveActivity'
-import { cancelRestNotification, notifyRestComplete, prepareRestNotification, scheduleRestNotification } from './restNotification'
+import { allocateRestNotificationId, cancelRestNotification, notifyRestComplete, prepareRestNotification, scheduleRestNotification } from './restNotification'
 
 // App-wide state outlives route components. The deadline, not tick count, is authoritative.
 let timer = { active: false, remaining: 0, total: 0, endsAt: null }
@@ -54,9 +54,16 @@ export function startRestTimer() {
   const endsAt = startedAt + seconds * 1000
   const timerID = crypto.randomUUID()
   if (Capacitor.getPlatform() === 'android') androidRestState.save({ timerID, startedAt, endsAt })
-  void scheduleRestNotification(endsAt)
+  const notificationID = Capacitor.getPlatform() === 'ios' ? allocateRestNotificationId() : 1101
+  const startedRevision = revision
+  // Expose the cancel button only after notification scheduling has settled.
+  void scheduleRestNotification(endsAt, { notificationID }).then(() => {
+    if (revision === startedRevision && timer.active) void restLiveActivity.start({ timerID, startedAt, endsAt, notificationID })
+  })
   emit({ active: true, remaining: seconds, total: seconds, endsAt, timerID })
-  void restLiveActivity.start({ timerID, startedAt, endsAt })
+}
+export function cancelRestTimerFromActivity({ timerID }) {
+  if (timer.active && timer.timerID === timerID) skipRestTimer()
 }
 export function skipRestTimer() {
   revision++
@@ -68,7 +75,9 @@ export function skipRestTimer() {
 export async function restoreRestTimer() {
   const requestedRevision = revision
   const state = Capacitor.getPlatform() === 'android' ? androidRestState.read() : await restLiveActivity.getState()
-  if (revision !== requestedRevision || timer.active || state?.status !== 'active') return
+  if (revision !== requestedRevision) return
+  if (state?.status === 'cancelled') { cancelRestTimerFromActivity(state); return }
+  if (timer.active || state?.status !== 'active') return
   const remaining = getRemainingSeconds(state.endsAt)
   if (!remaining || !Number.isFinite(state.startedAt) || state.endsAt <= state.startedAt || typeof state.timerID !== 'string') return
   emit({ active: true, remaining, total: Math.ceil((state.endsAt - state.startedAt) / 1000), endsAt: state.endsAt, timerID: state.timerID })

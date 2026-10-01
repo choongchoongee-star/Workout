@@ -14,9 +14,14 @@ export function createRestLiveActivity({ available = () => Capacitor.isNativePla
     return result
   }
   return {
-    start: ({ timerID, startedAt, endsAt }) => invoke('start', { timerID, startedAt, endsAt }),
+    start: ({ timerID, startedAt, endsAt, notificationID }) => invoke('start', { timerID, startedAt, endsAt, ...(notificationID == null ? {} : { notificationID }) }),
     end: timerID => invoke('end', { timerID }),
     getState: () => invoke('getState'),
+    async onCancel(listener) {
+      if (!available()) return { remove() {} }
+      try { return await bridge.addListener('cancelled', listener) }
+      catch { return { remove() {} } }
+    },
   }
 }
 

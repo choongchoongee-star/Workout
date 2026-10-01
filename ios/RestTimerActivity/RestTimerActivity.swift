@@ -1,4 +1,5 @@
 import ActivityKit
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -12,7 +13,7 @@ struct RestTimerActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: RestActivityAttributes.self) { context in
             HStack(spacing: 16) {
-                Image(systemName: "timer").font(.title).foregroundStyle(ice)
+                cancelButton(context.attributes)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Steady Sets").font(.caption).foregroundStyle(.secondary)
                     Text(context.isStale ? localized("Rest complete", "휴식 완료", context.attributes) : localized("Rest timer", "휴식 타이머", context.attributes)).font(.headline)
@@ -28,7 +29,7 @@ struct RestTimerActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Label(localized("Rest", "휴식", context.attributes), systemImage: "timer").foregroundStyle(ice)
+                    cancelButton(context.attributes)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     countdown(context.state).font(.title2.bold()).frame(width: 90)
@@ -50,6 +51,23 @@ struct RestTimerActivity: Widget {
 
     private func localized(_ english: String, _ korean: String, _ attributes: RestActivityAttributes) -> String {
         (attributes.language ?? "en").hasPrefix("ko") ? korean : english
+    }
+
+    @ViewBuilder
+    private func cancelButton(_ attributes: RestActivityAttributes) -> some View {
+        if #available(iOS 17.0, *), let notificationID = attributes.notificationID {
+            Button(intent: CancelRestTimerIntent(timerID: attributes.timerID, notificationID: notificationID)) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 48, height: 48)
+                    .background(.white.opacity(0.18), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(localized("Cancel rest timer", "휴식 타이머 취소", attributes))
+        } else {
+            Image(systemName: "timer").font(.title).foregroundStyle(ice)
+        }
     }
 
     private func countdown(_ state: RestActivityAttributes.ContentState) -> some View {

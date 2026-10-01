@@ -1,12 +1,35 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  allocateRestNotificationId,
   cancelRestNotification,
   getRestNotificationPermission,
   notifyRestComplete,
   requestRestNotificationPermission,
   scheduleRestNotification,
 } from './restNotification.js'
+
+test('each rest timer gets a distinct notification and cancellation targets the latest one', async () => {
+  const first = allocateRestNotificationId()
+  const second = allocateRestNotificationId()
+  assert.notEqual(first, second)
+  const pending = new Set()
+  const cancelled = []
+  const options = { isNativePlatform: () => true, notifications: {
+    checkPermissions: async () => ({ display: 'granted' }),
+    cancel: async ({ notifications }) => {
+      for (const { id } of notifications) { pending.delete(id); cancelled.push(id) }
+    },
+    schedule: async ({ notifications }) => { for (const { id } of notifications) pending.add(id) },
+  } }
+  await scheduleRestNotification(Date.now() + 60000, { ...options, notificationID: first })
+  await scheduleRestNotification(Date.now() + 120000, { ...options, notificationID: second })
+  assert.deepEqual([...pending], [second])
+  assert(cancelled.includes(first))
+  await cancelRestNotification(options)
+  assert.equal(pending.size, 0)
+  assert.equal(cancelled.at(-1), second)
+})
 
 test('Android schedules without forcing exact-alarm access or a nonexistent sound resource', async () => {
   let scheduled

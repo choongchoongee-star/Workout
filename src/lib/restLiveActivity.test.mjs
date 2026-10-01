@@ -40,3 +40,23 @@ test('bridge failure is isolated and does not block later cleanup', async () => 
   assert.deepEqual(await client.start({}), { status: 'unavailable' })
   assert.deepEqual(await client.end('a'), { status: 'ended' })
 })
+
+test('passes the notification identity and delivers timer-specific cancellation events', async () => {
+  let started, listener, removed = false
+  const client = createRestLiveActivity({ available: () => true, bridge: {
+    async start(value) { started = value; return { status: 'active' } },
+    async addListener(name, callback) {
+      assert.equal(name, 'cancelled')
+      listener = callback
+      return { remove() { removed = true } }
+    },
+  } })
+  await client.start({ timerID: 'timer-a', startedAt: 1, endsAt: 1000, notificationID: 1102 })
+  assert.equal(started.notificationID, 1102)
+  let event
+  const subscription = await client.onCancel(value => { event = value })
+  listener({ timerID: 'timer-a' })
+  assert.deepEqual(event, { timerID: 'timer-a' })
+  subscription.remove()
+  assert.equal(removed, true)
+})

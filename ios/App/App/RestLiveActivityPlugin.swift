@@ -4,6 +4,16 @@ import UIKit
 
 @objc(RestLiveActivityPlugin)
 public class RestLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
+    private var cancellationObserver: NSObjectProtocol?
+    public override func load() {
+        cancellationObserver = NotificationCenter.default.addObserver(forName: Notification.Name("restTimerCancelled"), object: nil, queue: .main) { [weak self] notification in
+            guard let timerID = notification.object as? String else { return }
+            self?.notifyListeners("cancelled", data: ["timerID": timerID], retainUntilConsumed: true)
+        }
+    }
+    deinit {
+        if let observer = cancellationObserver { NotificationCenter.default.removeObserver(observer) }
+    }
     public let identifier = "RestLiveActivityPlugin"
     public let jsName = "RestLiveActivity"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -60,6 +70,10 @@ private final class RestActivityManager {
             call.resolve(["status": "invalid"])
             return
         }
+        guard UserDefaults.standard.string(forKey: "cancelledRestTimerID") != timerID else {
+            call.resolve(["status": "cancelled", "timerID": timerID])
+            return
+        }
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             call.resolve(["status": "disabled"])
             return
@@ -76,7 +90,7 @@ private final class RestActivityManager {
             let state = RestActivityAttributes.ContentState(
                 startedAt: Date(timeIntervalSince1970: startMS / 1000),
                 endsAt: Date(timeIntervalSince1970: endMS / 1000))
-            let activity = try Activity.request(attributes: RestActivityAttributes(timerID: timerID, language: Bundle.main.preferredLocalizations.first ?? "en"),
+            let activity = try Activity.request(attributes: RestActivityAttributes(timerID: timerID, language: Bundle.main.preferredLocalizations.first ?? "en", notificationID: call.getInt("notificationID")),
                 content: ActivityContent(state: state, staleDate: state.endsAt), pushType: nil)
             scheduleExpiry(activity)
             call.resolve(["status": "active", "timerID": timerID])
@@ -86,14 +100,19 @@ private final class RestActivityManager {
     }
 
     private func restore(_ call: CAPPluginCall) async {
+        let cancelledID = UserDefaults.standard.string(forKey: "cancelledRestTimerID")
         let activities = Activity<RestActivityAttributes>.activities.sorted { $0.content.state.endsAt > $1.content.state.endsAt }
         var current: Activity<RestActivityAttributes>?
         for activity in activities {
-            if activity.content.state.endsAt <= Date() || current != nil {
+            if activity.attributes.timerID == cancelledID || activity.content.state.endsAt <= Date() || current != nil {
                 await activity.end(nil, dismissalPolicy: .immediate)
             } else { current = activity }
         }
         guard let activity = current else {
+            if let timerID = UserDefaults.standard.string(forKey: "cancelledRestTimerID") {
+                call.resolve(["status": "cancelled", "timerID": timerID])
+                return
+            }
             call.resolve(["status": ActivityAuthorizationInfo().areActivitiesEnabled ? "idle" : "disabled"])
             return
         }

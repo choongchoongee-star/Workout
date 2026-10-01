@@ -3,6 +3,22 @@ import { Capacitor } from '@capacitor/core'
 import { LocalNotifications } from '@capacitor/local-notifications'
 
 const REST_NOTIFICATION_ID = 1101
+const NOTIFICATION_ID_KEY = 'wl_rest_notification_id'
+function storedNotificationId() {
+  try {
+    const value = Number(globalThis.localStorage?.getItem(NOTIFICATION_ID_KEY))
+    if (Number.isInteger(value) && value >= REST_NOTIFICATION_ID && value < 2147483647) return value
+  } catch { /* Storage can be unavailable. */ }
+  return REST_NOTIFICATION_ID
+}
+let activeNotificationId = storedNotificationId()
+let allocatedNotificationId = activeNotificationId
+export function allocateRestNotificationId() {
+  allocatedNotificationId = Math.max(allocatedNotificationId, storedNotificationId()) + 1
+  if (allocatedNotificationId >= 2147483647) allocatedNotificationId = REST_NOTIFICATION_ID + 1
+  try { globalThis.localStorage?.setItem(NOTIFICATION_ID_KEY, String(allocatedNotificationId)) } catch { /* Keep the in-memory ID. */ }
+  return allocatedNotificationId
+}
 let preparedAudioContext = null
 let nativeNotificationScheduled = false
 let scheduleGeneration = 0
@@ -79,6 +95,7 @@ export function playRestTone(context) {
 }
 
 export async function scheduleRestNotification(endsAt, {
+  notificationID = REST_NOTIFICATION_ID,
   isNativePlatform = () => Capacitor.isNativePlatform(),
   platform = () => Capacitor.getPlatform(),
   notifications = LocalNotifications,
@@ -96,11 +113,12 @@ export async function scheduleRestNotification(endsAt, {
 
     return await enqueueNotification(async () => {
       if (generation !== scheduleGeneration) return false
-      await notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] })
+      await notifications.cancel({ notifications: [{ id: activeNotificationId }] })
       if (generation !== scheduleGeneration || !Number.isFinite(endsAt) || endsAt <= Date.now()) return false
+      activeNotificationId = notificationID
       await notifications.schedule({
         notifications: [{
-          id: REST_NOTIFICATION_ID,
+          id: notificationID,
           title: t('Rest complete'),
           body: t('Time for your next set.'),
           schedule: { at: new Date(endsAt) },
@@ -127,7 +145,7 @@ export async function cancelRestNotification({
   nativeNotificationScheduled = false
   if (!isNativePlatform()) return
   try {
-    await enqueueNotification(() => notifications.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }))
+    await enqueueNotification(() => notifications.cancel({ notifications: [{ id: activeNotificationId }] }))
   } catch {
     // A missing or already-delivered notification needs no further action.
   }

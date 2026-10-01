@@ -4,7 +4,8 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import RestTimer from './RestTimer'
 import HistoryScrollbar from './HistoryScrollbar'
-import { useRestTimer, skipRestTimer, restoreRestTimer } from '../lib/activeRestTimer'
+import { useRestTimer, skipRestTimer, restoreRestTimer, cancelRestTimerFromActivity } from '../lib/activeRestTimer'
+import { restLiveActivity } from '../lib/restLiveActivity'
 import { otaUpdater } from '../lib/otaUpdate'
 
 const NAV = [
@@ -58,9 +59,13 @@ export default function Layout({ children }) {
   useEffect(() => {
     void otaUpdater.check()
     void restoreRestTimer()
+    const cancellation = restLiveActivity.onCancel(cancelRestTimerFromActivity)
     const resume = () => { if (document.visibilityState === 'visible') void restoreRestTimer() }
     document.addEventListener('visibilitychange', resume)
-    return () => document.removeEventListener('visibilitychange', resume)
+    return () => {
+      document.removeEventListener('visibilitychange', resume)
+      void cancellation.then(listener => listener.remove())
+    }
   }, [])
 
   useEffect(() => {
