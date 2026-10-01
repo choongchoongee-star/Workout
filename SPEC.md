@@ -1,7 +1,7 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-10-01
-> 현재 소스 runtime: ios-628045f03aa0c3aa. 알림 설정 직접 이동과 Live Activity 취소 버튼을 위한 네이티브 변경을 포함하며 신규 빌드·배포는 아직 실행하지 않았다. 기존 배포 빌드 10의 runtime은 ios-df63450d92c09d12다.
+> 마지막 업데이트: 2026-10-02
+> 현재 소스 runtime: ios-628045f03aa0c3aa. 알림 설정 직접 이동과 Live Activity 취소 버튼을 포함한 iOS 1.0 (11) production 빌드가 2026-10-01 성공했다. TestFlight 업로드는 2026-10-02 성공했고 Apple 처리 완료는 미확인이다. 기존 배포 빌드 10의 runtime은 ios-df63450d92c09d12다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
 > 스토어 준비 현황 (2026-09-08): ASC 이름 Steady Sets/부제 Simple Workout Log, 건강 및 피트니스, 영문 소개·키워드·지원/마케팅/개인정보 URL·심사 메모·로그인 불필요·수동 출시 저장 완료. 연령 설문 저장 결과 한국 전체/대부분 지역 9+. 전 세계 175개 국가/지역 및 향후 지역 사용 가능, 타사 콘텐츠 없음, 사용자 확인 후 의료 기기 아님을 저장했다. 개인정보는 GitHub Pages 보안용 IP 저장을 기타 데이터/앱 기능/사용자 연결/추적 없음으로 저장하고 실행 직전 사용자 동의 후 게시 완료했다. ASC 게시 시각 표시로 성공을 확인했다. 사용자가 제공한 심사 연락처 전체를 저장하고 재로드 확인했다. 개인 값은 Git에 기록하지 않는다. 앱 심사 제출과 최종 출시는 명시적으로 보류한다. 원본 PNG를 반영한 대표 이미지 2장과 기능 설명 6장(각 1242×2688)을 영어(미국) iPhone 6.5 스크린샷에 등록했다. steady-sets-01.png부터 08.png까지 순서와 8장 수량은 새로고침 후 확인했다. 가격 무료 및 저작권 2026 Choonghyun Han 저장·확인 완료. 최종 이름/아이콘 포함 production 빌드 6을 EAS에 업로드했다(046c1f3b-3ad3-4a7c-a3ef-62aa785bd6f2). 빌드 FINISHED 및 IPA 생성과 App Store Connect 업로드 성공을 확인했다. Apple 처리 완료는 아직 확인하지 않았다. 세부 사항은 store/RELEASE.md에 기록하며 심사 연락처는 Git에 보관하지 않는다.
@@ -9,7 +9,7 @@
 
 > **언어 규칙:** 앱 내부 언어 메뉴 없이 iOS 설정 → 앱 → Steady Sets → 선호하는 언어에서 한국어/영어를 선택한다. CFBundleLocalizations(en/ko)와 AppSettings.getLanguage의 Bundle.main.preferredLocalizations로 언어를 결정하고 React 첫 렌더 전에 적용한다. 별도 선택 전에는 기기 언어 우선순위를 따르며 미지원 언어는 영어로 대체한다. 웹은 navigator.languages를 따른다. 화면·접근성 문구·날짜·기본 운동/분류/기구 표시·휴식 알림·개인정보 안내를 번역한다. 저장 ID/분류/기구 키·숫자·직접 등록한 이름·Markdown 백업 내용은 기존 형식으로 유지하고 내보내기 날짜도 영어로 고정한다. 기존 한국어 백업은 계속 영어 기본 정의로 정규화해 복원한다. 새 타이머의 Live Activity에는 앱 선택 언어를 전달하며, 이미 시작한 Activity는 생성 시 언어를 유지한다. 빌드 7에 이 기능을 포함해 네이티브 빌드와 IPA 생성을 완료했다. 빌드 7의 App Store Connect 업로드 성공을 확인했다. Apple 처리 및 빌드 7 선택을 확인했고, 사용자가 실기기 확인 완료를 보고했다. ASC 빌드 7의 지원 언어에는 영어만 표시되어 새 바이너리 보완이 필요하다.
 
-> **2026-09-09 출시 전 보완:** App Store 지원 언어 인식에 필요한 실제 `en.lproj/InfoPlist.strings`와 `ko.lproj/InfoPlist.strings`를 앱(`ios/App/App`)과 위젯(`ios/RestTimerActivity`)에 둔다. 각 타깃의 Resources 단계는 PBXBuildFile → PBXVariantGroup → 두 언어 파일을 참조한다. 앱 표시명은 양쪽 모두 Steady Sets, 위젯 표시명은 Rest Timer/휴식 타이머다. `scripts/verify-native-localizations.mjs`는 xcode 3.0.1 파서로 타깃부터 실제 파일까지 연결을 검증하며 Resources 누락과 ko 누락을 거부하는 회귀 검사를 포함한다. `check:ios-release`에 연결하고 EAS 구성에서는 ios:sync 뒤 언어 리소스를 검사하고, eas/configure_ios_version 뒤 앱/위젯 버전을 검사한다. 전체 검사는 로컬 사전 검사로 유지한다. 새 네이티브 runtime은 `ios-df63450d92c09d12`; 현재 빌드 번호는 10이며 production 빌드가 성공했다. 실제 IPA에서 앱과 위젯 모두 버전 10 및 en/ko.lproj 리소스를 확인했다. ASC 처리 완료·검증됨 및 영어/한국어 현지화 표시를 확인했다. iOS 1.0 심사용 빌드를 10으로 교체해 저장하고 재접속 검증했다. 심사 제출은 완료했고 심사 대기 중이다. 최종 출시는 수동으로 보류한다. ASC에서 Mac/Apple Vision Pro 배포는 꺼져 있고 무료·수동 출시를 유지한다. 한국어 스토어 소개 현지화는 앱 바이너리의 지원 언어와 별개이며 아직 추가하지 않았다.
+> **2026-09-09 출시 전 보완:** App Store 지원 언어 인식에 필요한 실제 `en.lproj/InfoPlist.strings`와 `ko.lproj/InfoPlist.strings`를 앱(`ios/App/App`)과 위젯(`ios/RestTimerActivity`)에 둔다. 각 타깃의 Resources 단계는 PBXBuildFile → PBXVariantGroup → 두 언어 파일을 참조한다. 앱 표시명은 양쪽 모두 Steady Sets, 위젯 표시명은 Rest Timer/휴식 타이머다. `scripts/verify-native-localizations.mjs`는 xcode 3.0.1 파서로 타깃부터 실제 파일까지 연결을 검증하며 Resources 누락과 ko 누락을 거부하는 회귀 검사를 포함한다. `check:ios-release`에 연결하고 EAS 구성에서는 ios:sync 뒤 언어 리소스를 검사하고, eas/configure_ios_version 뒤 앱/위젯 버전을 검사한다. 전체 검사는 로컬 사전 검사로 유지한다. 새 네이티브 runtime은 `ios-df63450d92c09d12`; 당시 빌드 번호는 10이며 production 빌드가 성공했다. 실제 IPA에서 앱과 위젯 모두 버전 10 및 en/ko.lproj 리소스를 확인했다. ASC 처리 완료·검증됨 및 영어/한국어 현지화 표시를 확인했다. iOS 1.0 심사용 빌드를 10으로 교체해 저장하고 재접속 검증했다. 심사 제출은 완료했고 심사 대기 중이다. 최종 출시는 수동으로 보류한다. ASC에서 Mac/Apple Vision Pro 배포는 꺼져 있고 무료·수동 출시를 유지한다. 한국어 스토어 소개 현지화는 앱 바이너리의 지원 언어와 별개이며 아직 추가하지 않았다.
 
 ---
 
@@ -812,3 +812,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-09-28: 기록 탭 날짜 왼쪽에 편집/완료 버튼을 추가했다. 편집 모드의 개별 체크·상시 삭제·전체 선택·선택 삭제와 묶음 10초 Undo를 지원한다. 한국어/영어 브라우저 회귀 검사로 선택한 기록만 삭제, 데이터 전체 복원, 전체 삭제 후 재로드 유지 및 4개 화면 폭을 확인했다.
 
 - 2026-10-01: iOS 17 이상 Live Activity에 일시정지 없는 × 취소 버튼을 구현했다. timerID/notificationID로 해당 휴식·예약 알림만 취소하고 앱 상태와 동기화한다. runtime ios-628045f03aa0c3aa로 분리했다. 단위 테스트 69개, 취소 경합 회귀 검사, lint·웹/Capacitor 빌드·로컬 iOS 동기화/구성 검사를 통과했다. Windows에서 Swift 컴파일/잠금 화면 실기기 검증은 불가하며 신규 EAS 빌드·배포는 실행하지 않았다.
+
+- 2026-10-02: iOS 1.0 (11), EAS 빌드 b37f8762-a95b-4cbd-a572-178c6426eabd가 2026-10-01 21:23 KST에 성공한 것을 확인했다. 소스 기반 915ec59, EAS 자동 버전 커밋 2bcf507, runtime ios-628045f03aa0c3aa. 사용자 요청으로 TestFlight 제출 b8e311e6-64e8-4e05-90e6-b0be69e58dab가 성공 종료했으며 CLI에서 binary successfully uploaded를 확인했다. Apple 처리 및 테스터 사용 가능 여부는 아직 미확인이다. 그룹 자동 설정은 인증 오류로 건너뛰었지만 바이너리 업로드는 성공했다. 원본 app.json 및 앱/위젯 빌드 번호를 11로 맞추고 iOS 구성 검사·lint·웹 빌드를 통과했다. 실기기 Live Activity 취소 동작 확인은 별도다.

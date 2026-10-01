@@ -1,3 +1,9 @@
+## Latest TestFlight delivery (2026-10-02)
+
+- iOS 1.0 (11) production build succeeded on 2026-10-01 at 21:23 KST: b37f8762-a95b-4cbd-a572-178c6426eabd. Source base 915ec59, EAS version commit 2bcf507, runtime ios-628045f03aa0c3aa.
+- TestFlight binary upload succeeded on 2026-10-02 (CLI confirmed successfully uploaded); Apple is processing it. Submission b8e311e6-64e8-4e05-90e6-b0be69e58dab. Automatic group setup was skipped after Apple authentication failed. Apple processing and tester availability are unverified. This operation does not submit build 11 for App Review or release it publicly.
+- Local app/widget build numbers are synchronized to 11. iOS release checks, lint and web build passed. On-device Live Activity cancellation verification remains pending.
+
 # Steady Sets release preparation
 
 Updated: 2026-09-09
