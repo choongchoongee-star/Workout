@@ -14,19 +14,41 @@ const card = (equipment, weight, exerciseId = bench.id) => ({ exerciseId, equipm
 const sessions = [{ id: '2026-09-04', date: '2026-09-04', exercises: [card('barbell', 60), card('smith', 40), card('barbell', 65)] },
   { id: '2026-09-03', date: '2026-09-03', exercises: [card('smith', 35)] }]
 
+test('old local and Markdown backups migrate to Machine without discarding original equipment', () => {
+  const old = [{ id: '2020-01-02', date: '2020-01-02', exercises: [
+    card('smith', 40), card('cable', 20), card('machine', 50), card('unspecified', 30),
+  ] }]
+  old[0].exercises[0].sets[0].done = true
+  const payload = { version: 1, sessions: old, exercises }
+  const legacyMarkdown = `# Workout history\n<!-- workout-backup:v1\n${JSON.stringify(payload)}\n-->`
+  const readable = buildMarkdown(old, exercises).replace(/<!-- workout-backup:v1\n[^]*?\n-->\n/, '')
+  for (const restored of [parseLocalWorkoutData(JSON.stringify(payload)), parseWorkoutMarkdown(legacyMarkdown), parseWorkoutMarkdown(readable)]) {
+    assert.deepEqual(restored.sessions[0].exercises.map(c => c.equipment), ['smith', 'cable', 'machine', 'unspecified'])
+    assert.equal(defaultEquipment(bench, restored.sessions, exercises), 'machine')
+    assert.deepEqual(equipmentRecords(restored.sessions, exercises, bench, 'machine').map(r => r.sets[0].weight), [40, 20, 50])
+    assert.equal(equipmentRecords(restored.sessions, exercises, bench, 'unspecified').length, 1)
+    assert.equal(changeCardEquipment(restored.sessions[0].exercises, 0, bench, 'machine'), restored.sessions[0].exercises)
+    assert.deepEqual(parseWorkoutMarkdown(buildMarkdown(restored.sessions, restored.exercises)).sessions, restored.sessions)
+    const planned = planWorkoutImport({ exercises, sessions: [] }, restored)
+    assert.equal(planWorkoutImport(planned, restored).addedCount, 0)
+  }
+  assert.deepEqual(parseWorkoutMarkdown(legacyMarkdown).sessions, old)
+  assert.deepEqual(parseLocalWorkoutData(JSON.stringify(payload)).sessions, old)
+})
+
 test('equipment changes move existing sets in place without adding or merging cards', () => {
   const cards = [card('barbell', 60), card('smith', 70)]
   cards[0].sets.push({ weight: 65, reps: 8, done: true })
   const before = structuredClone(cards)
-  const switched = changeCardEquipment(cards, 0, bench, 'smith')
+  const switched = changeCardEquipment(cards, 0, bench, 'machine')
   assert.deepEqual(cards, before)
-  assert.deepEqual(switched, [{ ...before[0], equipment: 'smith' }, before[1]])
+  assert.deepEqual(switched, [{ ...before[0], equipment: 'machine' }, before[1]])
   const restored = parseLocalWorkoutData(JSON.stringify({ version: 1, exercises, sessions: [
     { id: '2026-10-18', date: '2026-10-18', exercises: switched },
   ] }))
   assert.equal(equipmentRecords(restored.sessions, exercises, bench, 'barbell').length, 0)
   assert.deepEqual(equipmentRecords(restored.sessions, exercises, bench, 'smith').map(r => r.sets), cards.map(c => c.sets))
-  assert.equal(changeCardEquipment(cards, 1, bench, 'smith'), cards)
+  assert.equal(changeCardEquipment(cards, 1, bench, 'machine'), cards)
   assert.equal(changeCardEquipment(cards, 1, bench, 'invalid'), cards)
 })
 
@@ -37,7 +59,7 @@ test('equipment correction preserves bodyweight and cardio fields, including com
   ]) {
     const exercise = exercises.find(e => e.id === id)
     const cards = [{ exerciseId: id, equipment: 'unspecified', sets }]
-    assert.deepEqual(changeCardEquipment(cards, 0, exercise, 'cable'), [{ ...cards[0], equipment: 'cable' }])
+    assert.deepEqual(changeCardEquipment(cards, 0, exercise, 'machine'), [{ ...cards[0], equipment: 'machine' }])
   }
 })
 
@@ -51,7 +73,7 @@ test('progress includes every duplicate card and previous sets use the last matc
 
 test('all movements including custom, bodyweight and cardio start unspecified without history', () => {
   for (const exercise of [...exercises, { id: 'custom', name: 'Custom move', type: 'weight' }]) {
-    assert.deepEqual(equipmentOptions(exercise), ['unspecified', 'barbell', 'dumbbell', 'smith', 'machine', 'cable'])
+    assert.deepEqual(equipmentOptions(exercise), ['unspecified', 'barbell', 'dumbbell', 'machine', 'bodyweight', 'other'])
     assert.equal(defaultEquipment(exercise, [], exercises), 'unspecified')
     const cards = [{ exerciseId: exercise.id, equipment: 'unspecified', sets: [] }]
     assert.equal(changeCardEquipment(cards, 0, exercise, 'machine')[0].equipment, 'machine')
@@ -75,7 +97,7 @@ test('equipment count ties prefer the latest date, with deterministic same-date 
   assert.equal(defaultEquipment(bench, [
     { date: '2026-09-01', exercises: [card('barbell', 60)] },
     { date: '2026-09-05', exercises: [card('smith', 40)] },
-  ], exercises), 'smith')
+  ], exercises), 'machine')
   assert.equal(defaultEquipment(bench, [{ date: '2026-09-05', exercises: [card('smith', 40), card('unspecified', 40)] }], exercises), 'unspecified')
 })
 
@@ -184,7 +206,7 @@ test('equipment-bearing names display as movements while historical equipment st
   const custom = { id: 'custom-press', name: 'Smith Machine Incline Press', category: 'Chest', type: 'weight' }
   assert.equal(movementName(custom), 'Incline Press')
   assert.deepEqual(equipmentOptions(custom), equipmentOptions(bench))
-  assert.equal(recordEquipment({}, custom), 'smith')
+  assert.equal(recordEquipment({}, custom), 'machine')
   assert.equal(familyId(custom), custom.id)
   assert.deepEqual(old, before)
 })
@@ -199,7 +221,7 @@ test('Dips is one choice and cable/bodyweight history plus every equipment survi
     ...equipmentOptions().map((equipment, i) => card(equipment, 20 + i)),
   ] }]
   const markdown = buildMarkdown(records, exercises)
-  for (const label of ['Unspecified', 'Barbell', 'Dumbbell', 'Smith', 'Machine', 'Cable']) assert(markdown.includes('- Equipment: ' + label))
+  for (const label of ['Unspecified', 'Barbell', 'Dumbbell', 'Machine', 'Bodyweight', 'Other']) assert(markdown.includes('- Equipment: ' + label))
   const restored = parseWorkoutMarkdown(markdown)
   assert.deepEqual(restored.sessions, records)
   assert.equal(equipmentRecords(restored.sessions, restored.exercises, dips, 'cable')[0].sets[0].weight, 35)

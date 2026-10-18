@@ -3,10 +3,16 @@ import { DEFAULT_EXERCISES } from '../data/exercises.js'
 export const EQUIPMENT_LABELS = {
   barbell: 'Barbell', dumbbell: 'Dumbbell', smith: 'Smith',
   machine: 'Machine', cable: 'Cable', unspecified: 'Unspecified',
+  bodyweight: 'Bodyweight', other: 'Other',
 }
 
 export function normalizeEquipment(equipment) {
   return equipment === 'ezbar' ? 'barbell' : equipment
+}
+
+// Migrate the classification at read time; retain legacy detail in storage/backups.
+export function equipmentGroup(equipment) {
+  return ['smith', 'cable'].includes(equipment) ? 'machine' : normalizeEquipment(equipment)
 }
 
 export function normalizeSessionEquipment(session) {
@@ -47,7 +53,7 @@ export function familyId(exercise) {
   return aliases[base?.id]?.[0] ?? base?.id ?? exercise?.id
 }
 export function equipmentOptions() {
-  return ['unspecified', 'barbell', 'dumbbell', 'smith', 'machine', 'cable']
+  return ['unspecified', 'barbell', 'dumbbell', 'machine', 'bodyweight', 'other']
 }
 export function movementName(exercise) {
   if (!definition(exercise)) return namedEquipment(exercise)?.name ?? exercise?.name
@@ -57,11 +63,11 @@ export function movementName(exercise) {
   return namedEquipment(representative)?.name ?? representative?.name
 }
 export function recordEquipment(card, exercise) {
-  if (card.equipment) return normalizeEquipment(card.equipment)
+  if (card.equipment) return equipmentGroup(card.equipment)
   const base = definition(exercise)
-  if (aliases[base?.id]) return aliases[base.id][1]
+  if (aliases[base?.id]) return equipmentGroup(aliases[base.id][1])
   const named = namedEquipment(exercise)
-  if (named) return named.equipment
+  if (named) return equipmentGroup(named.equipment)
   return 'unspecified'
 }
 export function recordInputType(card, exercise) {
@@ -85,7 +91,7 @@ export function equipmentRecords(sessions, exercises, exercise, equipment) {
     (session.exercises ?? []).flatMap((card, index) => {
       const source = byId.get(card.exerciseId)
       if (!source || familyId(source) !== familyId(exercise) ||
-        recordEquipment(card, source) !== equipment || !card.sets?.length) return []
+        recordEquipment(card, source) !== equipmentGroup(equipment) || !card.sets?.length) return []
       return [{ date: session.date, index, sets: card.sets, type: recordInputType(card, source) }]
     }))
 }
