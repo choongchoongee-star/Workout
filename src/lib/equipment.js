@@ -112,6 +112,5 @@ export function defaultEquipment(exercise, sessions = [], exercises = []) {
 export function changeCardEquipment(cards, index, exercise, equipment) {
   const card = cards[index]
   if (!card || !equipmentOptions(exercise).includes(equipment) || recordEquipment(card, exercise) === equipment) return cards
-  if (card.sets.length) return [...cards, { exerciseId: card.exerciseId, equipment, sets: [] }]
   return cards.map((entry, i) => i === index ? { ...entry, equipment } : entry)
 }

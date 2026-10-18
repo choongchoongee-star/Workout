@@ -336,7 +336,6 @@ export default function Session() {
     const card = sessionExercises[exIdx]
     const exercise = exercises.find(ex => ex.id === card?.exerciseId)
     if (!equipmentOptions(exercise).includes(equipment)) return
-    if (card.sets.length && recordEquipment(card, exercise) !== equipment) pendingScrollCardIdx.current = sessionExercises.length
     setSessionExercises(prev => changeCardEquipment(prev, exIdx, exercise, equipment))
   }
 

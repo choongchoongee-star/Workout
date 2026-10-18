@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-10-02
+> 마지막 업데이트: 2026-10-18
 > 현재 소스 runtime: ios-326d6b3c3dd1fbb3. iOS 버전 1.0.1 재빌드 준비 완료. 빌드 11(1.0)은 업로드 후 Apple 검증에서 ITMS-90186/ITMS-90062로 거절됐다. 신규 빌드·재업로드는 아직 실행하지 않았다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
@@ -535,7 +535,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - SessionExercise의 선택적 equipment 값은 barbell/dumbbell/smith/machine/cable/unspecified다. 구형 ezbar는 로드/가져오기/내보내기 및 이전 기록 조회 시 barbell로 정규화하며 세트·카드·운동 ID는 보존한다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
 - UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. 모든 기본·커스텀·맨몸·유산소 운동에서 Unspecified / Barbell / Dumbbell / Smith / Machine / Cable 여섯 선택지를 같은 순서로 제공한다. 운동별 제한은 없다.
 - 추가 기본값: 새 카드는 같은 운동 계열의 전체 저장 기록에서 세트가 1개 이상 있는 카드 수가 가장 많은 equipment를 선택한다(세트 수나 완료 여부가 아닌 기록 카드 건수, 같은 날짜 중복 카드도 각각 집계). 동률이면 해당 형태의 최근 기록 날짜를 우선하고 날짜까지 같으면 공통 선택지 순서로 결정한다. 구형 기록은 기존 장비 해석 규칙으로 집계하며 빈 카드는 제외한다. 기록이 없으면 unspecified로 시작한다. Progress는 기존처럼 Unspecified로 시작하며 원하는 장비를 선택해 기록을 조회한다.
-- 0세트 카드는 제자리 변경한다. 장비 변경으로 추가된 빈 유산소 카드도 첫 입력에서 cardio 기록 객체를 생성해 저장한다. 세트가 하나라도 있으면 입력/완료 여부에 관계없이 기존 카드와 세트를 보존하고 선택한 장비의 0세트 카드를 맨 아래 추가·스크롤한다. 현재 장비 재선택은 추가하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
+- Workout 장비 드롭다운은 세트 유무에 관계없이 해당 카드의 equipment만 제자리 변경한다. 운동 ID·카드 순서·중량/추가중량·횟수·유산소 값·완료 상태를 그대로 유지하며 새 카드 추가나 스크롤, 같은 장비 카드와의 병합은 하지 않는다. 변경한 날짜의 카드만 자동 저장되고 History/Progress에서도 선택한 장비의 기록으로 조회된다. 다른 날짜 기록은 유지한다. 빈 유산소 카드는 첫 입력에서 cardio 기록 객체를 생성해 저장한다. 현재 장비 재선택은 변경하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
 - 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동의 구형 기록은 Unspecified로 해석한다. 명시된 기존 equipment는 변경하지 않는다.
 - History 상세는 장비를 함께 표시한다. Progress는 운동 선택 후 장비 필터로 분리하고 같은 날짜·장비의 모든 카드를 date:index 키로 각각 표시한다. 기본 장비 기록이 없고 Unspecified 과거 기록이 있으면 처음부터 Unspecified를 표시한다.
 - 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith`으로 출력한다. 구형 보고서의 Smith Machine은 smith로, EZ Bar는 barbell로 읽는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
@@ -816,3 +816,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-02: iOS 1.0 (11), EAS 빌드 b37f8762-a95b-4cbd-a572-178c6426eabd가 2026-10-01 21:23 KST에 성공한 것을 확인했다. 소스 기반 915ec59, EAS 자동 버전 커밋 2bcf507, runtime ios-628045f03aa0c3aa. 사용자 요청으로 TestFlight 제출 b8e311e6-64e8-4e05-90e6-b0be69e58dab가 성공 종료했으며 CLI에서 binary successfully uploaded를 확인했다. Apple 처리 및 테스터 사용 가능 여부는 아직 미확인이다. 그룹 자동 설정은 인증 오류로 건너뛰었지만 바이너리 업로드는 성공했다. 원본 app.json 및 앱/위젯 빌드 번호를 11로 맞추고 iOS 구성 검사·lint·웹 빌드를 통과했다. 실기기 Live Activity 취소 동작 확인은 별도다.
 
 - 2026-10-02: 사용자 제공 Apple 이메일로 빌드 11(1.0)의 후속 검증 거절을 확인했다. 승인된 1.0 배포 버전이 닫혀 ITMS-90186 및 ITMS-90062가 발생했다. app.json과 앱/위젯 모든 MARKETING_VERSION을 1.0.1로 변경하고 검사 스크립트가 하드코딩된 1.0 대신 모든 구성의 app.json 버전 일치를 확인하도록 보완했다. runtime ios-326d6b3c3dd1fbb3, 현재 소스 빌드 번호 11이며 다음 승인된 EAS production 빌드는 autoIncrement로 12가 된다. lint·웹/Capacitor 빌드·iOS 동기화 및 구성 검사를 통과했다. 새 원격 빌드와 TestFlight 재업로드는 승인 전이며 실행하지 않았다.
+
+- 2026-10-18: Workout 장비 드롭다운을 기존 카드의 기구 수정으로 변경했다. 세트가 있어도 새 카드를 추가하지 않고 기록 값·완료 상태·카드 순서를 보존하며 선택한 장비 기록으로 자동 저장한다. 중복 카드 보존·저장 후 장비별 조회·맨몸/유산소 값 보존을 포함한 단위 테스트 70개, lint·웹 빌드를 검증했다. 앱/웹 배포는 별도다.

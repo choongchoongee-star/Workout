@@ -14,18 +14,31 @@ const card = (equipment, weight, exerciseId = bench.id) => ({ exerciseId, equipm
 const sessions = [{ id: '2026-09-04', date: '2026-09-04', exercises: [card('barbell', 60), card('smith', 40), card('barbell', 65)] },
   { id: '2026-09-03', date: '2026-09-03', exercises: [card('smith', 35)] }]
 
-test('equipment changes preserve populated and duplicate cards, replacing only empty cards', () => {
-  const cards = [card('barbell', 60), card('barbell', 70)]
+test('equipment changes move existing sets in place without adding or merging cards', () => {
+  const cards = [card('barbell', 60), card('smith', 70)]
+  cards[0].sets.push({ weight: 65, reps: 8, done: true })
   const before = structuredClone(cards)
   const switched = changeCardEquipment(cards, 0, bench, 'smith')
   assert.deepEqual(cards, before)
-  assert.deepEqual(switched.slice(0, 2), before)
-  assert.deepEqual(switched[2], { exerciseId: bench.id, equipment: 'smith', sets: [] })
-  const emptySwitched = changeCardEquipment(switched, 2, bench, 'dumbbell')
-  assert.equal(emptySwitched.length, 3)
-  assert.equal(emptySwitched[2].equipment, 'dumbbell')
-  assert.equal(changeCardEquipment(cards, 1, bench, 'barbell'), cards)
+  assert.deepEqual(switched, [{ ...before[0], equipment: 'smith' }, before[1]])
+  const restored = parseLocalWorkoutData(JSON.stringify({ version: 1, exercises, sessions: [
+    { id: '2026-10-18', date: '2026-10-18', exercises: switched },
+  ] }))
+  assert.equal(equipmentRecords(restored.sessions, exercises, bench, 'barbell').length, 0)
+  assert.deepEqual(equipmentRecords(restored.sessions, exercises, bench, 'smith').map(r => r.sets), cards.map(c => c.sets))
+  assert.equal(changeCardEquipment(cards, 1, bench, 'smith'), cards)
   assert.equal(changeCardEquipment(cards, 1, bench, 'invalid'), cards)
+})
+
+test('equipment correction preserves bodyweight and cardio fields, including completed records', () => {
+  for (const [id, sets] of [
+    ['dips', [{ added_weight: 5, reps: 12, done: true }]],
+    ['running', [{ duration_min: 20, distance_km: 3, calories: 150, done: true }]],
+  ]) {
+    const exercise = exercises.find(e => e.id === id)
+    const cards = [{ exerciseId: id, equipment: 'unspecified', sets }]
+    assert.deepEqual(changeCardEquipment(cards, 0, exercise, 'cable'), [{ ...cards[0], equipment: 'cable' }])
+  }
 })
 
 test('progress includes every duplicate card and previous sets use the last matching card, never another equipment', () => {
