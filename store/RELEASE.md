@@ -1,7 +1,8 @@
-## Latest delivery status (2026-10-02)
+## Latest delivery status (2026-10-18)
 
 - Apple rejected build 11 (1.0) after upload: ITMS-90186 (closed 1.0 train) and ITMS-90062 (marketing version must exceed approved 1.0), confirmed by the owner-provided Apple email. Build 11 is not available for testing.
 - Version 1.0.1 is prepared for both app and widget; the next approved production build will auto-increment 11 to 12. Runtime ios-326d6b3c3dd1fbb3. Local version consistency, lint, web/Capacitor builds and iOS sync passed. No new remote build or submission has started.
+- Latest source reviewed through 7c7e9aa: equipment changes retain sets in place, Smith/Cable history groups under Machine while backups retain original values, and new cardio entry is removed while historical records remain readable and restorable. Updated browser checks for current inline inputs, equipment defaults and in-place changes. Release preflight passed: 74 unit tests, lint, web/Capacitor builds, iOS sync/configuration, Live Activity cancellation races, equipment browser flow, and Korean/English flows with 30 persisted-state checkpoints. One bilingual run timed out during scrolling; a complete repeat passed. Native archive/signing and actual iPhone verification remain pending.
 
 ### Previous upload result
 

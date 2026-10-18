@@ -98,7 +98,7 @@ mode !== 'capacitor' && VitePWA({
 - 브라우저/PWA 운동 UI는 로컬 개발용이다. 공개 배포 시 기존 앱 JS/CSS·manifest·Workbox 파일을 제거하고 `site/sw.js`로 이전 서비스워커를 해제한다. 기존 브라우저의 localStorage 운동 기록은 삭제하지 않는다. 오프라인 캐시 사용자는 온라인 복귀 후 worker 갱신 시 안내 페이지로 전환된다.
 - iOS 앱은 `npm run ios:sync` 후 `ios/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 프로젝트 경로 어댑터 동기화 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
 - EAS 프로젝트는 `@choongchoongee/workout-logger`(project ID `ca086289-002e-40a4-a2ee-c11e84212f41`)에 연결되어 있다. `eas.json`의 production profile은 store 배포, 자동 build number 증가, `NPM_CONFIG_LEGACY_PEER_DEPS=true`를 사용한다. 실제 원격 빌드는 Apple 자격 증명과 실기기 체크 준비 후 최종 단계에서만 시작한다.
-- 앱 ID는 `com.choongchoongeestar.workout`, 초기 마케팅 버전은 `1.0`, 현재 build number는 `4`이다 (승인된 재빌드에서 증가한 값을 보존). 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
+- 앱 ID는 `com.choongchoongeestar.workout`, 현재 마케팅 버전은 `1.0.1`, 현재 build number는 `11`이다. 다음 승인된 production 빌드는 자동 증가로 `12`가 된다. 비면제 암호화 미사용 선언(`ITSAppUsesNonExemptEncryption=false`)은 네이티브 Info.plist와 EAS 앱 설정 양쪽에 둔다.
 - iOS target은 iPhone(`TARGETED_DEVICE_FAMILY=1`) 전용이며 세로 방향만 지원한다.
 - EAS production iOS profile에는 `scheme: App`을 명시한다. 공유 Xcode 프로젝트는 EAS가 검색하는 `ios/App.xcodeproj`에 있으며 앱 소스는 `ios/App/App`, SPM은 `ios/App/CapApp-SPM`에 유지한다. pbxproj의 source group·Info.plist·debug config·SPM 상대 경로는 프로젝트 위치에 맞춘다.
 - `scripts/ios-project.mjs`는 고정한 Capacitor CLI 8.5.1의 config를 로드하고 Xcode 프로젝트 경로를 지정한 뒤 공식 copy/update 작업을 호출한다. 의존성 소스는 수정하지 않는다. 복사 실패는 중단하며 `npm run ios:sync` 및 `ios:open`은 이 adapter를 사용한다. 직접 `cap sync ios`는 기본 중첩 경로를 가정하므로 사용하지 않는다.
@@ -823,3 +823,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-18: 장비 선택을 미정/바벨/덤벨/머신/맨몸/기타로 단순화했다. 기존 스미스·케이블은 비파괴 조회 이관으로 머신에 묶고 원래 장비·운동 ID·세트·완료 상태·중복 카드는 로컬/Markdown 백업에 보존한다. 구형 구조화 백업과 읽기용 Markdown 가져오기, 재내보내기 왕복, 재가져오기 중복 방지를 회귀 검사한다. 상세 메타데이터 없는 구형 보고서는 기존처럼 완료 상태를 복원할 수 없으며 경고한다. 앱 배포는 별도다.
 
 - 2026-10-18: Cardio 신규 기록 기능을 제거했다. Workout 추가·Progress·Exercises의 전체/검색/부위 목록에서 저장된 기본·커스텀 유산소와 Cardio 분류 운동을 제외한다. 새 기본 목록은 54개/6부위이며 커스텀 타입은 weight/bodyweight만 제공한다. 저장된 운동 ID·세트·MET·장비와 백업 가져오기/내보내기를 보존한다. Workout에서 과거 유산소는 장비 선택과 입력 없이 읽기 전용이며 History 상세도 모든 기록을 표시한다. 이전 세션의 Cardio 필터는 All로 대체한다. README·스토어 소개·지원 사이트 소스를 웨이트/맨몸 중심으로 수정했다. 앱·OTA·지원 사이트·스토어 원격 게시는 별도다.
+
+- 2026-10-18: TestFlight 사전 검토에서 기구 변경·분류 및 유산소 입력 제거의 기록 보존을 확인했다. 브라우저 검증 스크립트를 인라인 입력, 기록 기반 기본 기구, 카드 내 기구 변경 및 Machine 통합에 맞췄다. 단위 테스트 74개, lint, 웹/Capacitor 빌드, iOS 동기화·구성, Live Activity 취소 경합, 기구 화면 흐름, 한국어/영어 저장 상태 30개 지점·백업 복원·언어 전환 검증을 통과했다. 언어 검증 1회 스크롤 중 시간 초과 후 전체 재실행 통과. 원격 빌드·제출 및 iPhone 실기기 검증은 미실행이다.
