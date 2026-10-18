@@ -1,3 +1,4 @@
+import { selectableExercises } from '../lib/exerciseLibrary'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
@@ -7,7 +8,7 @@ import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
 import { displayWeight, storedWeight } from '../lib/weightUnits'
-import { calcCalories } from '../lib/calories'
+import LegacyCardioRecords from '../components/LegacyCardioRecords'
 import StepperInput from '../components/StepperInput'
 import { startRestTimer } from '../lib/activeRestTimer'
 import UndoToast from '../components/UndoToast'
@@ -20,10 +21,6 @@ function newWeightSet(weight = 20, reps = 10) {
   return { weight, reps, done: false }
 }
 
-function newCardioRecord() {
-  return { duration_min: null, distance_km: null, speed_kmh: null, incline_pct: null, calories: null }
-}
-
 function deepClone(obj) {
   return structuredClone(obj)
 }
@@ -31,11 +28,11 @@ function deepClone(obj) {
 // Search/Add exercise modal
 function ExerciseModal({ exercises, onSelect, onClose, addedIds = new Set(), loaded = true, defaultCategory = 'All' }) {
   const [query, setQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState(defaultCategory)
+  const [activeCategory, setActiveCategory] = useState(CATEGORIES.includes(defaultCategory) ? defaultCategory : 'All')
   const modalRef = useRef(null)
 
   const categories = ['All', ...CATEGORIES]
-  const filtered = exerciseChoices(exercises).filter(e => {
+  const filtered = exerciseChoices(selectableExercises(exercises)).filter(e => {
     const matchCat = activeCategory === 'All' || e.category === activeCategory
     const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
@@ -177,61 +174,6 @@ function SetRow({ setIdx, set, exerciseType, exerciseName, onUpdate, onDone, onR
   )
 }
 
-// Cardio record form
-function CardioForm({ record, exercise, onUpdate }) {
-  const bodyWeight = storage.getBodyWeight()
-
-  // Auto-calculate calories from MET when duration changes
-  useEffect(() => {
-    if (record.duration_min && exercise?.met) {
-      const cal = calcCalories(exercise.met, bodyWeight, record.duration_min)
-      if (cal != null && cal !== record.calories) {
-        onUpdate('calories', cal)
-      }
-    }
-  // onUpdate/record.calories 포함 시 칼로리 갱신 후 재실행 → 무한루프
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [record.duration_min, exercise?.met, bodyWeight])
-
-  return (
-    <div className="space-y-3 py-2">
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { key: 'duration_min', label: t("Duration (min)"), placeholder: '35' },
-          { key: 'distance_km', label: t("Distance (km)"), placeholder: '5.2' },
-          { key: 'speed_kmh', label: t("Speed (km/h)"), placeholder: '8.5' },
-          { key: 'incline_pct', label: t("Incline (%)"), placeholder: '2.0' },
-        ].map(({ key, label, placeholder }) => (
-          <div key={key}>
-            <label className="text-zinc-500 text-xs block mb-1">{t(label)}</label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              placeholder={placeholder}
-              value={record[key] ?? ''}
-              onChange={e => onUpdate(key, e.target.value === '' ? null : Math.max(0, parseFloat(e.target.value)))}
-              className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500"
-            />
-          </div>
-        ))}
-      </div>
-      <div>
-        <label className="text-zinc-500 text-xs block mb-1">{t("Calories (kcal)")}{record.calories && record.duration_min ? t(" — estimated automatically") : (!exercise?.met ? t(" — manual entry") : '')}
-        </label>
-        <input
-          type="number"
-          min="0"
-          placeholder={t("Calories")}
-          value={record.calories ?? ''}
-          onChange={e => onUpdate('calories', e.target.value === '' ? null : parseInt(e.target.value, 10))}
-          className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500"
-        />
-      </div>
-    </div>
-  )
-}
-
 export default function Session() {
   const location = useLocation()
   const { exercises, sessions, upsertSession, deleteSession, syncError, loaded } = useApp()
@@ -323,8 +265,8 @@ export default function Session() {
   }, [sessionExercises])
 
   function addExercise(ex) {
-    // 카디오는 단일 기록이라 빈 배열로 두면 폼이 없어지므로 그대로 한 개 생성
-    const sets = ex.type === 'cardio' ? [newCardioRecord()] : []
+    if (!selectableExercises([ex]).length) return
+    const sets = []
     // 새 운동은 목록 맨 아래에 추가되므로 추가 후 그 카드로 스크롤
     pendingScrollCardIdx.current = sessionExercises.length
     const equipment = defaultEquipment(ex, sessions, exercises)
@@ -345,19 +287,16 @@ export default function Session() {
       const ex = copy[exIdx]
       if (!ex) return prev
       const exercise = exercises.find(e => e.id === ex.exerciseId)
-      if (exercise?.type === 'cardio') {
-        ex.sets = [...ex.sets, newCardioRecord()]
+      if (exercise?.type === 'cardio') return prev
+      let lastSet = ex.sets[ex.sets.length - 1]
+      // 첫 세트일 경우 과거 세션의 마지막 세트 값을 기본값으로 사용
+      if (!lastSet) {
+        lastSet = previousEquipmentSet(sessions, exercises, exercise, recordEquipment(ex, exercise), sessionDate)
+      }
+      if (recordInputType(ex, exercise) === 'bodyweight') {
+        ex.sets = [...ex.sets, { added_weight: lastSet?.added_weight ?? 0, reps: lastSet?.reps ?? 10, done: false }]
       } else {
-        let lastSet = ex.sets[ex.sets.length - 1]
-        // 첫 세트일 경우 과거 세션의 마지막 세트 값을 기본값으로 사용
-        if (!lastSet) {
-          lastSet = previousEquipmentSet(sessions, exercises, exercise, recordEquipment(ex, exercise), sessionDate)
-        }
-        if (recordInputType(ex, exercise) === 'bodyweight') {
-          ex.sets = [...ex.sets, { added_weight: lastSet?.added_weight ?? 0, reps: lastSet?.reps ?? 10, done: false }]
-        } else {
-          ex.sets = [...ex.sets, newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
-        }
+        ex.sets = [...ex.sets, newWeightSet(lastSet?.weight ?? 20, lastSet?.reps ?? 10)]
       }
       return copy
     })
@@ -367,9 +306,7 @@ export default function Session() {
   function updateSet(exIdx, setIdx, field, value) {
     setSessionExercises(prev => {
       const copy = deepClone(prev)
-      if (copy[exIdx] && !copy[exIdx].sets[setIdx] && exercises.find(ex => ex.id === copy[exIdx].exerciseId)?.type === 'cardio') {
-        copy[exIdx].sets[setIdx] = newCardioRecord()
-      }
+      if (exercises.find(ex => ex.id === copy[exIdx]?.exerciseId)?.type === 'cardio') return prev
       if (copy[exIdx]?.sets[setIdx]) {
         copy[exIdx].sets[setIdx][field] = value
       }
@@ -481,7 +418,7 @@ export default function Session() {
               <div className="flex min-h-11 items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                   <h3 className="text-white text-base font-semibold truncate">{movementName(exercise) || se.exerciseId}</h3>
-                  <EquipmentSelect name={movementName(exercise)} value={recordEquipment(se, exercise)} options={equipmentOptions(exercise)} onChange={value => selectEquipment(exIdx, value)} />
+                  {!isCardio && <EquipmentSelect name={movementName(exercise)} value={recordEquipment(se, exercise)} options={equipmentOptions(exercise)} onChange={value => selectEquipment(exIdx, value)} />}
                 </div>
                 <button
                   type="button"
@@ -491,11 +428,7 @@ export default function Session() {
                 >{t("Delete")}</button>
               </div>
               {isCardio ? (
-                <CardioForm
-                  record={se.sets[0] ?? newCardioRecord()}
-                  exercise={exercise}
-                  onUpdate={(field, value) => updateSet(exIdx, 0, field, value)}
-                />
+                <LegacyCardioRecords sets={se.sets} />
               ) : (
                 <>
                   <div className="overflow-x-auto">

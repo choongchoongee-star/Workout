@@ -1,4 +1,4 @@
-import { DEFAULT_EXERCISES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
+import { KNOWN_EXERCISES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
 import { familyId, movementName } from './equipment.js'
 import { getLanguage } from './i18n.js'
 
@@ -13,7 +13,7 @@ export function localizedMovementName(exercise) {
   const canonical = movementName(exercise)
   if (getLanguage() !== 'ko') return canonical
   // Custom names (even reused IDs) remain exactly as the user entered them.
-  const base = DEFAULT_EXERCISES.find(e => e.name === exercise?.name &&
+  const base = KNOWN_EXERCISES.find(e => e.name === exercise?.name &&
     e.category === exercise.category && e.type === exercise.type)
   if (!base) return canonical
   const family = familyId(exercise)

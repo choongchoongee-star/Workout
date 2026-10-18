@@ -5,20 +5,18 @@ import { CATEGORIES } from '../data/exercises'
 
 export default function AddExerciseForm({ onCancel, onAdded }) {
   const { addExercise } = useApp()
-  const [form, setForm] = useState({ name: '', category: 'Chest', type: 'weight', met: '' })
+  const [form, setForm] = useState({ name: '', category: 'Chest', type: 'weight' })
 
   function handleAdd() {
     if (!form.name.trim()) return
-    const metValue = parseFloat(form.met)
     const id = `custom-${crypto.randomUUID()}`
     addExercise({
       id,
       name: form.name.trim(),
       category: form.category,
       type: form.type,
-      met: form.type === 'cardio' && isFinite(metValue) && metValue > 0 ? metValue : null,
     })
-    setForm({ name: '', category: 'Chest', type: 'weight', met: '' })
+    setForm({ name: '', category: 'Chest', type: 'weight' })
     onAdded()
   }
 
@@ -57,25 +55,9 @@ export default function AddExerciseForm({ onCancel, onAdded }) {
           >
             <option value="weight">{t("Weight")}</option>
             <option value="bodyweight">{t("Bodyweight")}</option>
-            <option value="cardio">{t("Cardio")}</option>
           </select>
         </div>
       </div>
-      {form.type === 'cardio' && (
-        <div>
-          <label className="text-zinc-500 text-xs block mb-1">{t("MET value (for calorie estimates)")}</label>
-          <input
-            type="number"
-            aria-label={t("MET value")}
-            min="0.1"
-            step="0.1"
-            placeholder={t("e.g. 8.3")}
-            value={form.met}
-            onChange={e => setForm(f => ({ ...f, met: e.target.value }))}
-            className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-500 placeholder-zinc-500"
-          />
-        </div>
-      )}
       <div className="flex gap-2 pt-1">
         <button
           type="button"

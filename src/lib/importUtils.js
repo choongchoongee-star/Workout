@@ -1,5 +1,5 @@
 import { EQUIPMENT_LABELS, normalizeEquipment } from './equipment.js'
-import { DEFAULT_EXERCISES } from '../data/exercises.js'
+import { KNOWN_EXERCISES } from '../data/exercises.js'
 import { normalizeCategory, normalizeExercise } from './exerciseLibrary.js'
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024
@@ -122,7 +122,7 @@ function parseLegacyMarkdown(text, knownExercises) {
   const sessions = []
   const exercises = []
   const dates = new Set()
-  const known = [...knownExercises.map(normalizeExercise), ...DEFAULT_EXERCISES]
+  const known = [...knownExercises.map(normalizeExercise), ...KNOWN_EXERCISES]
   while (index < lines.length) {
     if (['_기록이 없습니다._', '_No workouts._'].includes(lines[index]) && Number(count[1]) === 0 && index === lines.length - 1) break
     const dateLine = lines[index++]

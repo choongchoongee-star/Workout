@@ -1,4 +1,8 @@
-import { DEFAULT_EXERCISES, LEGACY_CATEGORIES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
+import { DEFAULT_EXERCISES, KNOWN_EXERCISES, LEGACY_CATEGORIES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
+
+export function selectableExercises(exercises) {
+  return exercises.filter(ex => ex.type !== 'cardio' && normalizeCategory(ex.category) !== 'Cardio')
+}
 
 export function normalizeCategory(category) {
   return Object.hasOwn(LEGACY_CATEGORIES, category) ? LEGACY_CATEGORIES[category] : category
@@ -6,7 +10,7 @@ export function normalizeCategory(category) {
 
 export function normalizeExercise(exercise) {
   const category = normalizeCategory(exercise.category)
-  const base = DEFAULT_EXERCISES.find(base =>
+  const base = KNOWN_EXERCISES.find(base =>
     base.category === category && base.type === exercise.type &&
     (exercise.name === base.name || exercise.name === LEGACY_EXERCISE_NAMES[base.id]))
   // Translate known names while retaining IDs and all recorded metadata.

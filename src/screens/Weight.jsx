@@ -1,3 +1,4 @@
+import { selectableExercises } from '../lib/exerciseLibrary'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
@@ -38,7 +39,7 @@ export default function Weight() {
   const categories = ['All', ...CATEGORIES]
 
   // 선택 화면: 카테고리/검색 필터된 운동 목록
-  const filtered = useMemo(() => exerciseChoices(exercises).filter(e => {
+  const filtered = useMemo(() => exerciseChoices(selectableExercises(exercises)).filter(e => {
     const matchCat = activeCategory === 'All' || e.category === activeCategory
     const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ

@@ -69,7 +69,10 @@ export const DEFAULT_EXERCISES = [
   { id: 'ab-wheel', name: 'Ab Wheel Rollout', category: 'Core', type: 'bodyweight' },
   { id: 'back-extension', name: 'Back Extension', category: 'Core', type: 'weight' },
 
-  // Cardio
+]
+
+// Historical definitions only: retained for reading and importing old workouts.
+export const LEGACY_CARDIO_EXERCISES = [
   { id: 'treadmill', name: 'Treadmill', category: 'Cardio', type: 'cardio', met: 8.3 },
   { id: 'cycling', name: 'Cycling', category: 'Cardio', type: 'cardio', met: 8.0 },
   { id: 'rowing', name: 'Rowing Machine', category: 'Cardio', type: 'cardio', met: 7.0 },
@@ -79,7 +82,8 @@ export const DEFAULT_EXERCISES = [
   { id: 'stair-climber', name: 'Stair Climber', category: 'Cardio', type: 'cardio', met: 9.0 },
 ]
 
-export const CATEGORIES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
+export const KNOWN_EXERCISES = [...DEFAULT_EXERCISES, ...LEGACY_CARDIO_EXERCISES]
+export const CATEGORIES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core']
 
 // Compatibility aliases for existing accounts and Korean Markdown backups.
 export const LEGACY_EXERCISE_NAMES = {

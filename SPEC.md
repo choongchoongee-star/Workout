@@ -15,7 +15,7 @@
 
 ## 1. Overview
 
-- **목적:** 웨이트 + 유산소 운동 세션을 최소 마찰로 기록하는 개인용 iOS 앱
+- **목적:** 웨이트 + 맨몸 운동 세션을 최소 마찰로 기록하는 개인용 iOS 앱
 - **핵심 철학:** "운동 중에 빠르게 기록" — 탭 수 최소화, 자동 입력(이전 값 재사용), 자동 저장
 - **핵심 제약사항:** 로그인·운동 데이터 백엔드·운동 기록 전송 없음, 기기 내 저장, 1일 1세션. 앱 업데이트 파일은 GitHub Pages에서 다운로드한다.
 - **주요 사용자:** Charlie (단일 사용자, 개인용)
@@ -148,7 +148,7 @@ Workout/
 │   │   ├── appSettings.js    # 알림 거부 시 앱별 iPhone Settings 열기
 │   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
-│   │   └── exercises.js      # DEFAULT_EXERCISES(61개), 영문 카테고리 + 한국어 호환 별칭
+│   │   └── exercises.js      # DEFAULT_EXERCISES(54개), LEGACY_CARDIO_EXERCISES(과거 기록용 7개), 영문 카테고리 + 한국어 호환 별칭
 │   └── ...
 ├── ios/                      # Capacitor Xcode 프로젝트 + 앱 설정 브리지 + 공유 App Scheme
 ├── .eas/build/ios-production.yml # Capacitor/SPM용 EAS Custom Build
@@ -216,8 +216,8 @@ Workout/
   "type": "weight | bodyweight | cardio", "met": 8.3 }
 ```
 - `id`: 기본 운동은 고정 슬러그, 커스텀은 `custom-${crypto.randomUUID()}`
-- `category`: CATEGORIES 중 하나 (`Chest/Back/Legs/Shoulders/Arms/Core/Cardio`)
-- `met`: cardio 타입에만 존재 (칼로리 계산용). 그 외 타입은 필드 없음/null
+- `category`: CATEGORIES 중 하나 (`Chest/Back/Legs/Shoulders/Arms/Core; 과거 데이터는 Cardio도 보존`)
+- `met`: 과거 cardio 백업의 호환 메타데이터로만 보존. 새 운동 타입은 weight/bodyweight만 허용하며 MET 입력은 없다.
 - 커스텀 판별: `id.startsWith('custom-')`이면서 영문 기본 운동 정의와 일치하지 않을 때만 라이브러리에서 색상 구별 + 삭제 가능. 과거 사용자가 추가했던 운동이 현재 기본 운동과 이름·카테고리·타입이 같으면 기존 ID를 유지한 채 기본 운동으로 승격한다.
 
 ### 4.3 Session (id === date, 1일 1세션)
@@ -238,7 +238,7 @@ Workout/
 ### 4.5 Set
 - **weight:** `{ "weight": 80, "reps": 10, "done": false }`
 - **bodyweight:** `{ "added_weight": 0, "reps": 10, "done": false }` (weight 없음)
-- **cardio:** `{ "duration_min": 35, "distance_km": 5.2, "speed_kmh": 8.5, "incline_pct": 2.0, "calories": 338 }` — cardio는 항상 sets 길이 1 (단일 기록)
+- **cardio:** `{ "duration_min": 35, "distance_km": 5.2, "speed_kmh": 8.5, "incline_pct": 2.0, "calories": 338 }` — 과거 기록 호환 전용. 새 입력은 없으며 저장된 모든 sets를 읽기 전용으로 표시한다.
 - `done`: 세트 완료 체크. false면 빈 테두리 체크박스, true면 체크 표시와 입력 잠금(다시 누르면 체크 표시 제거 및 수정 가능).
 
 ### 4.6 localStorage (`storage.js`)
@@ -313,13 +313,13 @@ Workout/
 **동작 명세**
 - **헤더:** History와 동일하게 20px 굵은 제목 `Workout` 왼쪽·날짜 선택 입력 오른쪽을 한 줄에 배치한다. 날짜는 기록 탭과 동일한 배경색·본문색·둥근 모서리·내부 여백의 native date 입력이며 양쪽 가장자리 여백과 상단 위치도 맞춘다. 날짜 형식은 기기 date 입력 표시를 따른다. 운동 날짜 변경 기능과 오늘 이후 날짜 선택 제한은 유지한다. **완료 버튼 없음**(2026-06-14 제거 — 모든 변경이 자동 저장되므로 불필요).
 - **운동 추가:** [+ 운동 추가] 버튼은 **운동 목록 맨 아래**에 위치(2026-06-14 상단→하단 이동). 탭 → 바텀시트(`h-[80vh]` 고정). 상단 검색 input(**autoFocus 없음** — 키보드 자동 노출 방지, 2026-06-14), 카테고리 칩(전체+7), 운동 리스트. 기본 카테고리 = 현재 세션 메인 카테고리 → 없으면 과거 세션 메인 → 없으면 '전체'. 이미 추가된 운동은 흐리게 + "추가됨". Escape/배경 탭으로 닫기, Tab 포커스 트랩.
-- **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가(cardio는 빈 기록 1개 자동 생성). **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
+- **운동 추가 결과:** 새 운동은 **0세트**로 목록 **맨 아래**에 추가. **추가 직후 새 운동 카드를 `scrollIntoView({block:'center'})`로 스크롤**해 바로 보이게 함(2026-06-14).
 - **세트 추가:** 첫 세트면 **같은 운동 계열·장비의 과거 마지막 세트 값**을 기본값으로(previousEquipmentSet), 이후 세트는 직전 세트 값 복사. 기본 폴백 weight=20/reps=10. **추가 직후 해당 운동의 '세트 추가' 버튼 영역을 `scrollIntoView({block:'center'})`로 스크롤**해 새 세트가 바로 보이게 함(2026-06-14).
 - **숫자 수정:** 목록의 중량(kg/lbs·맨몸 추가 중량)과 횟수는 직접 입력칸이다. 숫자를 누르면 전체 선택되어 그 자리에서 키보드로 수정하며 팝업이나 적용 버튼은 없다. 유효한 숫자는 입력 즉시 자동 저장한다. 빈 값·유한하지 않은 값·최솟값 미만은 저장하지 않으며 포커스를 벗어나거나 Enter/Escape를 누르면 마지막 유효 값으로 표시한다. 무게는 소수 키보드, 횟수는 숫자 키보드를 요청한다. 입력 접근성 이름에는 운동명·세트 번호·항목·단위를 포함한다. 목록의 ± 버튼은 항상 표시하며 kg 증감 2.5 / lbs 증감 5 / reps 증감 1을 즉시 반영한다. 완료 세트의 입력과 ±는 잠긴다. 완료 세트의 ±는 기존 비활성 색상에 opacity 0.5를 적용한다. 숫자 입력과 ± 사이에는 구분선을 표시하지 않는다.
 - **세트 행 밀도와 조작 구분:** 한 운동 5세트와 운동명·열 제목·Add set 영역이 일반 iPhone 화면 높이 약 60%를 차지하는 구성을 기준으로 한다. 2개 운동/10세트 한 화면 압축은 목표가 아니다. `.workout-set-row` 최소 높이는 `clamp(4.75rem, calc((60svh - 6.75rem) / 5), 6.5rem)`로 화면 높이에 따라 변한다. 390×844·430×932에서는 약 60%를 목표로 하며, 작은 화면에서는 44px 증감 버튼을 보존하기 위한 최소 행 높이를 우선한다. 첫 5세트는 하단 탭 위에 모두 보인다. 4열은 Set(번호만 표시), kg/lbs, Reps, Done이다. 각 입력기는 24px 숫자를 위에, 항상 보이는 ±를 아래에 둔다. 증감·삭제·완료 클릭 영역은 최소 44×44px다. 삭제는 행을 왼쪽으로 밀어 노출하는 별도 Delete 버튼, 완료는 오른쪽 체크로 분리하고 초록 완료 상태와 입력 잠금을 유지한다. 운동명 16px, 번호·열 제목·Add set은 14px다. 키보드가 닫힌 기본 글자 크기 기준이다. 페이지 줌은 제한하고 일반 세로 스크롤은 유지한다. 실제 iPhone 확인은 별도다.
 - **세트 완료(✓):** 토글. 미완료→완료로 바뀔 때만 휴식 타이머 시작(해제 시엔 안 켜짐). 완료 시 행 잠금(opacity↓, 입력 disabled).
 - **bodyweight:** added_weight 스테퍼(kg step 2.5 / lbs step 5) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
-- **cardio:** 카드에 폼(시간/거리/속도/경사 number input 2열 + 칼로리). duration·met 있으면 칼로리 자동계산(수정 가능), met 없으면 수동 입력 안내.
+- **과거 cardio:** `LegacyCardioRecords`로 시간/거리/속도/경사/칼로리를 읽기 전용 표시한다. 입력·자동 칼로리 계산·장비 선택은 없다. 기존 카드 삭제/Undo와 세션 백업/복원은 유지한다.
 - **삭제:** 세트 번호 아래 ×는 제거한다. 행을 왼쪽으로 밀면 오른쪽에 폭 88px·최소 높이 44px의 Delete 버튼이 나타나며, 버튼을 눌러야 삭제한다. 전체 스와이프로 즉시 삭제하지 않는다. 번호·상시 ±·완료 체크·행 높이는 유지한다. 운동 전체 삭제는 제목 오른쪽 `Delete` 버튼이며 유산소에도 동일하다. 삭제 → 즉시 제거 + UndoToast(10초), 되돌리기 시 값·완료 상태·순서를 복원한다. `+ Add set`은 운동 목록 바로 아래의 얇은 텍스트 버튼이다.
 - **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 마지막 운동 삭제로 운동 목록이 비면 `deleteSession(sessionDate)`로 해당 날짜 세션을 AppContext와 로컬 저장에서 제거한다. History 및 Workout 재진입 시 삭제 전 기록이 복원되지 않으며, Undo는 원래 운동을 다시 upsert한다. 날짜 전환으로 목록을 로드하는 동안에는 기존 자동 저장 방지 플래그를 유지한다. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
 - **날짜 변경:** 헤더 date input 변경 → 해당 날짜 세션 로드(없으면 빈 배열). 날짜 전환 중엔 auto-save 스킵(`isDateChanging`).
@@ -380,7 +380,7 @@ Workout/
 │ Exercise history   [Manage exercises] │
 │ [🔍 운동 검색...]                       │
 │ [All] [Chest] [Back] [Legs]           │
-│ [Shoulders] [Arms] [Core] [Cardio]     │
+│ [Shoulders] [Arms] [Core]              │
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스                      가슴  ││  ← 탭하면 상세로
 │ │ 스쿼트                          하체  ││
@@ -420,10 +420,10 @@ Workout/
 ┌──────────────────────────────────────┐
 │ 운동 목록                     [+ 추가]  │
 │ (추가 폼: 이름 / 카테고리▼ / 타입▼       │  ← +추가 토글
-│         / cardio면 MET / [취소][추가])  │
+│         / weight·bodyweight / [취소][추가])  │
 │ [🔍 운동 검색...]                       │
 │ [All] [Chest] [Back] [Legs]           │
-│ [Shoulders] [Arms] [Core] [Cardio]     │
+│ [Shoulders] [Arms] [Core]              │
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스  웨이트              가슴   ││  ← 기본: zinc-900
 │ ├────────────────────────────────────┤│
@@ -433,7 +433,7 @@ Workout/
 ```
 - 목록은 이름 가나다순 정렬, 카테고리/검색 필터.
 - **커스텀 운동 시각 구별:** `id.startsWith('custom-')`이면 `bg-accent-950/50 border border-accent-800/50` + 초록 "Custom" 라벨 + 삭제(×) 버튼. **이 색상 구별은 라이브러리 화면에서만.** 운동 기록 추가(Session) 모달 리스트는 색 구별 없이 그대로.
-- 추가: 이름 필수. cardio일 때만 MET 입력(양수면 저장, 아니면 null). id=`custom-uuid`.
+- 추가: 이름 필수. 타입은 weight/bodyweight, 부위는 6개만 선택 가능. MET 필드는 없다. id=`custom-uuid`.
 - 기본 운동은 삭제 불가(× 없음).
 
 ### 6.6 Settings `/settings`
@@ -516,11 +516,12 @@ Workout/
 - 과거 "3회 연속 동일 무게 → +2.5kg 올려보세요" 배너 + `epley.js`는 **2026-06-28 제거**.
 - 대신 **이전 값 자동 입력(8.4)** 으로 마지막 무게를 첫 세트 기본값에 넣어주는 기능만 유지.
 
-### 8.2 칼로리 (`calories.js` → calcCalories)
+### 8.2 과거 칼로리 계산 (`calories.js` → calcCalories, 현재 UI에서 사용하지 않음)
 ```
 kcal = round( MET × 체중(kg) × (분/60) )
 ```
 - 인자 중 null/0 이하 있으면 null. 체중은 `storage.getBodyWeight()`(기본 70).
+- Cardio 제거 후 저장된 calories를 그대로 읽으며 자동 재계산하지 않는다.
 
 ### 8.3 메인 카테고리 (`sessionUtils.js` → getMainCategory)
 - 세션 내 운동들의 카테고리 빈도 최다를 반환. 동률이면 **먼저 등장한** 카테고리. 운동 없으면 null.
@@ -533,9 +534,9 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 구현: `src/lib/equipment.js`, `src/components/EquipmentSelect.jsx`. 표시 목록만 계열별로 묶으며 기존 운동 ID·정의·세트는 삭제/병합하지 않는다. 이름/category/type이 알려진 기본 정의와 일치할 때만 계열로 인식한다. 커스텀 운동은 계열을 임의 병합하지 않는다. 다만 이름의 명시적 Smith/Smith Machine/Barbell/EZ-bar/Dumbbell/Cable/Machine/Pec Deck 단어는 표시 이름에서 분리하고 구형 장비 미기입 기록에서만 해당 장비로 해석한다. 장비 단어가 없는 커스텀 이름은 그대로 둔다.
 - Workout 추가/Progress/Library는 Bench Press 등 운동을 한 번 표시한다. Incline Dumbbell Press→Incline Bench Press, Dumbbell Shoulder Press→Overhead Press, Barbell/Dumbbell/EZ-bar Curl→Biceps Curl, Cable Row→Seated Row, Dumbbell Fly/Pec Deck Fly→Fly, Cable Chest Press/Chest Press→Chest Press 계열로 묶는다. One-arm Dumbbell Row→One-arm Row, Reverse Pec Deck Fly→Reverse Fly, Cable Crossover→Crossover, Cable Dips→Dips, Cable Crunch→Crunch, Rowing Machine→Rowing으로 표시한다. Dips와 Cable Dips는 dips 계열로 묶어 검색/Progress/Library에서 Dips 하나만 표시한다. 원래 카드 ID와 세트는 보존한다. recordInputType은 기존 weight/added_weight 필드를 우선하고, 빈 Dips의 Machine/Cable 선택은 weight 입력을 사용한다. Progress는 각 원본 카드의 입력 타입으로 표시해 케이블 중량을 0kg 추가중량으로 잘못 표시하지 않는다. Crunch 등 다른 체중/중량 입력 차이는 기존대로다. 원래 정의·백업 이름은 호환성을 위해 보존한다. 대표 ID는 계열 기본 운동을 우선하고 과거 별도 ID는 조회 시 연결한다.
 - SessionExercise의 선택적 equipment 값은 barbell/dumbbell/machine/bodyweight/other/unspecified다. 구형 smith/cable은 저장과 백업에서 보존하고 조회 시 machine 그룹으로 해석한다. 구형 ezbar는 로드/가져오기/내보내기 및 이전 기록 조회 시 barbell로 정규화하며 세트·카드·운동 ID는 보존한다. 동일 날짜·운동·장비의 카드 중복을 허용하며 순서와 개별 세트를 보존한다.
-- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. 모든 기본·커스텀·맨몸·유산소 운동에서 Unspecified / Barbell / Dumbbell / Machine / Bodyweight / Other(미정/바벨/덤벨/머신/맨몸/기타) 여섯 선택지를 같은 순서로 제공한다. 운동별 제한은 없다.
+- UI는 운동명 옆 최소 44px 높이 native select(Equipment for [운동명])다. 모든 활성 기본·커스텀·맨몸 운동에서 Unspecified / Barbell / Dumbbell / Machine / Bodyweight / Other(미정/바벨/덤벨/머신/맨몸/기타) 여섯 선택지를 같은 순서로 제공한다. 운동별 제한은 없다.
 - 추가 기본값: 새 카드는 같은 운동 계열의 전체 저장 기록에서 세트가 1개 이상 있는 카드 수가 가장 많은 equipment를 선택한다(세트 수나 완료 여부가 아닌 기록 카드 건수, 같은 날짜 중복 카드도 각각 집계). 동률이면 해당 형태의 최근 기록 날짜를 우선하고 날짜까지 같으면 공통 선택지 순서로 결정한다. 구형 기록은 기존 장비 해석 규칙으로 집계하며 빈 카드는 제외한다. 기록이 없으면 unspecified로 시작한다. Progress는 기존처럼 Unspecified로 시작하며 원하는 장비를 선택해 기록을 조회한다.
-- Workout 장비 드롭다운은 세트 유무에 관계없이 해당 카드의 equipment만 제자리 변경한다. 운동 ID·카드 순서·중량/추가중량·횟수·유산소 값·완료 상태를 그대로 유지하며 새 카드 추가나 스크롤, 같은 장비 카드와의 병합은 하지 않는다. 변경한 날짜의 카드만 자동 저장되고 History/Progress에서도 선택한 장비의 기록으로 조회된다. 다른 날짜 기록은 유지한다. 빈 유산소 카드는 첫 입력에서 cardio 기록 객체를 생성해 저장한다. 현재 장비 재선택은 변경하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
+- Workout 장비 드롭다운은 세트 유무에 관계없이 해당 카드의 equipment만 제자리 변경한다. 운동 ID·카드 순서·중량/추가중량·횟수·유산소 값·완료 상태를 그대로 유지하며 새 카드 추가나 스크롤, 같은 장비 카드와의 병합은 하지 않는다. 변경한 날짜의 카드만 자동 저장되고 History/Progress에서도 선택한 장비의 기록으로 조회된다. 다른 날짜 기록은 유지한다. 과거 유산소 카드는 읽기 전용이며 새 입력과 장비 변경을 제공하지 않는다. 현재 장비 재선택은 변경하지 않는다. 삭제/Undo는 equipment와 세트를 함께 복원한다.
 - 장비 없는 구형 기록 중 Dumbbell/EZ-bar/Cable Row/Barbell Curl처럼 장비가 명확한 기존 항목은 해당 장비로 해석한다. 그 외 장비 선택 가능 운동은 Unspecified로 표시하며 임의로 Barbell 등에 귀속하지 않는다. 원래 장비 구분 없는 운동의 구형 기록은 Unspecified로 해석한다. 명시된 기존 equipment는 저장에서 변경하지 않는다. smith/cable 및 이름에서 추론한 스미스/케이블은 화면·Progress·이전 세트·기본 장비 빈도 계산에서 Machine으로 함께 조회한다. 기존 미정 기록을 맨몸으로 자동 추정하지 않는다.
 - History 상세는 장비를 함께 표시한다. Progress는 운동 선택 후 장비 필터로 분리하고 같은 날짜·장비의 모든 카드를 date:index 키로 각각 표시한다. 기본 장비 기록이 없고 Unspecified 과거 기록이 있으면 처음부터 Unspecified를 표시한다.
 - 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith`으로 출력한다. 구형 보고서의 Smith Machine은 smith로, EZ Bar는 barbell로 읽는다. Smith/Cable 원본 값은 구조화·읽기용 Markdown 및 로컬 JSON에 계속 남기며 UI에서만 Machine으로 이관한다. 새 Bodyweight/Other 값도 동일한 version 1 형식으로 검증·복원한다. Machine 재선택은 구형 세부 장비 값을 덮어쓰지 않는다. 장비 분류 변경은 세트 입력 방식(type)을 바꾸지 않는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
@@ -562,7 +563,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 ---
 
-## 9. 기본 운동 목록 (`exercises.js`, 61개 / 7카테고리)
+## 9. 기본 운동 목록 (`exercises.js`, 54개 / 6카테고리)
 
 - **Chest(13):** Bench Press, Incline Bench Press, Decline Bench Press, Dumbbell Fly, Cable Crossover, Dips(bw), Push-up(bw), Pec Deck Fly, Cable Dips, Incline Dumbbell Press, Chest Press, Assisted Dip, Cable Chest Press
 - **Back(9):** Pull-up(bw), Lat Pulldown, Seated Row, One-arm Dumbbell Row, Deadlift, T-bar Row, Cable Row, Assisted Chin-up, Straight-arm Pulldown
@@ -570,8 +571,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - **Arms(8):** Barbell Curl, Dumbbell Curl, Hammer Curl, Preacher Curl, Triceps Pushdown, Overhead Triceps Extension, Skull Crusher, EZ-bar Curl
 - **Legs(9):** Squat, Leg Press, Lunge, Leg Extension, Leg Curl, Hip Abduction, Calf Raise, Romanian Deadlift, Thigh Abduction
 - **Core(7):** Crunch(bw), Leg Raise(bw), Plank(bw), Cable Crunch, Hanging Leg Raise(bw), Ab Wheel Rollout(bw), Back Extension
-- **Cardio(7, MET):** Treadmill 8.3, Cycling 8.0, Rowing Machine 7.0, Elliptical 5.0, Jump Rope 10.0, Walking 3.5, Stair Climber 9.0
-- `CATEGORIES = ['Chest','Back','Legs','Shoulders','Arms','Core','Cardio']`
+- **과거 호환 전용 LEGACY_CARDIO_EXERCISES(7, 신규 목록 제외):** Treadmill 8.3, Cycling 8.0, Rowing Machine 7.0, Elliptical 5.0, Jump Rope 10.0, Walking 3.5, Stair Climber 9.0
+- `CATEGORIES = ['Chest','Back','Legs','Shoulders','Arms','Core']`
 - `LEGACY_EXERCISE_NAMES`와 `LEGACY_CATEGORIES`는 한국어 저장 데이터/백업을 영문 기본 정의로 연결한다. ID만 같고 사용자가 이름을 임의 변경한 운동은 이름을 강제로 덮어쓰지 않는다.
 
 ---
@@ -594,7 +595,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 ## 11. Phase 계획
 
 ### ✅ Phase 1 — MVP
-- [x] 웨이트 + 유산소 기록 / 유산소 수동 기록 / PWA
+- [x] 웨이트 + 맨몸 기록 / 과거 유산소 기록 읽기·백업 호환 / PWA
 
 ### ✅ Phase 2 — 점진적 과부하 (이후 롤백)
 - [x] +2.5kg 제안 배너 → **2026-06-28 제거** (이전 값 자동 입력만 유지)
@@ -820,3 +821,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-18: Workout 장비 드롭다운을 기존 카드의 기구 수정으로 변경했다. 세트가 있어도 새 카드를 추가하지 않고 기록 값·완료 상태·카드 순서를 보존하며 선택한 장비 기록으로 자동 저장한다. 중복 카드 보존·저장 후 장비별 조회·맨몸/유산소 값 보존을 포함한 단위 테스트 70개, lint·웹 빌드를 검증했다. 앱/웹 배포는 별도다.
 
 - 2026-10-18: 장비 선택을 미정/바벨/덤벨/머신/맨몸/기타로 단순화했다. 기존 스미스·케이블은 비파괴 조회 이관으로 머신에 묶고 원래 장비·운동 ID·세트·완료 상태·중복 카드는 로컬/Markdown 백업에 보존한다. 구형 구조화 백업과 읽기용 Markdown 가져오기, 재내보내기 왕복, 재가져오기 중복 방지를 회귀 검사한다. 상세 메타데이터 없는 구형 보고서는 기존처럼 완료 상태를 복원할 수 없으며 경고한다. 앱 배포는 별도다.
+
+- 2026-10-18: Cardio 신규 기록 기능을 제거했다. Workout 추가·Progress·Exercises의 전체/검색/부위 목록에서 저장된 기본·커스텀 유산소와 Cardio 분류 운동을 제외한다. 새 기본 목록은 54개/6부위이며 커스텀 타입은 weight/bodyweight만 제공한다. 저장된 운동 ID·세트·MET·장비와 백업 가져오기/내보내기를 보존한다. Workout에서 과거 유산소는 장비 선택과 입력 없이 읽기 전용이며 History 상세도 모든 기록을 표시한다. 이전 세션의 Cardio 필터는 All로 대체한다. README·스토어 소개·지원 사이트 소스를 웨이트/맨몸 중심으로 수정했다. 앱·OTA·지원 사이트·스토어 원격 게시는 별도다.

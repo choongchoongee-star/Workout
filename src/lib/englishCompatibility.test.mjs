@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { DEFAULT_EXERCISES, LEGACY_CATEGORIES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
+import { KNOWN_EXERCISES, LEGACY_CATEGORIES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
 import { mergeDefaultExercises, normalizeExercise } from './exerciseLibrary.js'
 import { parseWorkoutMarkdown, planWorkoutImport } from './importUtils.js'
 import { buildMarkdown } from './exportUtils.js'
@@ -39,7 +39,7 @@ test('old Korean Markdown resolves to English defaults without losing sets or cr
       { exerciseId: 'back-extension', sets: [] },
     ],
   })
-  assert.equal(planWorkoutImport({ exercises: DEFAULT_EXERCISES, sessions: [] }, data).exerciseCount, 0)
+  assert.equal(planWorkoutImport({ exercises: KNOWN_EXERCISES, sessions: [] }, data).exerciseCount, 0)
   const markdown = buildMarkdown(data.sessions, data.exercises)
   assert.equal(/[가-힣]/.test(markdown), false)
   assert.deepEqual(parseWorkoutMarkdown(markdown).sessions, data.sessions)
@@ -48,16 +48,16 @@ test('old Korean Markdown resolves to English defaults without losing sets or cr
 })
 
 test('every historical default and promoted custom ID survives English conversion', () => {
-  const old = DEFAULT_EXERCISES.map((base, index) => ({
+  const old = KNOWN_EXERCISES.map((base, index) => ({
     ...base, id: index % 2 ? `custom-old-${index}` : base.id,
     name: LEGACY_EXERCISE_NAMES[base.id],
     category: Object.keys(LEGACY_CATEGORIES).find(key => LEGACY_CATEGORIES[key] === base.category),
   }))
   const before = structuredClone(old)
   const merged = mergeDefaultExercises(old)
-  assert.equal(merged.length, DEFAULT_EXERCISES.length)
+  assert.equal(merged.length, KNOWN_EXERCISES.length)
   assert.deepEqual(merged.map(ex => ex.id), old.map(ex => ex.id))
-  assert.deepEqual(merged.map(ex => ex.name), DEFAULT_EXERCISES.map(ex => ex.name))
+  assert.deepEqual(merged.map(ex => ex.name), KNOWN_EXERCISES.map(ex => ex.name))
   assert.deepEqual(old, before)
   const data = parseWorkoutMarkdown(korean, merged)
   assert.ok(data.sessions[0].exercises.every(ex => merged.some(saved => saved.id === ex.exerciseId)))

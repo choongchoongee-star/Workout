@@ -1,3 +1,4 @@
+import LegacyCardioRecords from '../components/LegacyCardioRecords'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import { EQUIPMENT_LABELS, recordEquipment, recordInputType } from '../lib/equipment'
@@ -64,20 +65,7 @@ export default function SessionDetail() {
               </div>
 
               {isCardio ? (
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {se.sets[0] && Object.entries({
-                    'Duration': se.sets[0].duration_min != null ? `${se.sets[0].duration_min} ${t('min')}` : null,
-                    'Distance': se.sets[0].distance_km != null ? `${se.sets[0].distance_km}km` : null,
-                    'Speed': se.sets[0].speed_kmh != null ? `${se.sets[0].speed_kmh}km/h` : null,
-                    'Incline': se.sets[0].incline_pct != null ? `${se.sets[0].incline_pct}%` : null,
-                    'Calories': se.sets[0].calories != null ? `${se.sets[0].calories}kcal` : null,
-                  }).filter(([, v]) => v !== null).map(([label, value]) => (
-                    <div key={t(label)}>
-                      <span className="text-zinc-500 text-xs">{t(label)}</span>
-                      <p className="text-white">{value}</p>
-                    </div>
-                  ))}
-                </div>
+                <LegacyCardioRecords sets={se.sets} />
               ) : (
                 <div className="space-y-1.5">
                   {se.sets.map((set, si) => (

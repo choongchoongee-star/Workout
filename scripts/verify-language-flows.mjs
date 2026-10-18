@@ -186,7 +186,7 @@ try {
     await checkStored(data => data.sessions[0].exercises[0].sets.length === 5)
 
     for (const [english, korean, category, translatedCategory] of [
-      ['Pull-up', '풀업', 'Back', '등'], ['Treadmill', '러닝머신', 'Cardio', '유산소'],
+      ['Pull-up', '풀업', 'Back', '등'],
     ]) {
       await page.getByRole('button', { name: word('+ Add exercise', '+ 운동 추가'), exact: true }).click()
       const modal = page.getByRole('dialog')
@@ -199,10 +199,7 @@ try {
         await card.getByRole('button', { name: word('+ Add set', '+ 세트 추가'), exact: true }).click()
         await card.getByRole('button', { name: word('Increase reps by 1', '회 1 늘리기'), exact: true }).click()
         await checkStored(data => data.sessions[0].exercises.some(e => e.exerciseId === 'pullup' && e.sets[0]?.reps === 11 && e.sets[0]?.added_weight === 0 && !('weight' in e.sets[0])))
-      } else {
-        await card.getByPlaceholder('35', { exact: true }).fill('15')
-        await card.getByPlaceholder('5.2', { exact: true }).fill('2.5')
-        await checkStored(data => data.sessions[0].exercises.some(e => e.exerciseId === 'treadmill' && e.sets[0]?.duration_min === 15 && e.sets[0]?.distance_km === 2.5 && e.sets[0]?.calories > 0))
+
       }
     }
 

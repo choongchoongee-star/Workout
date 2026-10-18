@@ -1,3 +1,4 @@
+import { selectableExercises } from '../lib/exerciseLibrary'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import { exerciseChoices } from '../lib/equipment'
@@ -7,7 +8,7 @@ import { useApp } from '../context/AppContext'
 import { CATEGORIES } from '../data/exercises'
 import { isDefaultExercise } from '../lib/exerciseLibrary'
 
-const TYPE_LABELS = { weight: 'Weight', bodyweight: 'Bodyweight', cardio: 'Cardio' }
+const TYPE_LABELS = { weight: 'Weight', bodyweight: 'Bodyweight' }
 
 export default function Library() {
   const { exercises, deleteExercise, loaded, syncError } = useApp()
@@ -16,7 +17,7 @@ export default function Library() {
   const [showAdd, setShowAdd] = useState(false)
 
   const categories = ['All', ...CATEGORIES]
-  const filtered = exerciseChoices(exercises)
+  const filtered = exerciseChoices(selectableExercises(exercises))
     .filter(e => {
       const matchCat = activeCategory === 'All' || e.category === activeCategory
       const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
