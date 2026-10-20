@@ -1,6 +1,7 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-10-20
+> 최신 OTA: 2026-10-20 이전 운동 가져오기(소스 1af2660)를 빌드 12 호환 runtime ios-326d6b3c3dd1fbb3에 게시했다. 공개 manifest·ZIP SHA-256·RSA 서명 검증 완료. iPhone 실기기 적용 확인은 별도다.
 > 현재 소스 runtime: ios-326d6b3c3dd1fbb3. iOS 1.0.1(12) production 빌드 및 App Store Connect 업로드 성공(2026-10-18). Apple 처리 완료·TestFlight 설치 가능 여부는 로그인 확인이 필요하다. 이전 빌드 11(1.0)은 업로드 후 Apple 검증에서 ITMS-90186/ITMS-90062로 거절됐다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
@@ -838,3 +839,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-18: 사용자 승인으로 빌드 12(1.0.1)를 TestFlight용 App Store Connect에 업로드했다. 제출 348d71a9-c32f-42ae-a125-6b421a1ee3f1이 성공 종료했고 binary successfully uploaded 및 Apple processing을 확인했다. App Store Connect 브라우저는 Apple 로그인이 필요하여 처리 완료·테스터 설치 가능 여부는 미확인이다. 정식 심사 제출·공개 출시는 실행하지 않았다.
 
 - 2026-10-20: 운동 탭에 이전 운동 가져오기 구현. 기존 날짜 목록과 우상단 기본 날짜 선택기, 운동 단위 선택, 현재 기록에 추가 및 안전한 Undo를 제공한다. 전체 76개 단위 테스트·lint·웹 빌드 통과. 브라우저에서 날짜 필터·선택 해제·부분/전체 복사·맨몸 추가 중량·Undo·새로고침 후 저장 유지와 390px 배치를 확인했다. iPhone 실기기 검증과 앱 배포는 별도다.
+
+- 2026-10-20: 사용자 승인으로 이전 운동 가져오기 소스 1af2660의 OTA를 게시했다. runtime ios-326d6b3c3dd1fbb3, bundle 7119fda7a2f89e5ae99f5eba2b534fc0175a98ecb232a0cf55a3b5815ace7a55, ZIP 137053 bytes. Capacitor 빌드·네이티브 fingerprint·iOS 구성 검사·로컬 서명 검증을 통과한 산출물을 해당 runtime 경로에만 추가 게시했다. GitHub Pages 실행 39349327038 성공 및 공개 manifest 일치·ZIP SHA-256·RSA 서명 검증 완료. 설정 → 업데이트 확인 후 앱 완전 종료·재실행으로 적용한다. EAS 신규 빌드·TestFlight 신규 업로드는 실행하지 않았으며 실기기 적용은 미확인이다.
