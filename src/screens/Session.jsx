@@ -12,6 +12,7 @@ import LegacyCardioRecords from '../components/LegacyCardioRecords'
 import StepperInput from '../components/StepperInput'
 import { startRestTimer } from '../lib/activeRestTimer'
 import UndoToast from '../components/UndoToast'
+import CopyWorkoutModal from '../components/CopyWorkoutModal'
 import SwipeToDelete from '../components/SwipeToDelete'
 import { CATEGORIES } from '../data/exercises'
 import { localTodayStr } from '../lib/dateUtils'
@@ -224,6 +225,7 @@ export default function Session() {
   }, [sessionDate, realToday, startTimeKey])
 
   const [showModal, setShowModal] = useState(false)
+  const [showCopyModal, setShowCopyModal] = useState(false)
   const [undoData, setUndoData] = useState(null)
 
   // Auto-save in-progress session to context on every change
@@ -272,6 +274,15 @@ export default function Session() {
     const equipment = defaultEquipment(ex, sessions, exercises)
     setSessionExercises(prev => [...prev, { exerciseId: ex.id, ...(equipment ? { equipment } : {}), sets }])
     setShowModal(false)
+  }
+
+  function copyExercises(cards) {
+    if (!loaded || cards.length === 0) return
+    const after = [...sessionExercises, ...deepClone(cards)]
+    pendingScrollCardIdx.current = sessionExercises.length
+    setUndoData({ token: Date.now(), type: 'copy', before: sessionExercises, after, date: sessionDate, count: cards.length })
+    setSessionExercises(after)
+    setShowCopyModal(false)
   }
 
   function selectEquipment(exIdx, equipment) {
@@ -351,7 +362,9 @@ export default function Session() {
 
   const handleUndo = useCallback(() => {
     if (!undoData) return
-    if (undoData.type === 'set') {
+    if (undoData.type === 'copy') {
+      if (undoData.date === sessionDate) setSessionExercises(prev => prev === undoData.after ? undoData.before : prev)
+    } else if (undoData.type === 'set') {
       setSessionExercises(prev => {
         const copy = deepClone(prev)
         if (!copy[undoData.exIdx]) return prev
@@ -369,7 +382,7 @@ export default function Session() {
         return copy
       })
     }
-  }, [undoData])
+  }, [undoData, sessionDate])
 
   const handleUndoDismiss = useCallback(() => {
     setUndoData(null)
@@ -385,7 +398,12 @@ export default function Session() {
           aria-label={t("Workout date")}
           value={sessionDate}
           max={realToday}
-          onChange={e => e.target.value && setSessionDate(e.target.value)}
+          onChange={e => {
+            if (!e.target.value) return
+            setUndoData(null)
+            setShowCopyModal(false)
+            setSessionDate(e.target.value)
+          }}
           className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
         />
       </div>
@@ -462,16 +480,21 @@ export default function Session() {
         })}
       </div>
 
+      <div className="mt-3 grid grid-cols-2 gap-2">
       <button
         onClick={() => setShowModal(true)}
-        className="w-full mt-3 bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
+        className="w-full bg-zinc-900 border border-dashed border-zinc-700 text-zinc-400 rounded-2xl py-4 text-sm active:bg-zinc-800 transition-colors"
       >{t("+ Add exercise")}</button>
+      <button type="button" disabled={!loaded} onClick={() => setShowCopyModal(true)}
+        className="w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-2 py-4 text-sm text-zinc-400 active:bg-zinc-800 disabled:opacity-40">{t('Copy previous workout')}</button>
+      </div>
 
+      {showCopyModal && <CopyWorkoutModal sessions={sessions} exercises={exercises} targetDate={sessionDate} onCopy={copyExercises} onClose={() => setShowCopyModal(false)} />}
 
-      {undoData && (
+      {undoData && (undoData.type !== 'copy' || (undoData.after === sessionExercises && undoData.date === sessionDate)) && (
         <UndoToast
           key={undoData.token}
-          message={t('{name} deleted', { name: undoData.name })}
+          message={undoData.type === 'copy' ? t('{count} exercises copied', { count: undoData.count }) : t('{name} deleted', { name: undoData.name })}
           onUndo={handleUndo}
           onDismiss={handleUndoDismiss}
         />
