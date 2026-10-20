@@ -1,7 +1,7 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
 > 마지막 업데이트: 2026-10-20
-> 최신 OTA: 2026-10-20 이전 운동 가져오기(소스 1af2660)를 빌드 12 호환 runtime ios-326d6b3c3dd1fbb3에 게시했다. 공개 manifest·ZIP SHA-256·RSA 서명 검증 완료. iPhone 실기기 적용 확인은 별도다.
+> 최신 OTA: 2026-10-20 운동별 기록 개선·한 줄 휴식 타이머(소스 dd2dec6, 이전 운동 가져오기 포함)를 빌드 12 호환 runtime ios-326d6b3c3dd1fbb3에 게시했다. 공개 manifest·ZIP SHA-256·RSA 서명 검증 완료. iPhone 실기기 적용 확인은 별도다.
 > 현재 소스 runtime: ios-326d6b3c3dd1fbb3. iOS 1.0.1(12) production 빌드 및 App Store Connect 업로드 성공(2026-10-18). Apple 처리 완료·TestFlight 설치 가능 여부는 로그인 확인이 필요하다. 이전 빌드 11(1.0)은 업로드 후 Apple 검증에서 ITMS-90186/ITMS-90062로 거절됐다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
@@ -843,3 +843,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-20: 사용자 승인으로 이전 운동 가져오기 소스 1af2660의 OTA를 게시했다. runtime ios-326d6b3c3dd1fbb3, bundle 7119fda7a2f89e5ae99f5eba2b534fc0175a98ecb232a0cf55a3b5815ace7a55, ZIP 137053 bytes. Capacitor 빌드·네이티브 fingerprint·iOS 구성 검사·로컬 서명 검증을 통과한 산출물을 해당 runtime 경로에만 추가 게시했다. GitHub Pages 실행 39349327038 성공 및 공개 manifest 일치·ZIP SHA-256·RSA 서명 검증 완료. 설정 → 업데이트 확인 후 앱 완전 종료·재실행으로 적용한다. EAS 신규 빌드·TestFlight 신규 업로드는 실행하지 않았으며 실기기 적용은 미확인이다.
 
 - 2026-10-20: 운동별 기록의 초기 기구 선택을 기록 기반으로 수정하고 기록 있는 운동 우선 표시·검색 조건 유지를 적용했다. 승인한 시안대로 휴식 타이머를 56px 한 줄로 축소하고 과거 기록 완료 수정 시 타이머 시작을 막았다. 완료/미완료 기록 참조 정책과 소요시간은 유지한다. 76개 단위 테스트·lint·웹 빌드를 통과했고 브라우저에서 기록 우선 목록·바벨 자동 선택·검색어 복귀·390px 타이머 배치·시작/Skip·과거 날짜 미실행을 확인했다. 실기기 검증과 앱 배포는 별도다.
+
+- 2026-10-20: 사용자 배포 요청으로 운동별 기록 개선·한 줄 타이머 소스 dd2dec6의 OTA를 게시했다. runtime ios-326d6b3c3dd1fbb3(빌드 12 호환), bundle 0019852db24f739d008d4c5f53b8da51fab79912812ce48ecf9957957e562148, ZIP 136963 bytes. 기존 76개 테스트·lint·웹 빌드·브라우저 검증에 더해 iOS 구성/fingerprint 검사·새 Capacitor 빌드·서명 검증을 통과했다. 해당 runtime 경로만 게시했고 GitHub Pages 실행 39359869770 성공과 공개 manifest 일치·ZIP SHA-256·RSA 서명을 확인했다. 설정 → 업데이트 확인 후 완전 종료·재실행으로 적용하며 실기기 적용은 별도 확인한다. 신규 EAS 빌드·TestFlight 업로드는 실행하지 않았다.
