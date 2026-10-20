@@ -2,7 +2,7 @@ import { selectableExercises } from '../lib/exerciseLibrary'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
-import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices } from '../lib/equipment'
+import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices, familyId } from '../lib/equipment'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -38,12 +38,24 @@ export default function Weight() {
 
   const categories = ['All', ...CATEGORIES]
 
-  // 선택 화면: 카테고리/검색 필터된 운동 목록
+  const recordedFamilies = useMemo(() => {
+    const byId = new Map(exercises.map(exercise => [exercise.id, exercise]))
+    const recorded = new Set()
+    for (const session of sessions) {
+      for (const card of session.exercises ?? []) {
+        const exercise = byId.get(card.exerciseId)
+        if (exercise && card.sets?.length) recorded.add(familyId(exercise))
+      }
+    }
+    return recorded
+  }, [exercises, sessions])
+
+  // Keep the original order within recorded and unrecorded movements.
   const filtered = useMemo(() => exerciseChoices(selectableExercises(exercises)).filter(e => {
     const matchCat = activeCategory === 'All' || e.category === activeCategory
     const matchQ = !query || `${movementName(e)} ${e.name}`.toLowerCase().includes(query.toLowerCase())
     return matchCat && matchQ
-  }), [exercises, activeCategory, query])
+  }).sort((a, b) => Number(recordedFamilies.has(familyId(b))) - Number(recordedFamilies.has(familyId(a)))), [exercises, activeCategory, query, recordedFamilies])
 
   // 상세 화면: 선택한 운동의 날짜별 기록 (세션은 이미 날짜 역순 정렬)
   const records = useMemo(() => {
@@ -52,12 +64,8 @@ export default function Weight() {
   }, [sessions, exercises, selected, selectedEquipment])
 
   function selectExercise(exercise) {
-    const equipment = defaultEquipment()
-    const hasUnknownRecords = equipmentRecords(sessions, exercises, exercise, 'unspecified').length > 0
-    const hasEquipmentRecords = equipmentRecords(sessions, exercises, exercise, equipment).length > 0
     setSelected(exercise)
-    setSelectedEquipment(!hasEquipmentRecords && hasUnknownRecords ? 'unspecified' : equipment)
-    setQuery('')
+    setSelectedEquipment(defaultEquipment(exercise, sessions, exercises))
   }
 
   // ===== 상세 화면 =====

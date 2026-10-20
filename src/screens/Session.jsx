@@ -334,7 +334,7 @@ export default function Session() {
       }
       return copy
     })
-    if (wasUndone) startRestTimer()
+    if (wasUndone && sessionDate === localTodayStr()) startRestTimer()
   }
 
   function removeSet(exIdx, setIdx) {

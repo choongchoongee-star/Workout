@@ -96,7 +96,7 @@ export default function Layout({ children }) {
         {children}
       </main>
       {pathname === '/history' && <HistoryScrollbar scrollRef={mainRef} />}
-      {restTimer.active && <RestTimer seconds={restTimer.remaining} total={restTimer.total} onSkip={skipRestTimer} />}
+      {restTimer.active && <RestTimer seconds={restTimer.remaining} onSkip={skipRestTimer} />}
       <nav className="fixed z-30 bottom-0 left-0 right-0 bg-accent-600 border-t border-accent-700 flex pb-[env(safe-area-inset-bottom)]">
         {NAV.map(({ to, label, icon }) => (
           <NavLink

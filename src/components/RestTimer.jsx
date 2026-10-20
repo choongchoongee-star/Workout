@@ -1,45 +1,20 @@
 import { t } from '../lib/i18n'
-export default function RestTimer({ seconds, total, onSkip }) {
-  const pct = total > 0 ? (seconds / total) * 100 : 0
 
+export default function RestTimer({ seconds, onSkip }) {
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60
 
   return (
-    <div role="region" aria-label={t("Rest timer")} className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 mx-4 bg-zinc-900 border border-zinc-700 rounded-2xl p-4 shadow-xl z-40">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-zinc-400 text-sm">{t("Rest")}</span>
-        <button
-          onClick={onSkip}
-          className="min-h-11 px-2 text-zinc-400 text-sm active:text-white"
-        >{t("Skip")}</button>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="relative w-14 h-14 flex-shrink-0">
-          <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-            <circle cx="28" cy="28" r="24" fill="none" stroke="var(--color-zinc-700)" strokeWidth="4" />
-            <circle
-              cx="28" cy="28" r="24"
-              fill="none"
-              stroke="var(--color-accent-500)"
-              strokeWidth="4"
-              strokeDasharray={`${2 * Math.PI * 24}`}
-              strokeDashoffset={`${2 * Math.PI * 24 * (1 - pct / 100)}`}
-              strokeLinecap="round"
-              className="transition-all duration-1000"
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-sm">
-            {mins > 0 ? `${mins}:${String(secs).padStart(2, '0')}` : secs}
-          </span>
-        </div>
-        <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div
-            className="h-2 bg-accent-500 rounded-full transition-all duration-1000"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
+    <div role="region" aria-label={t('Rest timer')} className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 mx-4 flex min-h-14 items-center gap-2.5 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-1 shadow-xl z-40">
+      <svg aria-hidden="true" className="h-[18px] w-[18px] shrink-0 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <circle cx="12" cy="13" r="8" />
+        <path d="M9 2h6m-3 3V2m0 6v5l3 2" />
+      </svg>
+      <span className="text-sm text-zinc-400">{t('Rest')}</span>
+      <span role="timer" className="text-lg font-bold tabular-nums text-white">{mins}:{String(secs).padStart(2, '0')}</span>
+      <button type="button" onClick={onSkip} className="ml-auto min-h-11 shrink-0 px-2 text-sm text-zinc-400 active:text-white">
+        {t('Skip')}
+      </button>
     </div>
   )
 }
