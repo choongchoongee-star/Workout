@@ -1,4 +1,13 @@
-## Latest delivery status (2026-10-18)
+## Latest delivery status (2026-10-22)
+
+- **Live release confirmed: iOS 1.0.1 (13).** App Store Connect shows version 1.0.1, selected build 13, and Ready for Distribution (배포 준비됨). The Korean public App Store page displays version 1.0.1 and the latest release notes. Its relative release label was “8 hours ago” at verification; an exact release timestamp was not established.
+- Public listing: https://apps.apple.com/kr/app/steady-sets/id6808960698
+- Build 13 completed on 2026-10-20: EAS build a1e3f026-ea95-4da7-8bc4-a4a1dcd108e1, source base 3d4c94b (including dd2dec6), isolated version commit c5a7827. App Store Connect upload 66093d76-35c7-4195-857f-e6e83e8ded0f succeeded. Apple build ID: 7da15bb2-f243-40a3-bf0e-d5178e8438b4. Local app/widget build numbers are 13; runtime remains ios-326d6b3c3dd1fbb3.
+- App Review submission ffd5219e-02dc-4443-9f09-e62e7ee79943 was accepted on 2026-10-20 at 22:08 KST. Automatic release after approval and immediate rollout to all users were selected. The subsequent live release is now verified.
+- Released changes include previous-workout exercise copying, recorded-equipment selection and history ordering, a compact rest timer, and supported Lock Screen timer cancellation. Existing ratings were retained.
+- Actual iPhone update installation and device behavior remain separately unverified. Earlier dated preparation and pending-status entries below describe historical states.
+
+## Previous delivery status (2026-10-18)
 
 - Apple rejected build 11 (1.0) after upload: ITMS-90186 (closed 1.0 train) and ITMS-90062 (marketing version must exceed approved 1.0), confirmed by the owner-provided Apple email. Build 11 is not available for testing.
 - iOS 1.0.1 (12) production build succeeded on 2026-10-18 at 15:28 KST: 6ce5c80b-a780-4f8d-9711-7bc99cb61504. Source base 216283c, isolated EAS version commit 996b82b, runtime ios-326d6b3c3dd1fbb3. EAS reports FINISHED and an IPA artifact. Local app/widget build numbers are synchronized to 12; release configuration checks, lint and web build passed.
@@ -15,7 +24,7 @@
 
 Updated: 2026-09-09
 
-## Current review status (2026-09-09)
+## Historical review status (2026-09-09)
 
 - Submitted iOS 1.0 (10) to App Review with explicit owner authorization at 11:02 KST on 2026-09-09. Submission ede9102a-25ef-40bf-a5eb-3938f352c092 is Waiting for Review, verified on its details page. Required-field validation passed. Manual release remains enabled; the app has not been released. Previous preparation entries below are historical.
 
