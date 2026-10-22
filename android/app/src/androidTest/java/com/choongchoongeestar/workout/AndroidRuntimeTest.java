@@ -197,7 +197,7 @@ public class AndroidRuntimeTest {
             button("Cancel");
         } finally { instrumentation.removeMonitor(picker); }
         tab("/session");
-        until("!!document.querySelector('[aria-label=\"Edit reps: 11 reps\"]')");
+        until("document.querySelector('input[aria-label$=\"Reps (reps)\"]').value === '11'");
         long deadline = SystemClock.elapsedRealtime() + 10000;
         while (new JSONObject(new String(Files.readAllBytes(data.toPath()), StandardCharsets.UTF_8)).getJSONArray("sessions").length() != 1 && SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(100);
         assertEquals(1, new JSONObject(new String(Files.readAllBytes(data.toPath()), StandardCharsets.UTF_8)).getJSONArray("sessions").length());
@@ -258,9 +258,9 @@ public class AndroidRuntimeTest {
             assertEquals("\"android\"", js("Capacitor.getPlatform()"));
             js("localStorage.setItem('wl_rest_seconds', '60')");
             clickLabel("Increase reps by 1");
-            until("!!document.querySelector('[aria-label=\"Edit reps: 11 reps\"]')");
+            until("document.querySelector('input[aria-label$=\"Reps (reps)\"]').value === '11'");
             clickLabel("Increase kg by 2.5");
-            until("document.body.innerText.includes('42.5')");
+            until("document.querySelector('input[aria-label$=\"Weight (kg)\"]').value === '42.5'");
             clickLabel("Mark set as complete");
             until("!!document.querySelector('[aria-label=\"Rest timer\"]')");
             for (String path : new String[]{"/history", "/weight", "/settings", "/session"}) {
@@ -291,7 +291,7 @@ public class AndroidRuntimeTest {
             scenario.close();
             scenario = ActivityScenario.launch(MainActivity.class);
             until("document.body.innerText.includes('Bench Press')");
-            until("!!document.querySelector('[aria-label=\"Edit reps: 11 reps\"]')");
+            until("document.querySelector('input[aria-label$=\"Reps (reps)\"]').value === '11'");
             js("window.probe=null; Capacitor.nativePromise('AppSettings','getLanguage',{}).then(x=>window.probe=x.language).catch(e=>window.probe='ERROR:'+e.message)");
             until("typeof window.probe==='string'");
             assertTrue(js("window.probe").startsWith("\"en"));
@@ -315,12 +315,12 @@ public class AndroidRuntimeTest {
             until("location.pathname==='/settings'");
             backupRoundTrip(context, data);
             clickLabel("Mark set as incomplete");
-            clickLabel("Edit reps: 11 reps");
-            until("!!document.querySelector('dialog[open]')");
-            touchElement("document.querySelector('dialog input')");
+            touchElement("document.querySelector('input[aria-label$=\"Reps (reps)\"]')");
             keyboardVisible(true);
             scenario.onActivity(activity -> activity.getOnBackPressedDispatcher().onBackPressed());
             keyboardVisible(false);
+            until("location.pathname==='/session'");
+            button("Copy previous workout");
             until("!!document.querySelector('dialog[open]')");
             scenario.onActivity(activity -> activity.getOnBackPressedDispatcher().onBackPressed());
             until("!document.querySelector('dialog[open]')");
