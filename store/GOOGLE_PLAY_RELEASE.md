@@ -10,7 +10,7 @@ Updated: 2026-10-23
 - Korean and English copy: `google-play-ko-KR.json`, `google-play-en-US.json`.
 - `node scripts/google-play-assets.mjs` generates the 512×512 icon and 1024×500 feature graphic in Git-excluded `release-artifacts/google-play/`.
 - Optional `captureStoreScreens=true` instrumentation argument captures English workout/history/settings and Korean workout screens from disposable sample records to the app's external files directory. Copy those PNGs out with adb before removing the test app. They are genuine Android screenshots, not iPhone images.
-- Public support email draft: `support@mamkkeot.com` (existing business support address). Confirm the mailbox is monitored before publishing.
+- Public support email: `support@mamkkeot.com`; owner confirmed the mailbox can receive support inquiries on 2026-10-23.
 - Privacy URL: https://choongchoongee-star.github.io/Workout/privacy/ . On 2026-10-23 the live URL returned HTTP 200 but still showed the old iOS-only sharing/update wording. The corrected source in `public/privacy/index.html` is included in `site-dist/` by `npm run build:site`; publication remains a required pre-submission gate and needs separate owner approval.
 - Content-rating and health-app declarations must be completed in Play Console using the actual workout-log functionality. Do not copy Apple's computed age rating or claim medical functionality. No Health Connect integration.
 
@@ -85,9 +85,11 @@ The helper refuses to overwrite a key, generates a 3072-bit RSA upload key with 
 | Account deletion | No user-account creation; records are on device and can be deleted locally |
 | Target audience | Owner must choose intended age groups; do not infer from Apple's rating |
 | Content rating | Complete IARC questionnaire from actual app behavior; do not copy another store's rating |
-| Support | Confirm monitored public support mailbox before saving listing |
+| Support | support@mamkkeot.com; owner confirmed mailbox availability on 2026-10-23 |
 | Privacy | Deploy corrected public privacy policy, then verify the live URL |
-| Distribution | Owner must confirm countries/regions and launch timing |
+| Distribution | South Korea only, confirmed by owner on 2026-10-23; launch timing pending |
 | Testing | Upload to internal testing after account setup; verify Play-delivered install/update and record retention |
 
 No Play app, listing, declaration, upload, review submission or production release was created by this local preparation. No EAS operation is needed for the local Android build.
+
+On 2026-10-23, clicking Create app showed: Complete account verifications to create apps. App creation and subsequent Console setup are blocked until the remaining phone verification is completed. The privacy correction uses one shared policy URL with platform-specific behavior explained inside; separate market policies are not planned. Publication is not yet approved.
