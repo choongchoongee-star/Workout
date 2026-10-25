@@ -52,9 +52,19 @@ const NAV = [
 export default function Layout({ children }) {
   const restTimer = useRestTimer()
   const mainRef = useRef(null)
+  const navRef = useRef(null)
+  const layoutRef = useRef(null)
   const scrollPositions = useRef({})
   const { pathname } = useLocation()
   const { recoveryNotice, dismissRecoveryNotice } = useApp()
+
+  useEffect(() => {
+    const update = () => layoutRef.current?.style.setProperty('--bottom-nav-height', `${navRef.current.getBoundingClientRect().height}px`)
+    const observer = new ResizeObserver(update)
+    observer.observe(navRef.current)
+    update()
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     void otaUpdater.check()
@@ -85,8 +95,8 @@ export default function Layout({ children }) {
   }, [pathname])
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
-      <main id="app-scroll-content" ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[calc(5rem+env(safe-area-inset-bottom))] ${pathname === '/history' ? 'no-scrollbar' : ''}`}>
+    <div ref={layoutRef} className="flex flex-col h-full bg-zinc-950">
+      <main id="app-scroll-content" ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[calc(var(--bottom-nav-height,5rem)+1rem)] ${pathname === '/history' ? 'no-scrollbar' : ''}`}>
         {recoveryNotice && (
           <div role="status" className="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-amber-800 bg-amber-950/40 p-3 text-sm text-amber-200">
             <p className="flex-1">{t(recoveryNotice)}</p>
@@ -97,19 +107,19 @@ export default function Layout({ children }) {
       </main>
       {pathname === '/history' && <HistoryScrollbar scrollRef={mainRef} />}
       {restTimer.active && <RestTimer seconds={restTimer.remaining} onSkip={skipRestTimer} />}
-      <nav className="fixed z-30 bottom-0 left-0 right-0 bg-accent-600 border-t border-accent-700 flex pb-[env(safe-area-inset-bottom)]">
+      <nav ref={navRef} className="fixed z-30 bottom-0 left-0 right-0 bg-accent-600 border-t border-accent-700 grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {NAV.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center gap-1 py-2 text-xs transition-colors ${
+              `min-w-0 flex flex-col items-center gap-1 px-1 py-2 text-xs transition-colors ${
                 isActive ? 'text-zinc-800' : 'text-zinc-950/80'
               }`
             }
           >
             {icon}
-            <span>{t(label)}</span>
+            <span className="max-w-full text-center leading-snug [overflow-wrap:anywhere]">{t(label)}</span>
           </NavLink>
         ))}
       </nav>

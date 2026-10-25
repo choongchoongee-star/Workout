@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-10-23
+> 마지막 업데이트: 2026-10-26
 > 최신 OTA: 2026-10-20 운동별 기록 개선·한 줄 휴식 타이머(소스 dd2dec6, 이전 운동 가져오기 포함)를 빌드 12 호환 runtime ios-326d6b3c3dd1fbb3에 게시했다. 공개 manifest·ZIP SHA-256·RSA 서명 검증 완료. iPhone 실기기 적용 확인은 별도다.
 > 현재 소스 runtime: ios-326d6b3c3dd1fbb3. 정식 배포 버전은 iOS 1.0.1(13)이다. 2026-10-20 production 빌드·ASC 업로드·정식 심사 제출을 완료했고 승인 후 자동 출시로 설정했다. 2026-10-22 ASC에서 1.0.1 및 빌드 13의 배포 준비됨 상태와 한국 App Store의 공개 버전 1.0.1·최신 업데이트 내역을 확인했다. 실제 iPhone 업데이트 설치 검증은 별도다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
@@ -83,7 +83,7 @@ mode !== 'capacitor' && VitePWA({
 - Windows 개발 환경은 Temurin JDK 21.0.12.1 LTS, Android Studio Quail 4 (2026.1.4) 안정 버전, SDK Platform 36, Build-Tools 35.0.0/36.0.0, Platform-Tools 37.0.1을 사용한다. Studio는 공식 ZIP을 사용자 프로그램 폴더에 설치하고 시작 메뉴 바로가기와 CAPACITOR_ANDROID_STUDIO_PATH를 설정했다. JAVA_HOME 및 ANDROID_HOME으로 CLI 빌드한다.
 - `assembleDebug` 네이티브 컴파일과 APK 생성이 통과했다. 산출물은 `android/app/build/outputs/apk/debug/app-debug.apk`이다. Android 36 전용 에뮬레이터에서 실제 WebView·네이티브 플러그인을 사용하는 `AndroidRuntimeTest`로 세트 수정/완료, 탭 이동 중 타이머 유지와 Skip, 기기 파일 저장 및 Activity 재실행 복원, 캐시 백업 파일 UTF-8 읽기/쓰기, Skip 후 예약 알림 제거, en→ko 앱 언어 전환을 검증했다. 화면 캡처에서 시스템 바와 콘텐츠 겹침이 없음을 확인했다. 시작 시 Capacitor SystemBars의 DOM 준비 전 CSS 주입 오류 로그가 있으나 화면 로드 후 인셋 적용과 실행은 정상이다.
 - 실행 테스트는 더미 운동 기록으로 앱 데이터를 덮어쓰므로 일회용 에뮬레이터(API 33 이상)에서만 `am instrument -w -e allowFixtureReset true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#nativeStorageTimerBackupAndLanguage com.choongchoongeestar.workout.test/androidx.test.runner.AndroidJUnitRunner`로 명시적으로 실행한다. 백업 검증은 실제 Settings 내보내기·Filesystem·FileProvider 공유 URI·터치로 여는 HTML 파일 선택·미리보기·저장·중복 날짜 방지를 사용한다. 외부 공유 수신 앱과 파일 선택 결과는 instrumentation이 제공하므로 외부 앱 자체의 저장 UI 검증을 뜻하지 않는다. 백그라운드 알림 검증은 Activity stopped 상태에서 OS NotificationManager 도착 및 채널 소리 설정을 확인한다. 실기기 청취·장시간 절전/화면 잠금·제조사별 동작·외부 공유 앱의 실제 저장 UI·Play 내부 테스트와 심사는 별도로 남아 있다.
-- 최종 통합 검증은 Android 13(API 33)·Android 16(API 36) 에뮬레이터에서 통과했다. 알림 거절 검증은 전용 에뮬레이터에서 POST_NOTIFICATIONS를 revoke하고 user-set/user-fixed를 설정한 뒤 `-e testDeniedPermission true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#deniedNotificationsKeepWorkoutUsable`로 실행하며, 종료 후 플래그와 권한을 복원한다. 알림 켜기 요청의 거절 안내·기록 화면 접근·타이머 시작/Skip을 검증했다. 단위 테스트 65개, 소스 lint, 웹 빌드, iOS 구성 검사, debug APK·release AAB 컴파일을 통과했다. Android lintRelease는 오류 0개·경고 34개(템플릿 미사용/중복 리소스, 아이콘, 버전·방향 관련 등)다. 미서명 AAB 확인과 키 미설정 시 제출용 빌드 차단 검사도 통과했다.
+- 이전 통합 검증은 Android 13(API 33)·Android 16(API 36) 에뮬레이터에서 통과했다. 현행 코드의 2026-10-25 추가 검증에서는 Android 13/WebView 101 조합의 백업 가져오기 테스트가 실패했으므로 현재 모든 조합이 통과한 상태는 아니다. 알림 거절 검증은 전용 에뮬레이터에서 POST_NOTIFICATIONS를 revoke하고 user-set/user-fixed를 설정한 뒤 `-e testDeniedPermission true -e class com.choongchoongeestar.workout.AndroidRuntimeTest#deniedNotificationsKeepWorkoutUsable`로 실행하며, 종료 후 플래그와 권한을 복원한다. 알림 켜기 요청의 거절 안내·기록 화면 접근·타이머 시작/Skip을 검증했다. 단위 테스트 65개, 소스 lint, 웹 빌드, iOS 구성 검사, debug APK·release AAB 컴파일을 통과했다. Android lintRelease는 오류 0개·경고 34개(템플릿 미사용/중복 리소스, 아이콘, 버전·방향 관련 등)다. 미서명 AAB 확인과 키 미설정 시 제출용 빌드 차단 검사도 통과했다.
 
 #### Android 출시 자료 및 서명 자동화
 
@@ -138,7 +138,7 @@ Workout/
 │   │   └── AppContext.jsx    # 운동 상태 + 기기 로컬 파일 자동 저장
 │   ├── lib/
 │   │   ├── copyWorkout.js    # 과거 운동 복사·완료 해제·유산소 제외
-│   │   ├── localWorkoutData.js # iOS 파일 / 웹 localStorage 영속화
+│   │   ├── localWorkoutData.js # iOS·Android 파일 / journal 복구 / 웹 localStorage 영속화
 │   │   ├── calories.js       # MET 기반 칼로리 계산 (calcCalories)
 │   │   ├── sessionUtils.js   # getMainCategory (그날 메인 카테고리)
 │   │   ├── dateUtils.js      # localTodayStr, formatDate
@@ -175,7 +175,7 @@ Workout/
   ├ 성공: 데이터를 반영하고 loaded=true, syncing=false
   └ 실패: 빈 데이터로 대체하지 않고 오류 + [다시 시도] 표시
 
-운동 데이터 변경 → reducer state 갱신 → 500ms 디바운스 후 전체 JSON 저장
+운동 데이터 변경 → 화면 표시 전 reducer state 반영 → 네이티브 복구 journal 기록 → 순차적으로 전체 JSON 저장
   pending 파일 쓰기/검증 → 기존 정상 파일을 backup으로 보존 → 주 파일 쓰기/재검증
   시작 시 주 파일이 손상되면 backup을 검증해 자동 복원하고 사용자에게 알림
   (로드 직후 첫 실행은 justLoadedRef로 스킵 — 빈 데이터 덮어쓰기 방지)
@@ -324,7 +324,7 @@ Workout/
 - **bodyweight:** added_weight 스테퍼(kg step 2.5 / lbs step 5) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
 - **과거 cardio:** `LegacyCardioRecords`로 시간/거리/속도/경사/칼로리를 읽기 전용 표시한다. 입력·자동 칼로리 계산·장비 선택은 없다. 기존 카드 삭제/Undo와 세션 백업/복원은 유지한다.
 - **삭제:** 세트 번호 아래 ×는 제거한다. 행을 왼쪽으로 밀면 오른쪽에 폭 88px·최소 높이 44px의 Delete 버튼이 나타나며, 버튼을 눌러야 삭제한다. 전체 스와이프로 즉시 삭제하지 않는다. 번호·상시 ±·완료 체크·행 높이는 유지한다. 운동 전체 삭제는 제목 오른쪽 `Delete` 버튼이며 유산소에도 동일하다. 삭제 → 즉시 제거 + UndoToast(10초), 되돌리기 시 값·완료 상태·순서를 복원한다. `+ Add set`은 운동 목록 바로 아래의 얇은 텍스트 버튼이다.
-- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 500ms 디바운스 → 로컬 JSON 파일. 마지막 운동 삭제로 운동 목록이 비면 `deleteSession(sessionDate)`로 해당 날짜 세션을 AppContext와 로컬 저장에서 제거한다. History 및 Workout 재진입 시 삭제 전 기록이 복원되지 않으며, Undo는 원래 운동을 다시 upsert한다. 날짜 전환으로 목록을 로드하는 동안에는 기존 자동 저장 방지 플래그를 유지한다. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
+- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 즉시 복구 journal 기록 → 순차 로컬 JSON 파일 저장. 마지막 운동 삭제로 운동 목록이 비면 `deleteSession(sessionDate)`로 해당 날짜 세션을 AppContext와 로컬 저장에서 제거한다. History 및 Workout 재진입 시 삭제 전 기록이 복원되지 않으며, Undo는 원래 운동을 다시 upsert한다. 날짜 전환으로 목록을 로드하는 동안에는 기존 자동 저장 방지 플래그를 유지한다. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
 - **날짜 변경:** 헤더 date input 변경 → 해당 날짜 세션 로드(없으면 빈 배열). 날짜 전환 중엔 auto-save 스킵(`isDateChanging`).
 
 - **이전 운동 가져오기:** 운동 탭 하단의 운동 추가 옆에 같은 폭의 버튼을 둔다. 데이터 로드 완료 후 사용할 수 있다. 현재 편집 날짜보다 이전이며 가져올 수 있는 운동이 있는 기록을 날짜 내림차순으로 보여준다. 우상단은 기존 앱과 같은 기본 date input이며 별도 달력 UI를 만들지 않는다. 날짜를 지정하면 일치하는 기록만 표시하고 전체 기록 보기로 복귀한다. 기록이 없으면 빈 상태를 표시한다.
@@ -514,7 +514,7 @@ Workout/
 - 실제 iPhone 검증 항목: 다이나믹 아일랜드 지원 기기에서 60초 시작 → 잠금/다른 앱 이동 중 카운트다운 → 새 세트 재시작 시 한 활동만 존재 → Skip 즉시 종료 → 만료 후 복귀 정리 → 앱 종료/재실행 시 복원 → Live Activities 비활성 시 앱 타이머/로컬 알림 유지. 빌드 5에서 네이티브 컴파일·서명·IPA 생성을 통과했으며 위 실기기 검증은 아직 미실행이다.
 
 ### UndoToast
-- 10초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 `5rem`). `animate-slide-up`.
+- 10초 카운트다운 진행 바. [되돌리기] → onUndo+onDismiss. 자동 만료 시 onDismiss. `bottomOffset` 커스터마이즈 가능(기본 하단 메뉴 실측 높이 + 0.5rem). `animate-slide-up`.
 
 ---
 
@@ -550,15 +550,15 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 로컬 JSON version 1은 선택적 equipment를 보존한다. Markdown 구조화 메타데이터도 보존·검증하며 읽기용 보고서는 명시된 장비를 `- Equipment: Smith`으로 출력한다. 구형 보고서의 Smith Machine은 smith로, EZ Bar는 barbell로 읽는다. Smith/Cable 원본 값은 구조화·읽기용 Markdown 및 로컬 JSON에 계속 남기며 UI에서만 Machine으로 이관한다. 새 Bodyweight/Other 값도 동일한 version 1 형식으로 검증·복원한다. Machine 재선택은 구형 세부 장비 값을 덮어쓰지 않는다. 장비 분류 변경은 세트 입력 방식(type)을 바꾸지 않는다. 기존 장비 없는 백업/한국어 백업을 지원하며 알 수 없는 equipment 값은 거부한다.
 - 단위 테스트 `src/lib/equipment.test.mjs`, 브라우저 회귀 검사 `scripts/verify-equipment.mjs`. 브라우저 실행 변수: PLAYWRIGHT_MODULE/WORKOUT_URL/BROWSER_CHANNEL.
 
-### 8.5 자동 저장 / 디바운스 (`AppContext`)
+### 8.5 자동 저장 / 중단 복구 (`AppContext`)
 - `LOAD_START`로 로컬 JSON을 읽으며, 완료 전에는 Session/History 등 자식 화면을 마운트하지 않는다. 따라서 오늘 화면이 초기 빈 `sessions`를 캡처하거나 사용자가 로딩 중 빈 상태를 편집하는 일을 막는다.
 - 로드 성공 시 데이터와 함께 `loaded=true`, `syncing=false`로 전환한다. 개발 모드 이중 실행 뒤 늦게 도착한 응답은 effect cleanup의 `cancelled` 플래그로 무시한다.
 - 로드 실패 시 빈 배열로 대체하지 않고 `LOAD_ERROR`로 진입한다. 손상되었거나 읽을 수 없는 기존 파일을 빈 데이터로 덮어쓰지 않도록 편집 화면 대신 오류와 [Try again]을 표시한다.
-- 정상 로드 직후 첫 저장 effect는 `justLoadedRef`로 1회 스킵한다. 이후 state 변경은 500ms 디바운스 후 `saveLocalWorkoutData`로 전체 JSON을 저장한다.
+- 정상 로드 직후 첫 저장 effect는 `justLoadedRef`로 1회 스킵한다. 이후 state 변경은 layout effect에서 즉시 `saveLocalWorkoutData`로 전달한다. Android는 `WorkoutJournal` JavaScript 인터페이스를 통해 앱 전용 `workout-data.journal.json`에 AtomicFile·파일 동기화로 최신 스냅샷을 동기 기록한다. 고정 경로의 write/조건부 clear만 노출하며 읽기 API나 임의 경로 접근은 제공하지 않는다. iOS 및 해당 인터페이스가 없는 기존 네이티브 빌드는 localStorage의 `wl_native_workout_journal_v1`을 복구 기록으로 사용한다. 본 파일 쓰기는 순차 처리한다. 저장 중 더 최신 변경이 생기면 이전 저장 완료가 새 journal을 지우거나 저장 완료 상태를 표시하지 않는다. 재실행 시 Android 파일 journal → 이전 WebView journal 순으로 우선 복구하며, 없으면 정상 pending 파일을 main보다 우선 복구한다. 잘못된 journal/pending은 정상 main/backup을 덮지 않는다. WebView 저장소를 사용할 수 없으면 즉시 네이티브 파일 저장으로 대체되므로 모든 전원 차단 시점의 보존을 보장하지는 않는다.
 - 저장 실패는 `syncError`로 보존하며 Session·History·Library 화면에 기기 저장 오류 배너를 표시한다. 다음 저장 시작 시 오류를 초기화한다.
 
 ### 8.6 소요시간
-- 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장(디바운스)마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
+- 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
 
 ### 8.7 iOS 네이티브 셸
 - `ios/App.xcodeproj`는 Capacitor v8로 생성했으며 앱 번들에 `dist` 웹 자산을 포함한다. 원격 사이트를 불러오는 단순 WebView가 아니다.
@@ -593,7 +593,7 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - **상태색:** 세트 완료와 성공·알림 허용은 짙은 초록, 오류·위험은 짙은 적갈색 `red-300/400/500 #8a3228`, 경고는 갈색 `amber-200/300/400 #5e3122`. 상태 배너 배경은 연한 초록 또는 살구색이며 밝은 배경에서 기존의 옅은 상태 글자가 흐려지지 않도록 토큰을 조정한다.
 - **커스텀 운동(라이브러리 전용):** `bg-accent-950/50 + border-accent-800/50`.
 - **모양:** Workout은 얇은 선 목록. 다른 카드 `rounded-2xl`은 12px, `rounded-xl`은 8px로 정의하며 칩은 full을 허용한다. 모달은 바텀시트(`rounded-t-2xl mt-auto`).
-- **숫자 조절과 확대:** 기록 목록의 각 무게·횟수에 ±를 항상 표시한다. 이 반복 버튼은 앱의 빠른 조작을 위한 핵심 기능이며 디자인 단순화를 이유로 숨기지 않는다. 무게·횟수 모두 열 중앙의 최대 112px 영역을 사용하며 숫자는 위, 44px 폭 ± 버튼은 아래에 배치한다. 숫자는 해당 위치에서 바로 수정하는 인라인 입력이다. 큰 시스템 글자나 매우 좁은 화면에서는 최소 18.5rem의 표 너비와 표 내부 가로 스크롤을 보존해 버튼 겹침을 방지한다. viewport를 initial/minimum/maximum-scale=1.0, user-scalable=no로 설정하고 html의 touch-action: pan-x pan-y로 핀치·더블탭 페이지 확대를 제한한다. 한 손가락 스크롤은 유지한다. text-sm/text-xs 입력·선택·textarea는 최소 16px로 표시해 iOS 입력 포커스 자동 확대를 방지하고 큰 숫자 입력은 유지한다. 브라우저 자체의 확대 정책이나 OS 접근성 확대는 앱이 제어하지 않는다. 숫자 입력은 Enter/Escape 또는 포커스 이동으로 편집을 끝낸다.
+- **숫자 조절과 확대:** 기록 목록의 각 무게·횟수에 ±를 항상 표시한다. 이 반복 버튼은 앱의 빠른 조작을 위한 핵심 기능이며 디자인 단순화를 이유로 숨기지 않는다. 무게·횟수 모두 열 중앙의 최대 112px 영역을 사용하며 숫자는 위, 44px 폭 ± 버튼은 아래에 배치한다. 숫자는 해당 위치에서 바로 수정하는 인라인 입력이다. 큰 시스템 글자나 매우 좁은 화면에서는 최소 21rem의 표 너비와 표 내부 가로 스크롤을 보존해 버튼 겹침을 방지한다. viewport를 initial/minimum/maximum-scale=1.0, user-scalable=no로 설정하고 html의 touch-action: pan-x pan-y로 핀치·더블탭 페이지 확대를 제한한다. 한 손가락 스크롤은 유지한다. text-sm/text-xs 입력·선택·textarea는 최소 16px로 표시해 iOS 입력 포커스 자동 확대를 방지하고 큰 숫자 입력은 유지한다. 브라우저 자체의 확대 정책이나 OS 접근성 확대는 앱이 제어하지 않는다. 숫자 입력은 Enter/Escape 또는 포커스 이동으로 편집을 끝낸다.
 - **인터랙션:** 모바일이라 hover 대신 `active:` 사용. 부위 필터는 4열×2행으로 전체 노출하며 `aria-pressed`로 선택 상태를 전달한다.
 - **애니메이션:** `animate-slide-up`(토스트), `animate-pulse`(스켈레톤/동기화).
 - **접근성:** 모달 `role="dialog" aria-modal`, Escape 닫기 + Tab 포커스 트랩, 아이콘 버튼 `aria-label`, 세트 완료 `aria-pressed`.
@@ -857,3 +857,13 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-23: Android 출시 지역은 대한민국만, 공개 지원 이메일은 support@mamkkeot.com으로 사용자 확정(문의 수신 가능 확인). Play Console에서 앱 생성을 시도하자 계정 인증 완료 필요 안내가 표시되어 전화 인증 전 앱 생성도 불가함을 확인했다. 개인정보처리방침은 공통 URL 한 개 안에서 실제 플랫폼별 동작 차이를 설명하는 수정안이며 게시 승인은 아직 받지 않았다. 대상 연령과 출시 시점은 미확정이다.
 
 - 2026-10-23: 사용자 승인으로 공통 개인정보처리방침의 Android/iOS 동작 구분 수정본을 게시했다. 시행일 2026-10-23, 운영자 Mamkkeot(맘껏), 지원 메일 support@mamkkeot.com을 명시했다. gh-pages의 privacy/index.html만 갱신했으며 OTA 트리 해시 a1446a812521e9b803ae69024bac26717b66fffe 유지로 기존 업데이트 파일 보존을 확인했다. 사이트 빌드·lint·웹 빌드 통과. 앱 바이너리 변경은 없다.
+
+- 2026-10-25: Android 에뮬레이터 추가 검증. Android 16(API 36)/WebView 133.0.6943.137에서 작은 화면 320×568dp와 가로 태블릿 1280×800dp의 통합 흐름 및 알림 거부 흐름이 각각 통과했다. 저장·재실행 복원·타이머·백업 왕복·언어 전환·키보드와 대화상자 뒤로가기를 포함한다. 캡처에 키보드 진입과 이전 운동 대화상자를 추가했으며, 알림 거부 테스트는 시작 시 이미 차단 상태인 경우에도 검증하도록 보정했다. Android 13(API 33)/WebView 101.0.4951.61, 약 411×914dp에서는 백업 가져오기 터치 후 홈 화면으로 이동하여 미리보기 검증이 실패했다. 정확한 원인은 미확정이며, 사용 중인 Tailwind v4의 공식 Chrome 111 이상 기준보다 오래된 엔진이다. 사용자 결정으로 WebView 101 대응과 해당 구형 환경의 추가 테스트는 이번 출시 범위에서 제외한다. 최신 WebView를 적용한 Android 13은 검증하지 않았다. debug APK·테스트 APK 컴파일, lint·웹 빌드는 통과했다. 캡처는 release-artifacts/android-validation-2026-10-25에 로컬 보관하며 Git에 포함하지 않는다. 에뮬레이터 화면·권한 설정은 복원 후 종료했다. 실기기 및 Play 설치 검증은 별도다.
+
+- 2026-10-25: Android 16/WebView 133에서 예외 상황을 추가 검증했다. 반복 횟수 증가 30회(10→40), 완료/취소 10회, 기록/운동 탭 왕복 10회 후 화면과 파일 값이 유지됐다. 빈 파일·무관한 Markdown·잘린 구조화 백업·잘못된 확장자·10MB 초과 파일을 WebView 파일 입력 이벤트로 전달하여 오류 안내, 미리보기 차단, 기존 파일 내용 보존을 확인했다(외부 파일 선택 앱의 UI 검증은 아님). 저장 완료 후 adb force-stop/재실행 및 같은 debug APK의 install -r 덮어쓰기에서 40회 값이 유지됐다. Play 배포 버전 간 업데이트 검증을 대체하지 않는다. 365일×하루 1종목 1세트 기록에서 365개 카드 렌더링·스크롤·오늘 기록 수정·파일 저장이 통과했다.
+- 2026-10-25 발견 결함(2026-10-26 수정 대상): (1) 화면에서 40→41회 변경을 확인한 즉시 adb force-stop하면 저장 파일과 재실행 화면이 40회로 남는다. AppContext의 500ms 저장 디바운스 구간에서 마지막 변경이 유실되는 재현 사례다. 저장 완료 후 종료는 정상이다. stopImmediatelyAfterEdit는 allowFixtureReset=true와 testAbruptStop=true일 때 의도적으로 프로세스를 종료하며 runner의 Process crashed는 그 종료에 따른 결과다. 먼저 rapidEditsAndInvalidBackups로 40회 fixture를 만들고, 종료 뒤 savedEditsSurviveProcessStopAndReinstall로 남아 있는 40회를 확인했다. (2) 320×568dp, Android 시스템 font_scale=2.0에서 날짜 잘림, 기록 제목/편집 버튼 및 하단 탭 이름 겹침을 캡처로 확인했다. 같은 환경의 기능 흐름 자동 검증은 통과했으나 시각적 접근성 검증은 실패다. 당시 앱 코드는 수정하지 않았으며 2026-10-26 후속 수정 내역을 따른다.
+- 2026-10-25 절전 검증: 에뮬레이터의 기본 deep idle 비활성 설정을 테스트 동안만 활성화하고 화면 꺼짐+강제 Doze(IDLE)에서 10초 타이머를 검사했다. 20초 뒤 활성 알림은 0개였고 절전 해제 후 알림 전달 및 앱 복귀 시 만료 타이머 제거가 통과했다. 이는 절전 중 정시 알림 보장이 없다는 기존 제약의 재현이며, 실제 기기의 장시간 대기나 제조사 절전 정책 검증은 아니다. 종료 후 font_scale=1.0, 화면 크기/밀도, 전원·배터리·deep idle 설정을 복원했다. JS 단위 테스트 74개·lint·웹 빌드·테스트 APK 컴파일 통과. 캡처는 release-artifacts/android-validation-2026-10-25/edge-large-font 및 edge-default에 로컬 보관한다. 미해결 결함이 있어 출시 완료로 판정하지 않는다.
+
+- 2026-10-26: 마지막 변경 저장 유실과 큰 글자 배치를 수정했다. Session과 AppContext는 layout effect로 입력 변경을 화면 표시 전 저장 경로에 전달하며 500ms 지연을 제거했다. Android AtomicFile 동기 journal과 기존 네이티브용 WebView journal, 직렬 파일 쓰기, 최신 저장 결과만 상태 반영, 재실행 시 journal/pending 복구를 추가했다. 본 파일 저장 실패 뒤에도 journal을 유지하여 재시도/재실행으로 복구한다. Android journal 기록 자체가 실패하면 저장 오류를 표시한다. WebView journal의 용량 부족 시에는 오래된 journal을 제거한 뒤 본 파일 저장으로 대체하며, 오래된 journal도 제거할 수 없으면 오류를 표시한다. 데이터 구조·기기 내 저장 원칙은 유지한다. 제목·날짜·기록 편집 버튼은 줄바꿈하며 하단 탭 텍스트는 각 탭 안에서 줄바꿈한다. ResizeObserver로 측정한 하단 메뉴 높이를 본문 여백·휴식 타이머·Undo 알림·기록 스크롤바에 반영한다. 배포 및 Play 업로드는 별도다.
+- 재현 테스트 실행 조건: fixture를 초기화하는 독립 시나리오는 전용 에뮬레이터에서 `adb shell pm clear com.choongchoongeestar.workout`으로 이전 journal·pending까지 비운 뒤 `allowFixtureReset=true`로 시작한다. 강제 종료/재실행 검증 사이에는 데이터를 비우지 않는다. `stopImmediatelyAfterEdit` 뒤 `savedEditsSurviveProcessStopAndReinstall`을 `expectedReps=41`로 실행하여 화면과 main 파일의 마지막 입력 보존을 확인한다. 테스트가 의도적으로 종료되는 단계의 Process crashed는 실패 판정이 아니라 다음 복구 검사의 전제다. 캡처 시 제목/컨트롤 및 탭 텍스트 경계의 겹침도 자동 검사한다.
+- 2026-10-26 최종 검증: Android 16/WebView 133에서 즉시 강제 종료 뒤 41회 보존을 독립 fixture로 3회 연속 확인했다. 최종 네이티브 journal 구현으로 365일 기록 탐색·수정·저장과 320×568dp/font_scale=2.0의 저장·백업 왕복·알림·키보드·뒤로가기·한영 전환 통합 흐름도 통과했다. 제목/컨트롤 및 탭 텍스트 경계 자동 검사와 캡처 검토로 보고된 겹침·날짜 잘림 해소를 확인했다. 기본 화면 통합 흐름도 통과했다. JS 테스트는 journal 복구·저장 순서·실패·용량 부족 회귀 검사를 포함해 총 79개 통과, lint·웹 빌드·debug 및 테스트 APK 컴파일 통과. 신규 네이티브 구현은 android/app/src/main/java/com/choongchoongeestar/workout/WorkoutJournal.java이며 MainActivity에서 등록한다. 검증용 에뮬레이터 설정을 복원하고 종료했다. 캡처는 release-artifacts/android-validation-2026-10-26에 로컬 보관한다. 기존 2026-10-23 출시용 AAB에는 이 수정이 포함되지 않았으므로 실제 제출 전 새 바이너리 빌드가 필요하다. 실기기 및 Play 설치·업데이트 검증은 별도다.

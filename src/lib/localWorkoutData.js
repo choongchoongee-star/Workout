@@ -5,9 +5,16 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 const DATA_FILE = 'workout-data.json'
 const BACKUP_FILE = 'workout-data.backup.json'
 const TEMP_FILE = 'workout-data.pending.json'
+const JOURNAL_FILE = 'workout-data.journal.json'
 const WEB_STORAGE_KEY = 'wl_workout_data_v1'
 const WEB_BACKUP_KEY = 'wl_workout_data_backup_v1'
 const WEB_TEMP_KEY = 'wl_workout_data_pending_v1'
+const NATIVE_JOURNAL_KEY = 'wl_native_workout_journal_v1'
+let nativeSaveQueue = Promise.resolve()
+
+function getJournalStorage() {
+  try { return globalThis.localStorage } catch { return null }
+}
 
 function serialize(data) {
   return JSON.stringify({ version: 1, exercises: data.exercises, sessions: data.sessions })
@@ -47,6 +54,12 @@ async function restoreNativeBackup(filesystem = Filesystem) {
 }
 
 export async function loadNativeWorkoutData(filesystem = Filesystem) {
+  let pending
+  try { pending = await readNativeFile(TEMP_FILE, filesystem) } catch { /* Incomplete writes cannot replace verified data. */ }
+  if (pending) {
+    await saveNativeWorkoutData(pending, filesystem)
+    return { data: pending, recoveredFromBackup: false }
+  }
   try {
     return { data: await readNativeFile(DATA_FILE, filesystem), recoveredFromBackup: false }
   } catch (primaryError) {
@@ -63,9 +76,21 @@ function isMissingFile(error) {
   return error?.code === 'OS-PLUG-FILE-0008' || /does not exist|not found/i.test(error?.message || '')
 }
 
-export async function loadLocalWorkoutData() {
-  if (Capacitor.isNativePlatform()) {
-    return loadNativeWorkoutData()
+export async function loadLocalWorkoutData({ native = Capacitor.isNativePlatform(), filesystem = Filesystem, journalStorage = getJournalStorage(), nativeJournal = globalThis.WorkoutJournal } = {}) {
+  if (native) {
+    let journal
+    if (nativeJournal) {
+      try { journal = await readNativeFile(JOURNAL_FILE, filesystem) } catch { /* No complete native journal; use the existing recovery paths. */ }
+    }
+    try {
+      const raw = journalStorage.getItem(NATIVE_JOURNAL_KEY)
+      if (!journal && raw) journal = parseLocalWorkoutData(raw)
+    } catch { /* Native files remain available if WebView storage is unavailable or corrupt. */ }
+    if (journal) {
+      await saveLocalWorkoutData(journal, { native, filesystem, journalStorage, nativeJournal })
+      return { data: journal, recoveredFromBackup: false }
+    }
+    return loadNativeWorkoutData(filesystem)
   }
 
   const raw = localStorage.getItem(WEB_STORAGE_KEY)
@@ -145,10 +170,27 @@ export async function saveNativeWorkoutData(data, filesystem = Filesystem) {
   }
 }
 
-export async function saveLocalWorkoutData(data) {
+export async function saveLocalWorkoutData(data, { native = Capacitor.isNativePlatform(), filesystem = Filesystem, journalStorage = getJournalStorage(), nativeJournal = globalThis.WorkoutJournal } = {}) {
   const serialized = serialize(data)
-  if (Capacitor.isNativePlatform()) {
-    await saveNativeWorkoutData(data)
+  if (native) {
+    // Record the newest snapshot synchronously before awaiting the native bridge.
+    // Older queued writes must never clear a newer recovery journal.
+    if (nativeJournal) {
+      if (!nativeJournal.write(serialized)) throw new Error('Could not save the workout recovery journal.')
+    } else if (journalStorage) {
+      try { journalStorage.setItem(NATIVE_JOURNAL_KEY, serialized) } catch (error) {
+        // A stale journal must not roll back a newer successful native save.
+        try { journalStorage.removeItem(NATIVE_JOURNAL_KEY) } catch { throw error }
+      }
+    }
+    const snapshot = parseLocalWorkoutData(serialized)
+    const save = nativeSaveQueue.then(() => saveNativeWorkoutData(snapshot, filesystem))
+    nativeSaveQueue = save.catch(() => {})
+    await save
+    if (nativeJournal) nativeJournal.clear(serialized)
+    try {
+      if (nativeJournal || journalStorage.getItem(NATIVE_JOURNAL_KEY) === serialized) journalStorage.removeItem(NATIVE_JOURNAL_KEY)
+    } catch { /* A retained journal can safely be replayed on the next launch. */ }
     return
   }
 

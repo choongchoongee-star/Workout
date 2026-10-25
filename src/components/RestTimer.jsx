@@ -5,7 +5,7 @@ export default function RestTimer({ seconds, onSkip }) {
   const secs = seconds % 60
 
   return (
-    <div role="region" aria-label={t('Rest timer')} className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 mx-4 flex min-h-14 items-center gap-2.5 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-1 shadow-xl z-40">
+    <div role="region" aria-label={t('Rest timer')} className="fixed bottom-[calc(var(--bottom-nav-height,5rem)+0.5rem)] left-0 right-0 mx-4 flex flex-wrap min-h-14 items-center gap-2.5 rounded-2xl border border-zinc-700 bg-zinc-900 px-3 py-1 shadow-xl z-40">
       <svg aria-hidden="true" className="h-[18px] w-[18px] shrink-0 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
         <circle cx="12" cy="13" r="8" />
         <path d="M9 2h6m-3 3V2m0 6v5l3 2" />

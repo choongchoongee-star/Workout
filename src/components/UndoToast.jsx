@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 const DURATION = 10000
 
-export default function UndoToast({ message, onUndo, onDismiss, bottomOffset = '5rem' }) {
+export default function UndoToast({ message, onUndo, onDismiss, bottomOffset = 'calc(var(--bottom-nav-height, 5rem) + 0.5rem)' }) {
   const [remaining, setRemaining] = useState(DURATION)
 
   useEffect(() => {

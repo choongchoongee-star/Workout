@@ -3,7 +3,7 @@ import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
 import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, previousEquipmentSet, recordEquipment, recordInputType } from '../lib/equipment'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { storage } from '../lib/storage'
@@ -230,7 +230,7 @@ export default function Session() {
 
   // Auto-save in-progress session to context on every change
   // 완료 버튼 제거(2026-06-14) → 자동저장 시 오늘 세션의 소요시간도 함께 계산해 보존
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isDateChanging.current) return
     // An empty list is also an edit: remove the saved session so it cannot
     // reappear after navigation. Undo will upsert the restored exercises.
@@ -391,7 +391,7 @@ export default function Session() {
   return (
     <div className="px-3 pt-4 max-w-lg mx-auto pb-8">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4 pt-2 px-1">
+      <div className="flex flex-wrap items-center gap-3 mb-4 pt-2 px-1">
         <h1 className="text-xl font-bold text-white">{t("Workout")}</h1>
         <input
           type="date"
@@ -404,7 +404,7 @@ export default function Session() {
             setShowCopyModal(false)
             setSessionDate(e.target.value)
           }}
-          className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="w-full sm:w-auto max-w-full min-w-0 bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
         />
       </div>
 
@@ -450,8 +450,8 @@ export default function Session() {
               ) : (
                 <>
                   <div className="overflow-x-auto">
-                  <div className="min-w-[18.5rem]">
-                  <div aria-hidden="true" className="grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-b border-zinc-700/60 text-center text-sm text-zinc-300">
+                  <div className="min-w-[21rem]">
+                  <div aria-hidden="true" className="grid grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 border-b border-zinc-700/60 text-center [overflow-wrap:anywhere] text-sm text-zinc-300">
                     <span>{t("Set")}</span><span>{storage.getWeightUnit()}</span><span>{t("Reps")}</span><span>{t("Done")}</span>
                   </div>
                   {se.sets.map((set, setIdx) => (

@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(android.os.Bundle savedInstanceState) {
         registerPlugin(AppSettingsPlugin.class);
         super.onCreate(savedInstanceState);
+        getBridge().getWebView().addJavascriptInterface(new WorkoutJournal(this), "WorkoutJournal");
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {

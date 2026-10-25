@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useCallback, useRef, useState } from 'react'
+import { createContext, useContext, useReducer, useEffect, useLayoutEffect, useCallback, useRef, useState } from 'react'
 import { t } from '../lib/i18n'
 import { DEFAULT_EXERCISES } from '../data/exercises'
 import { loadLocalWorkoutData, saveLocalWorkoutData } from '../lib/localWorkoutData'
@@ -80,6 +80,7 @@ export function AppProvider({ children }) {
   const [loadAttempt, setLoadAttempt] = useState(0)
   // 로컬 파일에서 막 로드한 직후엔 동일 데이터를 다시 저장하지 않도록 플래그
   const justLoadedRef = useRef(false)
+  const saveRevision = useRef(0)
 
   // 앱 전용 로컬 파일에서 데이터 로드
   useEffect(() => {
@@ -107,25 +108,25 @@ export function AppProvider({ children }) {
   }, [loadAttempt])
 
   const persist = useCallback(async (exercises, sessions) => {
+    const revision = ++saveRevision.current
     dispatch({ type: 'SYNC_START' })
     try {
       await saveLocalWorkoutData({ exercises, sessions })
-      dispatch({ type: 'SYNC_OK' })
+      if (revision === saveRevision.current) dispatch({ type: 'SYNC_OK' })
     } catch (err) {
-      dispatch({ type: 'SYNC_ERROR', error: err.message })
+      if (revision === saveRevision.current) dispatch({ type: 'SYNC_ERROR', error: err.message })
     }
   }, [])
 
   // 데이터 변경 시 자동 저장 (로드 직후 첫 번째 실행은 건너뜀)
-  // 연속 변경 (StepperInput 등) 시 로컬 파일 쓰기 폭주 방지를 위해 500ms 디바운스
-  useEffect(() => {
+  // Journal before paint; native writes are serialized by the storage layer.
+  useLayoutEffect(() => {
     if (!state.loaded) return
     if (justLoadedRef.current) {
       justLoadedRef.current = false
       return
     }
-    const id = setTimeout(() => persist(state.exercises, state.sessions), 500)
-    return () => clearTimeout(id)
+    void persist(state.exercises, state.sessions)
   }, [state.exercises, state.sessions, state.loaded, persist])
 
   const upsertSession = useCallback((session) => dispatch({ type: 'UPSERT_SESSION', session }), [])

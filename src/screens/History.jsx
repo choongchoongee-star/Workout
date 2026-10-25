@@ -66,10 +66,10 @@ export default function History() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-4 pt-2">
-        <h1 className="min-w-0 flex-1 text-xl font-bold text-white">{t("Workout history")}</h1>
+      <div className="flex flex-wrap items-center gap-3 mb-4 pt-2">
+        <h1 className="text-xl font-bold text-white">{t("Workout history")}</h1>
         {(sessions.length > 0 || editing) && (
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+          <div className="flex max-w-full flex-wrap items-center gap-2">
           <button type="button" aria-pressed={editing}
             onClick={() => { setEditing(value => !value); setSelectedIds(new Set()) }}
             className="min-h-11 min-w-11 text-sm font-medium text-accent-400 active:bg-zinc-800 rounded-lg">
@@ -80,7 +80,7 @@ export default function History() {
             aria-label={t('History date')}
             value={jumpDate}
             onChange={e => handleDateJump(e.target.value)}
-            className="ml-auto bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="w-full sm:w-auto min-w-0 max-w-full bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
           </div>
         )}

@@ -126,7 +126,7 @@ input[type=number] { -moz-appearance: textfield; }
   z-index: 20;
   right: 0;
   top: calc(env(safe-area-inset-top) + 8px);
-  bottom: calc(5rem + env(safe-area-inset-bottom));
+  bottom: var(--bottom-nav-height, calc(5rem + env(safe-area-inset-bottom)));
   width: 14px;
   touch-action: none;
   user-select: none;
