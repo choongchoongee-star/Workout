@@ -500,6 +500,8 @@ public class AndroidRuntimeTest {
             captureStoreScreen(context, "01-workout-en");
             tab("/history");
             captureStoreScreen(context, "02-history-en");
+            tab("/weight");
+            captureStoreScreen(context, "10-progress-en");
             tab("/settings");
             until("document.body.innerText.includes('Google Play')");
             captureStoreScreen(context, "03-settings-en");
@@ -532,6 +534,12 @@ public class AndroidRuntimeTest {
             until("document.documentElement.lang==='ko'");
             until("document.body.innerText.includes('벤치프레스')");
             captureStoreScreen(context, "04-workout-ko");
+            tab("/history");
+            captureStoreScreen(context, "11-history-ko");
+            tab("/weight");
+            captureStoreScreen(context, "12-progress-ko");
+            tab("/settings");
+            captureStoreScreen(context, "13-settings-ko");
             assertEquals(11, new JSONObject(new String(Files.readAllBytes(data.toPath()), StandardCharsets.UTF_8)).getJSONArray("sessions").getJSONObject(0)
                 .getJSONArray("exercises").getJSONObject(0).getJSONArray("sets").getJSONObject(0).getInt("reps"));
         } finally {
