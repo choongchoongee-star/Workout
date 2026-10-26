@@ -74,7 +74,7 @@ The helper refuses to overwrite a key, generates a 3072-bit RSA upload key with 
 - 79 JavaScript tests, lint and web build passed. Android lint: 0 errors, 34 warnings.
 - Both listings fit title/short/full/release-note limits of 30/80/4000/500 characters. Full descriptions now state the app is not a medical device, makes no diagnosis/treatment/cure/prevention claims and advises consulting a healthcare professional for medical advice, diagnosis or treatment.
 - Public privacy URL returned HTTP 200; Mamkkeot, support email, Android behavior and October 23 effective date verified.
-- [Health apps policy](https://support.google.com/googleplay/android-developer/answer/16679511) and [target audience guidance](https://support.google.com/googleplay/android-developer/answer/9867159) inform the submission draft. Audience remains pending owner confirmation; 13+ is recommended if teens and adults are the intended users. Public content ratings do not disclose other apps' target-audience selections.
+- [Health apps policy](https://support.google.com/googleplay/android-developer/answer/16679511) and [target audience guidance](https://support.google.com/googleplay/android-developer/answer/9867159) inform the submission draft. Owner confirmed the intended audience as ages 13 and above on 2026-10-26: select 13–15, 16–17 and 18+. Public content ratings do not disclose other apps' target-audience selections.
 
 ### Console answers to prepare
 
@@ -87,7 +87,7 @@ The helper refuses to overwrite a key, generates a 3072-bit RSA upload key with 
 | Health declaration | Activity and fitness; workout recording, not diagnosis or treatment; no Health Connect |
 | Data safety | No collected/shared data proposed; review against packaged SDK behavior and Google's user-initiated sharing exception before submission |
 | Account deletion | No user-account creation; records are on device and can be deleted locally |
-| Target audience | Owner must choose intended age groups; do not infer from Apple's rating |
+| Target audience | Owner confirmed 13–15, 16–17 and 18+ on 2026-10-26; Console entry still pending; content rating is separate |
 | Content rating | Complete IARC questionnaire from actual app behavior; do not copy another store's rating |
 | Support | support@mamkkeot.com; owner confirmed mailbox availability on 2026-10-23 |
 | Privacy | Shared iOS/Android policy published with owner approval on 2026-10-23 |
