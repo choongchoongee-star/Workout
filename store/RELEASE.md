@@ -1,3 +1,10 @@
+## TestFlight preparation (2026-11-06)
+
+- Prepared iOS 1.0.2 with the shared compact date button. App/widget marketing versions match; build number remains 13 pending EAS auto-increment.
+- New runtime `ios-02ed97a1df5ca790` separates this binary from the public 1.0.1 OTA channel. No OTA publication or App Review submission is part of this delivery.
+- `.easignore` excludes local workout backups, signing material, temporary files and Android sources from cloud builds.
+- Local Capacitor sync and iOS release checks passed. EAS build, TestFlight upload and Apple processing are pending.
+
 ## Latest delivery status (2026-10-22)
 
 - **Live release confirmed: iOS 1.0.1 (13).** App Store Connect shows version 1.0.1, selected build 13, and Ready for Distribution (배포 준비됨). The Korean public App Store page displays version 1.0.1 and the latest release notes. Its relative release label was “8 hours ago” at verification; an exact release timestamp was not established.
