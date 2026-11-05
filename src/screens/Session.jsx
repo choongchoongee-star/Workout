@@ -2,6 +2,7 @@ import { selectableExercises } from '../lib/exerciseLibrary'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
+import DateButton from '../components/DateButton'
 import { changeCardEquipment, defaultEquipment, equipmentOptions, exerciseChoices, familyId, previousEquipmentSet, recordEquipment, recordInputType } from '../lib/equipment'
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -393,9 +394,8 @@ export default function Session() {
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3 mb-4 pt-2 px-1">
         <h1 className="text-xl font-bold text-white">{t("Workout")}</h1>
-        <input
-          type="date"
-          aria-label={t("Workout date")}
+        <DateButton
+          label={t("Workout date")}
           value={sessionDate}
           max={realToday}
           onChange={e => {
@@ -404,7 +404,7 @@ export default function Session() {
             setShowCopyModal(false)
             setSessionDate(e.target.value)
           }}
-          className="ml-auto w-44 max-w-full min-w-0 shrink-0 bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="ml-auto shrink-0"
         />
       </div>
 

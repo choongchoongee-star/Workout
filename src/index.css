@@ -108,6 +108,17 @@ textarea.text-sm, textarea.text-xs {
   font-size: max(1rem, 16px);
 }
 
+/* Make the native calendar trigger cover the shared date button. */
+.date-button input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 /* Hide number input spinners */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
