@@ -1,6 +1,13 @@
 # Google Play release preparation
 
-Updated: 2026-10-26
+Updated: 2026-11-05
+
+## Current release status
+
+- Internal testing 1.0.1 (2), "1.0.1 (2) - Date button", published on 2026-11-05. Console verified Active and Available to internal testers. No production release.
+- Includes the shared compact workout date button; native calendar selection remains platform-specific. Signed with the existing upload key; AAB signature verified. Local artifacts: `release-artifacts/google-play/2026-11-05/` (Git-excluded). AAB SHA-256: `6339166ff36a972d96f7a32725bb40bd3357c619a48408dece22aa3d7d9a4b74`.
+- Version 1.0 (1) was installed from Google Play on the Play-enabled emulator; launch, exercise/set creation and history display passed. Version 2 Play update verification remains pending.
+- Public developer phone verification and store setup were completed before the initial internal release. The earlier phone-blocker notes below are historical.
 
 ## App and listing
 
