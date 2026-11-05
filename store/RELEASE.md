@@ -1,9 +1,10 @@
-## TestFlight preparation (2026-11-06)
+## Latest OTA delivery (2026-11-06)
 
-- Prepared iOS 1.0.2 with the shared compact date button. App/widget marketing versions match; build number remains 13 pending EAS auto-increment.
-- New runtime `ios-02ed97a1df5ca790` separates this binary from the public 1.0.1 OTA channel. No OTA publication or App Review submission is part of this delivery.
-- `.easignore` excludes local workout backups, signing material, temporary files and Android sources from cloud builds.
-- Local Capacitor sync and iOS release checks passed. EAS build, TestFlight upload and Apple processing are pending.
+- Published the compact shared date button to the existing App Store/TestFlight runtime `ios-326d6b3c3dd1fbb3` with explicit owner approval.
+- Bundle: `981c91cb63df012e799ca30d3669c189c089eab497f4a7457e5ed78909e6be02`; ZIP: 137924 bytes.
+- Restored source versions to iOS 1.0.1 (13); no EAS build or TestFlight binary upload was started. Retained `.easignore` protections.
+- iOS compatibility checks, signed bundle preparation, seven OTA tests, lint and web build passed. Public manifest, downloaded ZIP SHA-256 and RSA signature were verified. Actual iPhone verification remains pending.
+- Apply through Settings → Check for updates, then fully close and reopen the app.
 
 ## Latest delivery status (2026-10-22)
 
