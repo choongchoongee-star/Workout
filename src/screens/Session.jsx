@@ -404,7 +404,7 @@ export default function Session() {
             setShowCopyModal(false)
             setSessionDate(e.target.value)
           }}
-          className="w-full sm:w-auto max-w-full min-w-0 bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
+          className="ml-auto w-44 max-w-full min-w-0 shrink-0 bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
         />
       </div>
 
