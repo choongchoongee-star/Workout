@@ -4,7 +4,9 @@ Updated: 2026-11-06
 
 ## Current release status
 
-- On 2026-11-06, prepared production release `1.0.1 (2) - Initial production release` using existing library bundle 2, with English/Korean release notes. Saved all 177 countries/regions plus Rest of World. Changes are in Publishing overview, not submitted for review or publicly released.
+- On 2026-11-06, after Console reported that changes could be sent for review, submitted all 12 changes with explicit owner authorization for automatic publication. Verified Changes in review for production 1.0.1 (2), all 177 countries/regions plus Rest of World, and existing store/content declarations. Managed publishing remains off. A further quick-check pass was running immediately after submission; approval/public availability is not yet verified.
+
+- On 2026-11-06, prepared production release `1.0.1 (2) - Initial production release` using existing library bundle 2, with English/Korean release notes. Saved all 177 countries/regions plus Rest of World. These prepared changes were subsequently submitted as recorded above; public release remains pending approval.
 - Completed Advertising ID declaration as No after checking dependencies and the version 2 merged release manifest (no AD_ID permission). The missing-declaration blocker cleared; Submit 12 changes for review became enabled. Google quick checks were still running at verification. Managed publishing remains off, so submission followed by approval can publish automatically.
 - Release validation showed one non-blocking warning about missing deobfuscation mapping; the release does not enable minification.
 
