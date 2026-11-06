@@ -1,12 +1,16 @@
 # Google Play release preparation
 
-Updated: 2026-11-05
+Updated: 2026-11-06
 
 ## Current release status
 
+- On 2026-11-06, prepared production release `1.0.1 (2) - Initial production release` using existing library bundle 2, with English/Korean release notes. Saved all 177 countries/regions plus Rest of World. Changes are in Publishing overview, not submitted for review or publicly released.
+- Completed Advertising ID declaration as No after checking dependencies and the version 2 merged release manifest (no AD_ID permission). The missing-declaration blocker cleared; Submit 12 changes for review became enabled. Google quick checks were still running at verification. Managed publishing remains off, so submission followed by approval can publish automatically.
+- Release validation showed one non-blocking warning about missing deobfuscation mapping; the release does not enable minification.
+
 - Internal testing 1.0.1 (2), "1.0.1 (2) - Date button", published on 2026-11-05. Console verified Active and Available to internal testers. No production release.
 - Includes the shared compact workout date button; native calendar selection remains platform-specific. Signed with the existing upload key; AAB signature verified. Local artifacts: `release-artifacts/google-play/2026-11-05/` (Git-excluded). AAB SHA-256: `6339166ff36a972d96f7a32725bb40bd3357c619a48408dece22aa3d7d9a4b74`.
-- Version 1.0 (1) was installed from Google Play on the Play-enabled emulator; launch, exercise/set creation and history display passed. Version 2 Play update verification remains pending.
+- Version 1.0 (1) was installed from Google Play on the Play-enabled emulator; launch, exercise/set creation and history display passed. On 2026-11-06, Play update to 1.0.1 (2) was verified on the emulator, and the compact date button was confirmed in the running app.
 - Public developer phone verification and store setup were completed before the initial internal release. The earlier phone-blocker notes below are historical.
 
 ## App and listing
