@@ -2,14 +2,14 @@
 
 > 마지막 업데이트: 2026-11-07
 
-> **iOS OTA 배포 (2026-11-06):** 사용자 승인으로 공통 날짜 버튼을 기존 정식 앱/TestFlight runtime ios-326d6b3c3dd1fbb3에 게시했다. bundle `981c91cb63df012e799ca30d3669c189c089eab497f4a7457e5ed78909e6be02`, ZIP 137924 bytes. 공개 manifest·ZIP SHA-256·RSA 서명 검증을 완료했다. 새 바이너리는 만들지 않으며 소스 버전은 배포된 iOS 1.0.1(13)과 일치한다. `.easignore`의 개인 백업·서명 자료·임시 파일 제외 규칙은 유지한다. Settings → Check for updates에서 다운로드 후 앱을 완전히 종료·재실행하여 적용한다. 실제 iPhone 확인은 별도다.
+> **iOS OTA 배포 (2026-11-07):** 사용자 승인으로 운동 소요시간 제거 변경을 정식 앱/TestFlight 공용 runtime ios-326d6b3c3dd1fbb3에 게시했다. bundle `876681e132cc826f78879c048f08de94805f34303281e9e4433ed448a55c0507`, ZIP 137800 bytes. 공개 manifest·ZIP HTTP 200, SHA-256·RSA 서명 검증을 완료했다. 새 네이티브 빌드는 없고 iOS 1.0.1(13)을 유지한다. Settings → Check for updates에서 다운로드 후 앱을 완전히 종료·재실행하여 적용한다. 실제 iPhone 적용 확인은 별도다.
 
-> **Android 정식 출시 준비 (2026-11-06):** 기존 번들 1.0.1(2)을 프로덕션 릴리스에 추가하고 한·영 출시 설명, 177개 국가·지역과 Rest of World를 저장했다. 광고 ID 미사용 신고를 완료해 제출 차단 문제를 해결했다. 2026-11-06 사전 검사에서 제출 가능 상태를 확인한 뒤 사용자 승인으로 변경 12개를 심사 제출했다. Console의 Changes in review를 확인했으며 제출 직후 추가 자동 검사가 진행 중이었다. 승인·실제 공개는 아직 미확인이다. Managed publishing은 off로 유지된다. Play를 통한 에뮬레이터 버전 2 업데이트·날짜 버튼 화면을 확인했다.
+> **Android 정식 출시 제출 (2026-11-07):** 운동 소요시간 제거를 반영한 1.0.2(3)을 기존 키로 서명·업로드했다. 한·영 출시 설명, 전 세계 177개 국가·지역 및 Rest of World, 100% 출시를 유지한다. 최신 변경 제출 시 기존 심사를 재시작했고 Console의 Changes in review에 1.0.2(3)이 표시된다. 자동 quick checks가 진행 중이며 성공 후 심사로 전송된다. Managed publishing은 off여서 승인 후 자동 공개한다. AAB/APK 서명·버전·내장 웹 자산 일치·시간 추적 제거를 검증했다. Play를 통한 버전 3 설치 및 실제 공개는 미확인이다.
 
 > **Android 배포 (2026-11-05):** 날짜 버튼 공통 외형 변경을 포함한 1.0.1(2)을 기존 업로드 키로 서명하고 Google Play 내부 테스트에 게시했다. Console의 Active·Available to internal testers와 최신 릴리스 1.0.1(2)을 확인했다. 정식 Android 출시는 하지 않았다. 버전 1.0(1)은 Play 설치·실행·운동/세트 추가·기록 표시를 에뮬레이터에서 확인했으며 2번 업데이트 설치와 날짜 버튼은 2026-11-06 에뮬레이터에서 확인했다. iOS 동일 변경의 OTA ZIP은 기존 runtime 호환성·SHA-256·서명 검증까지 준비했으나 2026-11-06 사용자 승인으로 정식 앱/TestFlight 공용 OTA를 게시했다.
 
 > **운동 화면 날짜 버튼 (2026-11-05):** `src/components/DateButton.jsx`는 iPhone 사진의 버튼을 기준으로 복숭아색 배경·갈색 16px semibold 날짜·8px 모서리·좌우 12px/상하 8px 여백·최소 44px 높이의 공통 외형을 제공한다. 날짜는 앱 언어의 짧은 월/일/연도 형식(영어 예: Nov 5, 2026)으로 표시하며 다크 모드에서는 공통 색상 토큰을 따른다. 실제 date input은 투명하게 버튼 전체를 덮어 터치·키보드·접근성 입력을 유지하고 기기 기본 달력을 연다. 운동 탭 제목 오른쪽에 내용 너비로 정렬하며 좁은 화면/큰 글자에서는 다음 줄로 이동한다. 미래 날짜 제한과 날짜 변경 동작은 유지한다. 기록 탭 날짜 배치는 기존대로 유지한다. 앱 바이너리/OTA 배포는 별도다.
-> 최신 OTA: 2026-11-06 공통 날짜 버튼을 기존 runtime ios-326d6b3c3dd1fbb3에 게시했다.
+> 최신 OTA: 2026-11-07 운동 소요시간 제거를 기존 runtime ios-326d6b3c3dd1fbb3에 게시했다.
 > 현재 소스 runtime: ios-326d6b3c3dd1fbb3. 정식 배포 버전은 iOS 1.0.1(13)이다. 2026-10-20 production 빌드·ASC 업로드·정식 심사 제출을 완료했고 승인 후 자동 출시로 설정했다. 2026-10-22 ASC에서 1.0.1 및 빌드 13의 배포 준비됨 상태와 한국 App Store의 공개 버전 1.0.1·최신 업데이트 내역을 확인했다. 실제 iPhone 업데이트 설치 검증은 별도다.
 > 현재 Phase: Phase 4 (로컬 전용 iOS 전환) 구현 완료 — 한국어/영어 포함 빌드 7 ASC 연결·사용자 실기기 확인 완료·스토어 지원 언어 리소스 보완 후 신규 빌드 전 검증 완료
 
@@ -80,7 +80,7 @@ mode !== 'capacitor' && VitePWA({
 
 ### 배포 (중요)
 #### Android 개발·출시 준비 (2026-09-16)
-- `@capacitor/android` 8.5.1, `android/` Gradle 프로젝트. applicationId는 `com.choongchoongeestar.workout`, versionName 1.0/versionCode 1, min SDK 24, compile/target SDK 36. Android 버전 번호는 iOS와 독립적이다.
+- `@capacitor/android` 8.5.1, `android/` Gradle 프로젝트. applicationId는 `com.choongchoongeestar.workout`, versionName 1.0.2/versionCode 3, min SDK 24, compile/target SDK 36. Android 버전 번호는 iOS와 독립적이다.
 - `npm run android:sync` 후 Android Studio에서 실행한다. CLI 빌드는 JDK 21과 Android SDK 36 환경에서 `android/gradlew.bat -p android assembleDebug`를 사용한다. 릴리스 AAB는 별도 업로드 키·서명 설정 후 Android Studio의 Generate Signed Bundle로 생성한다. 키·local.properties·빌드 산출물은 Git에 넣지 않는다.
 - CLI 릴리스 서명은 `WORKOUT_UPLOAD_STORE_FILE`(키 파일 절대 경로), `WORKOUT_UPLOAD_STORE_PASSWORD`, `WORKOUT_UPLOAD_KEY_ALIAS`, `WORKOUT_UPLOAD_KEY_PASSWORD` 환경 변수로 설정한다. 일부만 설정하면 빌드를 중단한다. 제출용 명령은 `android/gradlew.bat -p android bundleRelease -PrequireUploadSigning`이며 키 미설정 시 실패한다. 키 없이 `bundleRelease`로 만든 `android/app/build/outputs/bundle/release/app-release.aab`는 구조 검증용 미서명 파일로 Play 제출에 사용할 수 없다. 업로드 키와 Windows DPAPI 암호 파일은 Git 제외 `.android-signing/`에 생성했다. `scripts/android-release.ps1`은 키 덮어쓰기를 거부하고 서명된 AAB/APK 생성·AAB 서명 검증·공개 인증서 내보내기를 수행한다. 키와 복호화한 암호의 다른 기기/암호 관리자 백업은 소유자 작업으로 남는다.
 - 앱 설정 열기와 OS 앱별 언어 조회는 Android `AppSettingsPlugin`으로 구현한다. en/ko locale-config를 등록한다. 기존 React 화면·기기 저장·캐시 파일 공유 백업을 재사용한다. Android 자동 클라우드 백업·기기 이전은 제외하고 사용자 요청 파일 내보내기를 사용한다.
@@ -875,3 +875,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-26 출시 자료 갱신: 위 저장·큰 글자 수정을 포함한 Android 1.0(1) AAB/APK를 기존 업로드 키로 새로 생성하고 서명을 검증했다. AAB SHA-256은 1792b16dc6e21c0ad87013b8d973589eb833dfcd67c56893d06289b849cca5fb이다. 사용하지 않는 SCHEDULE_EXACT_ALARM 권한을 manifest에서 제거했으며 최종 서명 APK의 저장·복원·백업·백그라운드 알림·키보드/뒤로가기·한영 전환 통합 검증을 통과했다. 79개 단위 테스트·lint·웹 빌드 통과, Android lint 오류 0·경고 34. 한영 각 4장의 1080×1920 RGB 스크린샷을 실제 출시 APK에서 캡처·검토했고 소개에 비의료기기 및 의료 전문가 상담 문구를 추가했다. 공개 개인정보 URL HTTP 200 및 최신 정책 내용을 확인했다. 최종 패킷은 release-artifacts/google-play/2026-10-26에 로컬 보관한다. 이전 10월 23일 AAB는 대체됐다. 대한민국 출시, support@mamkkeot.com은 확정이며 대상 연령은 사용자 승인으로 13세 이상(13–15세·16–17세·18세 이상)으로 확정했다. Play Console 입력은 아직이다. 공개 전화번호 인증·업로드 키 외부 백업 확인·Play 앱 설정/선언·Play 설치/업데이트·심사/출시는 남아 있다.
 
 - 2026-11-07: 세션 소요시간 자동 측정·저장, 기록 상세 및 Markdown 본문의 총 시간 표시를 제거했다. 과거 백업 읽기·구조화된 원본 값 보존, 유산소 세트 시간, 휴식 타이머는 유지한다. 80개 단위 테스트·lint·웹 빌드를 통과했다. 앱 배포는 별도다.
+
+- 2026-11-07 배포: 운동 소요시간 제거를 기존 iOS 정식 앱/TestFlight에 OTA 게시하고 공개 체크섬·서명을 검증했다. Android 1.0.2(3)을 프로덕션 제출하고 기존 심사를 재시작했다. 자동 검사·심사 통과 후 자동 공개 예정이며 실기기/Play 설치 확인은 별도다.

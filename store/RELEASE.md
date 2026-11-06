@@ -1,10 +1,10 @@
-## Latest OTA delivery (2026-11-06)
+## Latest OTA delivery (2026-11-07)
 
-- Published the compact shared date button to the existing App Store/TestFlight runtime `ios-326d6b3c3dd1fbb3` with explicit owner approval.
-- Bundle: `981c91cb63df012e799ca30d3669c189c089eab497f4a7457e5ed78909e6be02`; ZIP: 137924 bytes.
-- Restored source versions to iOS 1.0.1 (13); no EAS build or TestFlight binary upload was started. Retained `.easignore` protections.
-- iOS compatibility checks, signed bundle preparation, seven OTA tests, lint and web build passed. Public manifest, downloaded ZIP SHA-256 and RSA signature were verified. Actual iPhone verification remains pending.
-- Apply through Settings → Check for updates, then fully close and reopen the app.
+- Published removal of workout session duration tracking/display to the existing App Store/TestFlight runtime `ios-326d6b3c3dd1fbb3` with explicit owner approval. Source change: `0ba3e3c`.
+- Bundle: `876681e132cc826f78879c048f08de94805f34303281e9e4433ed448a55c0507`; ZIP: 137800 bytes.
+- Native runtime compatibility and signed bundle preparation passed. Public manifest and ZIP returned HTTP 200; downloaded SHA-256 and RSA signature verified. Actual iPhone installation remains unverified.
+- The source passed 80 unit tests, lint and web build. Native iOS version remains 1.0.1 (13); no new EAS build or binary upload.
+- Apply through Settings → Check for updates, then fully close and reopen the app. The previous compact-date-button OTA was published on 2026-11-06 (bundle `981c91cb63df012e799ca30d3669c189c089eab497f4a7457e5ed78909e6be02`).
 
 ## Latest delivery status (2026-10-22)
 
