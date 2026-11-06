@@ -48,7 +48,6 @@ export function buildMarkdown(sessions, exercises) {
   for (const session of sorted) {
     lines.push(`## ${session.date}`)
     const meta = []
-    if (session.duration_min) meta.push(`Total ${session.duration_min} min`)
     const seList = session.exercises ?? []
     meta.push(`${seList.length} exercises`)
     lines.push(`_${meta.join(' · ')}_`)

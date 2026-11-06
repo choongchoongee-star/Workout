@@ -35,9 +35,6 @@ export default function SessionDetail() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-white font-bold text-lg">{formatDate(session.date, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</h1>
-          {session.duration_min > 0 && (
-            <p className="text-zinc-500 text-sm">{session.duration_min}{t("min")}</p>
-          )}
         </div>
         <div className="flex w-full items-center justify-end gap-6">
           <button

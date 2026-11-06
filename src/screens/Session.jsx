@@ -212,25 +212,11 @@ export default function Session() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionDate])
 
-  // 오늘 날짜 세션의 시작 시간 추적
-  const startTimeKey = `wl_session_start_${realToday}`
-  useEffect(() => {
-    if (sessionDate !== realToday) return
-    try {
-      if (!sessionStorage.getItem(startTimeKey)) {
-        sessionStorage.setItem(startTimeKey, String(Date.now()))
-      }
-    } catch {
-      // sessionStorage 접근 불가 (Safari 사생활 보호 모드 등) — 무시하고 계속
-    }
-  }, [sessionDate, realToday, startTimeKey])
-
   const [showModal, setShowModal] = useState(false)
   const [showCopyModal, setShowCopyModal] = useState(false)
   const [undoData, setUndoData] = useState(null)
 
   // Auto-save in-progress session to context on every change
-  // 완료 버튼 제거(2026-06-14) → 자동저장 시 오늘 세션의 소요시간도 함께 계산해 보존
   useLayoutEffect(() => {
     if (isDateChanging.current) return
     // An empty list is also an edit: remove the saved session so it cannot
@@ -239,17 +225,8 @@ export default function Session() {
       deleteSession(sessionDate)
       return
     }
-    let durationMin = null
-    if (sessionDate === realToday) {
-      try {
-        const startTime = parseInt(sessionStorage.getItem(startTimeKey), 10)
-        if (startTime) durationMin = Math.max(1, Math.round((Date.now() - startTime) / 60000))
-      } catch {
-        durationMin = null
-      }
-    }
-    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises, duration_min: durationMin })
-  }, [sessionExercises, sessionDate, upsertSession, deleteSession, realToday, startTimeKey])
+    upsertSession({ id: sessionDate, date: sessionDate, exercises: sessionExercises })
+  }, [sessionExercises, sessionDate, upsertSession, deleteSession])
 
   // 세트 추가 후 새 세트(= 해당 운동의 '세트 추가' 버튼 영역)가 화면에 보이도록 스크롤
   useEffect(() => {

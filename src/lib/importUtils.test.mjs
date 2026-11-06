@@ -31,7 +31,7 @@ test('new exports restore all set values, cardio rows, IDs, MET and completion s
 })
 
 test('old exports restore visible weight, bodyweight and cardio values with a limitation warning', () => {
-  const result = parseWorkoutMarkdown(legacy(buildMarkdown(sessions, exercises)))
+  const result = parseWorkoutMarkdown(legacy(buildMarkdown(sessions, exercises)).replace('_3 exercises_', '_Total 45 min · 3 exercises_'))
   const [weight, bodyweight, cardio] = result.sessions[0].exercises
   assert.equal(result.sessions[0].duration_min, 45)
   assert.deepEqual(weight.sets, sessions[0].exercises[0].sets.map(set => ({ ...set, done: false })))
@@ -124,4 +124,12 @@ test('corrupt structured backups do not fall back to a lossy legacy import', () 
 test('exercise names containing comment delimiters remain readable and restore correctly', () => {
   const unusual = exercises.map(ex => ({ ...ex, name: '<!-- 이름 --> <script> & ```' }))
   assert.deepEqual(parseWorkoutMarkdown(buildMarkdown(sessions, unusual)).exercises, unusual)
+})
+
+test('exports omit retired workout duration from the report while retaining legacy backup data', () => {
+  const markdown = buildMarkdown(sessions, exercises)
+  assert.doesNotMatch(legacy(markdown), /Total 45 min/)
+  assert.match(legacy(markdown), /15.5 min/)
+  assert.deepEqual(parseWorkoutMarkdown(markdown).sessions, sessions)
+  assert.equal(parseWorkoutMarkdown(legacy(markdown)).sessions[0].duration_min, null)
 })

@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-11-06
+> 마지막 업데이트: 2026-11-07
 
 > **iOS OTA 배포 (2026-11-06):** 사용자 승인으로 공통 날짜 버튼을 기존 정식 앱/TestFlight runtime ios-326d6b3c3dd1fbb3에 게시했다. bundle `981c91cb63df012e799ca30d3669c189c089eab497f4a7457e5ed78909e6be02`, ZIP 137924 bytes. 공개 manifest·ZIP SHA-256·RSA 서명 검증을 완료했다. 새 바이너리는 만들지 않으며 소스 버전은 배포된 iOS 1.0.1(13)과 일치한다. `.easignore`의 개인 백업·서명 자료·임시 파일 제외 규칙은 유지한다. Settings → Check for updates에서 다운로드 후 앱을 완전히 종료·재실행하여 적용한다. 실제 iPhone 확인은 별도다.
 
@@ -189,7 +189,6 @@ Workout/
   (로드 직후 첫 실행은 justLoadedRef로 스킵 — 빈 데이터 덮어쓰기 방지)
 
 설정값(휴식 시간) → localStorage (수동 저장)
-세션 시작 시각 → sessionStorage (소요시간 계산용)
 ```
 
 ### 외부 의존성
@@ -234,10 +233,10 @@ Workout/
 ### 4.3 Session (id === date, 1일 1세션)
 ```json
 { "id": "2026-03-14", "date": "2026-03-14",
-  "exercises": [ SessionExercise, ... ], "duration_min": 65 }
+  "exercises": [ SessionExercise, ... ] }
 ```
 - `id` = `date` = `YYYY-MM-DD` (로컬 기준, `localTodayStr()`)
-- `duration_min`: 오늘 세션은 변경 사항을 자동 저장할 때 sessionStorage 시작 시각으로 계산(최소 1분). 다른 날짜를 편집할 때는 null
+- 세션 소요시간 자동 측정과 표시를 제거했다. 새 기록 및 편집 저장에는 세션 `duration_min`을 쓰지 않는다. 과거 백업의 해당 필드는 읽을 수 있고 구조화된 백업에는 남아 있는 원본 값을 보존하지만 화면과 Markdown 본문에는 표시하지 않는다. 과거 유산소 세트의 `duration_min`은 별도 기록으로 유지한다.
 
 ### 4.4 SessionExercise
 ```json
@@ -262,9 +261,7 @@ Workout/
 - private/incognito 등 접근 불가 환경 안전 처리(try/catch, isAvailable).
 
 ### 4.7 sessionStorage
-| 키 | 의미 |
-|----|------|
-| `wl_session_start_{today}` | 오늘 세션 첫 진입 시각(ms). 완료 시 소요시간 계산 후 제거 |
+앱 기능은 sessionStorage를 사용하지 않는다. 이전 버전의 세션 시작 시각 키는 읽거나 갱신하지 않는다.
 
 ---
 
@@ -332,7 +329,7 @@ Workout/
 - **bodyweight:** added_weight 스테퍼(kg step 2.5 / lbs step 5) + reps. `BW +` 또는 `Bodyweight+` 접두어는 표시하지 않는다.
 - **과거 cardio:** `LegacyCardioRecords`로 시간/거리/속도/경사/칼로리를 읽기 전용 표시한다. 입력·자동 칼로리 계산·장비 선택은 없다. 기존 카드 삭제/Undo와 세션 백업/복원은 유지한다.
 - **삭제:** 세트 번호 아래 ×는 제거한다. 행을 왼쪽으로 밀면 오른쪽에 폭 88px·최소 높이 44px의 Delete 버튼이 나타나며, 버튼을 눌러야 삭제한다. 전체 스와이프로 즉시 삭제하지 않는다. 번호·상시 ±·완료 체크·행 높이는 유지한다. 운동 전체 삭제는 제목 오른쪽 `Delete` 버튼이며 유산소에도 동일하다. 삭제 → 즉시 제거 + UndoToast(10초), 되돌리기 시 값·완료 상태·순서를 복원한다. `+ Add set`은 운동 목록 바로 아래의 얇은 텍스트 버튼이다.
-- **자동 저장 + 소요시간:** sessionExercises 변경 시 `upsertSession` → AppContext 즉시 복구 journal 기록 → 순차 로컬 JSON 파일 저장. 마지막 운동 삭제로 운동 목록이 비면 `deleteSession(sessionDate)`로 해당 날짜 세션을 AppContext와 로컬 저장에서 제거한다. History 및 Workout 재진입 시 삭제 전 기록이 복원되지 않으며, Undo는 원래 운동을 다시 upsert한다. 날짜 전환으로 목록을 로드하는 동안에는 기존 자동 저장 방지 플래그를 유지한다. **오늘 세션이면 자동저장 시 sessionStorage 시작시각 기준 `duration_min`도 함께 계산해 저장**(완료 버튼 제거에 따라 이전 [완료] 로직을 자동저장으로 이관, 2026-06-14). 다른 날 편집은 duration=null.
+- **자동 저장:** sessionExercises 변경 시 `upsertSession` → AppContext 즉시 복구 journal 기록 → 순차 로컬 JSON 파일 저장. 마지막 운동 삭제로 운동 목록이 비면 `deleteSession(sessionDate)`로 해당 날짜 세션을 AppContext와 로컬 저장에서 제거한다. History 및 Workout 재진입 시 삭제 전 기록이 복원되지 않으며, Undo는 원래 운동을 다시 upsert한다. 날짜 전환으로 목록을 로드하는 동안에는 기존 자동 저장 방지 플래그를 유지한다. 소요시간을 계산하지 않으며 새 기록·편집 저장에는 세션 단위 시간 필드를 넣지 않는다.
 - **날짜 변경:** 헤더 date input 변경 → 해당 날짜 세션 로드(없으면 빈 배열). 날짜 전환 중엔 auto-save 스킵(`isDateChanging`).
 
 - **이전 운동 가져오기:** 운동 탭 하단의 운동 추가 옆에 같은 폭의 버튼을 둔다. 데이터 로드 완료 후 사용할 수 있다. 현재 편집 날짜보다 이전이며 가져올 수 있는 운동이 있는 기록을 날짜 내림차순으로 보여준다. 우상단은 기존 앱과 같은 기본 date input이며 별도 달력 UI를 만들지 않는다. 날짜를 지정하면 일치하는 기록만 표시하고 전체 기록 보기로 복귀한다. 기록이 없으면 빈 상태를 표시한다.
@@ -360,7 +357,7 @@ Workout/
 - 메인 카테고리 = `getMainCategory` (없으면 오른쪽 빈칸).
 - 일반 모드 카드 탭 → `/history/:id`. date picker 변경 → 해당 날짜 카드로 부드럽게 스크롤(`cardRefs`, 편집 모드에서도 동일).
 - 날짜 왼쪽의 편집 버튼으로 편집 모드에 진입하고 완료로 종료한다. 편집 모드에서는 각 날짜 기록에 선택 체크박스와 항상 보이는 삭제 버튼을 표시한다. 행의 날짜를 눌러도 상세 이동 대신 선택을 전환한다. 상단 전체 선택 체크박스는 모두 선택/해제하며 일부 선택 시 중간 상태를 표시한다. 선택 삭제 (N)는 선택한 세션만 삭제하고 선택이 없으면 비활성이다. 편집 종료 시 선택을 초기화한다. 모든 기록을 삭제해도 완료 버튼으로 모드를 종료할 수 있다.
-- 개별·선택·전체 삭제 모두 삭제한 세션 묶음을 10초 Undo로 복원한다. 날짜·세트·장비·소요시간을 그대로 복원하며 새 삭제는 직전 Undo 묶음을 교체하고 시간을 다시 시작한다. 삭제는 기존 로컬 자동 저장 경로를 사용한다. 회귀 검사는 scripts/verify-history-edit.mjs로 한국어/영어 선택·부분/전체 삭제·완전 복원·재로드 유지·4개 화면 폭을 검증한다.
+- 개별·선택·전체 삭제 모두 삭제한 세션 묶음을 10초 Undo로 복원한다. 날짜·세트·장비와 과거 호환용 메타데이터를 그대로 복원하며 새 삭제는 직전 Undo 묶음을 교체하고 시간을 다시 시작한다. 삭제는 기존 로컬 자동 저장 경로를 사용한다. 회귀 검사는 scripts/verify-history-edit.mjs로 한국어/영어 선택·부분/전체 삭제·완전 복원·재로드 유지·4개 화면 폭을 검증한다.
 - History 날짜 카드를 왼쪽으로 밀면 오른쪽 Delete 버튼이 나타난다. 탭은 기존 상세 이동이며 스와이프 후 클릭은 차단한다. Delete는 해당 날짜 세션 전체를 삭제하고 목록에서 10초 Undo를 제공한다. 상세 화면의 기존 Delete도 유지한다.
 - 세션 삭제 후 `/history`로 돌아올 때 `location.state.undoSession`으로 10초 되돌리기.
 - 저장 동기화 실패 시 기록 목록 위에 네트워크 확인 배너 표시.
@@ -369,7 +366,6 @@ Workout/
 ```
 ┌──────────────────────────────────────┐
 │ ←  2026년 6월 13일 (토)    [수정] [삭제] │
-│    65분                                │
 │ ┌────────────────────────────────────┐│
 │ │ 벤치프레스   가슴                     ││
 │ │ 1  80kg × 10회                  ✓   ││  ← done이면 초록 ✓
@@ -565,8 +561,8 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 정상 로드 직후 첫 저장 effect는 `justLoadedRef`로 1회 스킵한다. 이후 state 변경은 layout effect에서 즉시 `saveLocalWorkoutData`로 전달한다. Android는 `WorkoutJournal` JavaScript 인터페이스를 통해 앱 전용 `workout-data.journal.json`에 AtomicFile·파일 동기화로 최신 스냅샷을 동기 기록한다. 고정 경로의 write/조건부 clear만 노출하며 읽기 API나 임의 경로 접근은 제공하지 않는다. iOS 및 해당 인터페이스가 없는 기존 네이티브 빌드는 localStorage의 `wl_native_workout_journal_v1`을 복구 기록으로 사용한다. 본 파일 쓰기는 순차 처리한다. 저장 중 더 최신 변경이 생기면 이전 저장 완료가 새 journal을 지우거나 저장 완료 상태를 표시하지 않는다. 재실행 시 Android 파일 journal → 이전 WebView journal 순으로 우선 복구하며, 없으면 정상 pending 파일을 main보다 우선 복구한다. 잘못된 journal/pending은 정상 main/backup을 덮지 않는다. WebView 저장소를 사용할 수 없으면 즉시 네이티브 파일 저장으로 대체되므로 모든 전원 차단 시점의 보존을 보장하지는 않는다.
 - 저장 실패는 `syncError`로 보존하며 Session·History·Library 화면에 기기 저장 오류 배너를 표시한다. 다음 저장 시작 시 오류를 초기화한다.
 
-### 8.6 소요시간
-- 오늘 세션 첫 진입 시 sessionStorage에 시작 ms 기록. **자동저장마다** `(now-start)/60000` 반올림(최소 1분)을 `duration_min`에 저장 → 마지막 활동 시각이 곧 세션 길이. 다른 날 편집은 duration=null. (완료 버튼 제거 전에는 [완료] 시점에만 계산했음, 2026-06-14 변경)
+### 8.6 세션 소요시간 제거
+- 세션 시작 시각을 기록하거나 소요시간을 계산하지 않는다. 기록 상세의 분 표시와 Markdown 본문의 총 시간 표시도 없다. 과거 백업 읽기와 구조화된 원본 데이터 보존은 지원하며, 기존 유산소 세트 시간과 휴식 타이머는 유지한다.
 
 ### 8.7 iOS 네이티브 셸
 - `ios/App.xcodeproj`는 Capacitor v8로 생성했으며 앱 번들에 `dist` 웹 자산을 포함한다. 원격 사이트를 불러오는 단순 WebView가 아니다.
@@ -877,3 +873,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-10-26 최종 검증: Android 16/WebView 133에서 즉시 강제 종료 뒤 41회 보존을 독립 fixture로 3회 연속 확인했다. 최종 네이티브 journal 구현으로 365일 기록 탐색·수정·저장과 320×568dp/font_scale=2.0의 저장·백업 왕복·알림·키보드·뒤로가기·한영 전환 통합 흐름도 통과했다. 제목/컨트롤 및 탭 텍스트 경계 자동 검사와 캡처 검토로 보고된 겹침·날짜 잘림 해소를 확인했다. 기본 화면 통합 흐름도 통과했다. JS 테스트는 journal 복구·저장 순서·실패·용량 부족 회귀 검사를 포함해 총 79개 통과, lint·웹 빌드·debug 및 테스트 APK 컴파일 통과. 신규 네이티브 구현은 android/app/src/main/java/com/choongchoongeestar/workout/WorkoutJournal.java이며 MainActivity에서 등록한다. 검증용 에뮬레이터 설정을 복원하고 종료했다. 캡처는 release-artifacts/android-validation-2026-10-26에 로컬 보관한다. 기존 2026-10-23 출시용 AAB에는 이 수정이 포함되지 않았으므로 실제 제출 전 새 바이너리 빌드가 필요하다. 실기기 및 Play 설치·업데이트 검증은 별도다.
 
 - 2026-10-26 출시 자료 갱신: 위 저장·큰 글자 수정을 포함한 Android 1.0(1) AAB/APK를 기존 업로드 키로 새로 생성하고 서명을 검증했다. AAB SHA-256은 1792b16dc6e21c0ad87013b8d973589eb833dfcd67c56893d06289b849cca5fb이다. 사용하지 않는 SCHEDULE_EXACT_ALARM 권한을 manifest에서 제거했으며 최종 서명 APK의 저장·복원·백업·백그라운드 알림·키보드/뒤로가기·한영 전환 통합 검증을 통과했다. 79개 단위 테스트·lint·웹 빌드 통과, Android lint 오류 0·경고 34. 한영 각 4장의 1080×1920 RGB 스크린샷을 실제 출시 APK에서 캡처·검토했고 소개에 비의료기기 및 의료 전문가 상담 문구를 추가했다. 공개 개인정보 URL HTTP 200 및 최신 정책 내용을 확인했다. 최종 패킷은 release-artifacts/google-play/2026-10-26에 로컬 보관한다. 이전 10월 23일 AAB는 대체됐다. 대한민국 출시, support@mamkkeot.com은 확정이며 대상 연령은 사용자 승인으로 13세 이상(13–15세·16–17세·18세 이상)으로 확정했다. Play Console 입력은 아직이다. 공개 전화번호 인증·업로드 키 외부 백업 확인·Play 앱 설정/선언·Play 설치/업데이트·심사/출시는 남아 있다.
+
+- 2026-11-07: 세션 소요시간 자동 측정·저장, 기록 상세 및 Markdown 본문의 총 시간 표시를 제거했다. 과거 백업 읽기·구조화된 원본 값 보존, 유산소 세트 시간, 휴식 타이머는 유지한다. 80개 단위 테스트·lint·웹 빌드를 통과했다. 앱 배포는 별도다.

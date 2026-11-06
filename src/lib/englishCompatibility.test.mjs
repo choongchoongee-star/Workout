@@ -43,7 +43,8 @@ test('old Korean Markdown resolves to English defaults without losing sets or cr
   const markdown = buildMarkdown(data.sessions, data.exercises)
   assert.equal(/[가-힣]/.test(markdown), false)
   assert.deepEqual(parseWorkoutMarkdown(markdown).sessions, data.sessions)
-  assert.deepEqual(parseWorkoutMarkdown(markdown.replace(/<!-- workout-backup:v1\n[^]*?\n-->\n/, '')).sessions, data.sessions)
+  assert.deepEqual(parseWorkoutMarkdown(markdown.replace(/<!-- workout-backup:v1\n[^]*?\n-->\n/, '')).sessions,
+    data.sessions.map(session => ({ ...session, duration_min: null })))
   assert.equal(/[가-힣]/.test(data.warnings.join('')), false)
 })
 
