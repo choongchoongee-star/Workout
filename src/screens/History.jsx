@@ -6,6 +6,7 @@ import { formatDate, localTodayStr } from '../lib/dateUtils'
 import { getMainCategory } from '../lib/sessionUtils'
 import UndoToast from '../components/UndoToast'
 import SwipeToDelete from '../components/SwipeToDelete'
+import DateButton from '../components/DateButton'
 
 export default function History() {
   const navigate = useNavigate()
@@ -69,18 +70,17 @@ export default function History() {
       <div className="flex flex-wrap items-center gap-3 mb-4 pt-2">
         <h1 className="text-xl font-bold text-white">{t("Workout history")}</h1>
         {(sessions.length > 0 || editing) && (
-          <div className="flex max-w-full flex-wrap items-center gap-2">
+          <div className="ml-auto flex max-w-full items-center justify-end gap-2">
           <button type="button" aria-pressed={editing}
             onClick={() => { setEditing(value => !value); setSelectedIds(new Set()) }}
-            className="min-h-11 min-w-11 text-sm font-medium text-accent-400 active:bg-zinc-800 rounded-lg">
+            className="min-h-11 min-w-11 shrink-0 text-sm font-medium text-accent-400 active:bg-zinc-800 rounded-lg">
             {editing ? t('Done') : t('Edit history')}
           </button>
-          <input
-            type="date"
-            aria-label={t('History date')}
+          <DateButton
+            label={t('History date')}
             value={jumpDate}
             onChange={e => handleDateJump(e.target.value)}
-            className="w-full sm:w-auto min-w-0 max-w-full bg-zinc-800 text-zinc-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-500"
+            className="min-w-0"
           />
           </div>
         )}
