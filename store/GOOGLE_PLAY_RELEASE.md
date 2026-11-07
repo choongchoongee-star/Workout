@@ -4,6 +4,12 @@ Updated: 2026-11-07
 
 ## Current release status
 
+- 2026-11-07: Submitted production 1.0.3 (4) - History date button, replacing 1.0.2 (3) and restarting review with owner authorization. Korean/English notes saved; 100% worldwide rollout, 177 countries/regions plus Rest of World, managed publishing off retained. Console lists version 4 under Changes in review; quick checks are still running and will forward the changes after success. Approval/public availability remains unverified.
+- Existing-key signed build and AAB signature passed. 80 unit tests passed. Installed the signed APK over version 3 on the QA emulator; existing records and 45 kg × 9 completed set remained. Shared History date button, Edit alignment and native calendar opening verified. This is not a Play-delivered update test.
+- Version 4 artifacts are in release-artifacts/google-play/2026-11-07/ (Git-excluded). AAB SHA-256 b3372c86aebf414cff0aff01e4161f55eb3dc296c73cb4a95b0fc3c0bb1ab277; APK SHA-256 a03b1f7bd799f2a50aef2c3f5d94cae86ee96f890879603bf7871953c21a1263. Play validation only reports the existing non-blocking mapping-file warning; supported-device counts are unchanged.
+
+### Previous version 3 submission
+
 - On 2026-11-07, built and uploaded `1.0.2 (3) - Simplified workout history` to production with explicit owner authorization. Removed workout duration tracking/display, including the readable backup report. Both release-note languages are populated. Rollout is 100% in all targeted countries; 177 countries/regions plus Rest of World and existing declarations remain in the submission.
 - Submitted the new release and accepted Console's restart-review prompt. Console now lists 1.0.2 (3) under Changes in review instead of 1.0.1 (2). Quick checks were still running; Console says review will begin after they pass. Managed publishing remains off, so approval can publish automatically. Public availability and Play-delivered version 3 installation are not yet verified.
 - Signed AAB/APK use the existing upload certificate; signatures and packaged version 1.0.2/code 3 verified. Source passed 80 unit tests, lint and web build. Release Gradle build and lintVital passed. All 15 packaged web assets match across APK/AAB; retired session-start tracking and Android OTA configuration are absent. Support counts are unchanged. The only Play validation warning is the existing missing-deobfuscation-file notice (minification is off).
