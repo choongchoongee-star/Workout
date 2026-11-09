@@ -1,5 +1,8 @@
 // English keys are presentation text only; persisted values remain unchanged.
 export const ko = {
+  'Yes': '예', 'No': '아니오',
+  'Delete {name}': '{name} 삭제',
+  'Deleting this exercise will remove it from your library and exercise progress. Past workout entries will lose their exercise name. This cannot be undone. Continue?': '이 운동을 삭제하면 운동 목록과 운동별 기록에서 제거되고, 관련된 모든 과거 운동 기록에서 운동 이름이 사라집니다. 되돌릴 수 없습니다. 삭제하시겠습니까?',
   'Copy previous workout': '이전 운동 가져오기',
   'Choose exercises to copy': '가져올 운동 선택',
   'Find workout by date': '기록 날짜 선택',

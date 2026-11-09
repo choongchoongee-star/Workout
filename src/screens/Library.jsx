@@ -2,7 +2,7 @@ import { selectableExercises } from '../lib/exerciseLibrary'
 import { localizedMovementName as movementName } from '../lib/exerciseLabels'
 import { t } from '../lib/i18n'
 import { exerciseChoices } from '../lib/equipment'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AddExerciseForm from '../components/AddExerciseForm'
 import { useApp } from '../context/AppContext'
 import { CATEGORIES } from '../data/exercises'
@@ -10,11 +10,37 @@ import { isDefaultExercise } from '../lib/exerciseLibrary'
 
 const TYPE_LABELS = { weight: 'Weight', bodyweight: 'Bodyweight' }
 
+function DeleteExerciseDialog({ exercise, onCancel, onConfirm }) {
+  const dialogRef = useRef(null)
+  useEffect(() => {
+    const dialog = dialogRef.current
+    dialog.showModal()
+    return () => dialog.close()
+  }, [])
+
+  return (
+    <dialog ref={dialogRef} aria-labelledby="delete-exercise-title" aria-describedby="delete-exercise-warning"
+      onCancel={onCancel}
+      className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-zinc-900 p-5 text-white backdrop:bg-black/70">
+      <h2 id="delete-exercise-title" className="text-lg font-semibold">{t('Delete exercise')}</h2>
+      <p className="mt-3 break-words font-semibold">{movementName(exercise)}</p>
+      <p id="delete-exercise-warning" className="mt-2 text-sm text-zinc-300">
+        {t('Deleting this exercise will remove it from your library and exercise progress. Past workout entries will lose their exercise name. This cannot be undone. Continue?')}
+      </p>
+      <div className="mt-5 flex gap-3">
+        <button type="button" autoFocus onClick={onCancel} className="min-h-11 flex-1 rounded-xl bg-zinc-800 px-4 py-2">{t('No')}</button>
+        <button type="button" onClick={onConfirm} className="min-h-11 flex-1 rounded-xl bg-red-700 px-4 py-2 text-white">{t('Yes')}</button>
+      </div>
+    </dialog>
+  )
+}
+
 export default function Library() {
   const { exercises, deleteExercise, loaded, syncError } = useApp()
   const [activeCategory, setActiveCategory] = useState('All')
   const [query, setQuery] = useState('')
   const [showAdd, setShowAdd] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   const categories = ['All', ...CATEGORIES]
   const filtered = exerciseChoices(selectableExercises(exercises))
@@ -92,7 +118,8 @@ export default function Library() {
               <span className="text-zinc-600 text-xs mr-3">{t(ex.category)}</span>
               {isCustom && (
                 <button
-                  onClick={() => deleteExercise(ex.id)}
+                  onClick={() => setPendingDelete(ex)}
+                  aria-label={t('Delete {name}', { name: movementName(ex) })}
                   className="text-zinc-700 active:text-red-400 text-lg px-1"
                 >
                   ×
@@ -105,6 +132,14 @@ export default function Library() {
           <p className="text-zinc-600 text-sm text-center py-8">{t("No exercises found.")}</p>
         )}
       </div>
+      {pendingDelete && (
+        <DeleteExerciseDialog exercise={pendingDelete}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => {
+            deleteExercise(pendingDelete.id)
+            setPendingDelete(null)
+          }} />
+      )}
     </div>
   )
 }
