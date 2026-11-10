@@ -2,7 +2,7 @@
 
 > 마지막 업데이트: 2026-11-10
 
-> **삭제 확인 팝업 배포 (2026-11-10):** iOS 정식 앱/TestFlight 공용 runtime `ios-326d6b3c3dd1fbb3`에 bundle `a7490c994d4e3b0b2cf1b9ba448a7998abf408e5ce26ee1d187102db78f64725`(138365 bytes)를 게시하고 공개 manifest·ZIP HTTP 200, SHA-256·RSA 서명을 검증했다. Android 1.0.4(5)는 기존 키로 서명·업로드하고 프로덕션 전체 대상 국가·100% 출시로 저장했다. 새 필수 app-level trader status declaration 미완료로 심사 제출은 차단된 상태이며, 기존 1.0.3(4)는 심사 중이다. 법적 선언 화면 접근은 자동 승인 검토가 거부하여 사용자 승인 대기다. 실제 iPhone 적용과 Android 심사 제출·공개는 미완료다.
+> **삭제 확인 팝업 배포 (2026-11-10):** iOS 정식 앱/TestFlight 공용 runtime `ios-326d6b3c3dd1fbb3`에 bundle `a7490c994d4e3b0b2cf1b9ba448a7998abf408e5ce26ee1d187102db78f64725`(138365 bytes)를 게시하고 공개 manifest·ZIP HTTP 200, SHA-256·RSA 서명을 검증했다. Android 1.0.4(5)는 기존 키로 서명·업로드하고 프로덕션 전체 대상 국가·100% 출시로 저장했다. 사용자 승인으로 사업자 지위를 이 앱에 적용하고 이용약관 URL은 비워 저장했다. 1.0.4(5)와 사업자 선언을 심사 제출하여 기존 1.0.3(4) 심사를 재시작했다. Console의 Changes in review에서 최신 버전 및 선언을 확인했으며 자동 사전 검사 통과 후 심사로 전달된다. Managed publishing off로 승인 후 자동 공개한다. 실제 iPhone 적용과 Android 심사 승인·공개는 미확인이다.
 
 > **기록 날짜 버튼 배포 (2026-11-07):** iOS 정식 앱/TestFlight 공용 runtime ios-326d6b3c3dd1fbb3에 OTA bundle 7d33f6b421ddafdf15e88c96156159b628799c015348ba55878fec392fb1d50f(137758 bytes)를 게시하고 공개 manifest·ZIP HTTP 200 및 SHA-256·RSA 서명을 검증했다. Android 1.0.3(4)을 기존 키로 빌드·업로드·프로덕션 심사 제출하여 1.0.2(3) 심사를 재시작했다. 전 세계 177개 국가·지역 및 Rest of World·100%·승인 후 자동 공개를 유지한다. 제출 직후 quick checks 진행 중이며 검사 통과 후 심사로 전달된다. QA 에뮬레이터에 install -r 후 기존 기록·45kg×9회 완료 상태 보존, 기록 헤더 수정 및 기본 달력 열기를 확인했다. 실제 iPhone 적용과 Play 설치·공개는 별도다.
 
@@ -888,4 +888,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 - 2026-11-10: Manage exercises의 커스텀 운동 삭제에 운동 이름·삭제 영향·되돌리기 불가 안내와 예/아니오 모달을 추가했다. scripts/verify-exercise-deletion.mjs에서 한국어/영어 320px 화면의 기본 취소 초점·아니오·Escape·확인 삭제·재로드 유지 및 세션 원본 보존을 검증했다. 관련 단위 테스트 7개·lint·웹 빌드 통과. 앱 배포는 별도다.
 
-- 2026-11-10 배포: 삭제 확인 팝업의 iOS OTA 게시 및 공개 파일 서명 검증 완료. Android 1.0.4(5)의 AAB/APK 기존 인증서 서명·버전·웹 자산 일치·iOS OTA 설정 제외를 검증했다. AAB SHA-256: cee6ec7fb32b26b11afa558bd23a84bde21af86161472ae70eee3b37516c2a03. Play 업로드·한영 출시 설명·100% 전체 대상 국가 출시 저장 완료. 비난독화 빌드에 대한 deobfuscation 파일 경고 1개 외 업로드 오류는 없었다. Publishing overview의 새 app-level trader status declaration 요구로 Submit 1 change for review가 비활성화되어 아직 제출하지 못했다. 기존 1.0.3 심사는 유지하며 Managed publishing off다. OTA 테스트 7개·iOS 구성 검사·lint·웹 빌드 통과. 실제 기기 적용 확인은 별도다.
+- 2026-11-10 배포: 삭제 확인 팝업의 iOS OTA 게시 및 공개 파일 서명 검증 완료. Android 1.0.4(5)의 AAB/APK 기존 인증서 서명·버전·웹 자산 일치·iOS OTA 설정 제외를 검증했다. AAB SHA-256: cee6ec7fb32b26b11afa558bd23a84bde21af86161472ae70eee3b37516c2a03. Play 업로드·한영 출시 설명·100% 전체 대상 국가 출시 저장 완료. 비난독화 빌드에 대한 deobfuscation 파일 경고 1개 외 업로드 오류는 없었다. 필수 사업자 선언으로 제출이 차단되었으나 같은 날 사용자 승인으로 앱에 사업자 지위를 적용하고 이용약관 URL은 비워 저장했다. 1.0.4(5)와 선언 2개 변경을 제출하고 기존 1.0.3 심사 재시작을 확정했다. Changes in review에서 최신 버전 및 Trader status를 확인했다. 자동 사전 검사 진행 중이며 통과 후 심사로 전달된다. Managed publishing off를 유지하여 승인 후 자동 공개한다. OTA 테스트 7개·iOS 구성 검사·lint·웹 빌드 통과. 실제 기기 적용 확인은 별도다.
