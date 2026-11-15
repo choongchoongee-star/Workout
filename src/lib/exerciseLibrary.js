@@ -1,5 +1,7 @@
 import { DEFAULT_EXERCISES, KNOWN_EXERCISES, LEGACY_CATEGORIES, LEGACY_EXERCISE_NAMES } from '../data/exercises.js'
 
+const legacyNames = { 'single-leg-deadlift': ['One leg deadlift'] }
+
 export function selectableExercises(exercises) {
   return exercises.filter(ex => ex.type !== 'cardio' && normalizeCategory(ex.category) !== 'Cardio')
 }
@@ -12,7 +14,8 @@ export function normalizeExercise(exercise) {
   const category = normalizeCategory(exercise.category)
   const base = KNOWN_EXERCISES.find(base =>
     base.category === category && base.type === exercise.type &&
-    (exercise.name === base.name || exercise.name === LEGACY_EXERCISE_NAMES[base.id]))
+    (exercise.name === base.name || exercise.name === LEGACY_EXERCISE_NAMES[base.id] ||
+      legacyNames[base.id]?.includes(exercise.name)))
   // Translate known names while retaining IDs and all recorded metadata.
   // Arbitrary user-written names are not replaced based on ID alone.
   return { ...exercise, name: base?.name ?? exercise.name, category }

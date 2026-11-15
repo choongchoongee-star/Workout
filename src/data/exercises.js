@@ -19,6 +19,7 @@ export const DEFAULT_EXERCISES = [
   { id: 'cable-chest-press', name: 'Cable Chest Press', category: 'Chest', type: 'weight' },
 
   // Back
+  { id: 'inverted-row', name: 'Inverted Row', category: 'Back', type: 'weight' },
   { id: 'pullup', name: 'Pull-up', category: 'Back', type: 'bodyweight' },
   { id: 'lat-pulldown', name: 'Lat Pulldown', category: 'Back', type: 'weight' },
   { id: 'seated-row', name: 'Seated Row', category: 'Back', type: 'weight' },
@@ -30,6 +31,7 @@ export const DEFAULT_EXERCISES = [
   { id: 'straight-arm-pulldown', name: 'Straight-arm Pulldown', category: 'Back', type: 'weight' },
 
   // Shoulders
+  { id: 'high-pull', name: 'High Pull', category: 'Shoulders', type: 'weight' },
   { id: 'overhead-press', name: 'Overhead Press', category: 'Shoulders', type: 'weight' },
   { id: 'dumbbell-shoulder-press', name: 'Dumbbell Shoulder Press', category: 'Shoulders', type: 'weight' },
   { id: 'lateral-raise', name: 'Lateral Raise', category: 'Shoulders', type: 'weight' },
@@ -50,6 +52,8 @@ export const DEFAULT_EXERCISES = [
   { id: 'ez-bar-curl', name: 'EZ-bar Curl', category: 'Arms', type: 'weight' },
 
   // Legs
+  { id: 'hip-thrust', name: 'Hip Thrust', category: 'Legs', type: 'weight' },
+  { id: 'single-leg-deadlift', name: 'Single-leg Deadlift', category: 'Legs', type: 'weight' },
   { id: 'squat', name: 'Squat', category: 'Legs', type: 'weight' },
   { id: 'leg-press', name: 'Leg Press', category: 'Legs', type: 'weight' },
   { id: 'lunge', name: 'Lunge', category: 'Legs', type: 'weight' },
@@ -87,6 +91,10 @@ export const CATEGORIES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core']
 
 // Compatibility aliases for existing accounts and Korean Markdown backups.
 export const LEGACY_EXERCISE_NAMES = {
+  "inverted-row": "인버티드 로우",
+  "high-pull": "하이 풀",
+  "hip-thrust": "힙 쓰러스트",
+  "single-leg-deadlift": "싱글 레그 데드리프트",
   "bench-press": "벤치프레스",
   "incline-bench": "인클라인 벤치프레스",
   "decline-bench": "디클라인 벤치프레스",

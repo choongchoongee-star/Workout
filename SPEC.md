@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-11-10
+> 마지막 업데이트: 2026-11-15
 
 > **삭제 확인 팝업 배포 (2026-11-10):** iOS 정식 앱/TestFlight 공용 runtime `ios-326d6b3c3dd1fbb3`에 bundle `a7490c994d4e3b0b2cf1b9ba448a7998abf408e5ce26ee1d187102db78f64725`(138365 bytes)를 게시하고 공개 manifest·ZIP HTTP 200, SHA-256·RSA 서명을 검증했다. Android 1.0.4(5)는 기존 키로 서명·업로드하고 프로덕션 전체 대상 국가·100% 출시로 저장했다. 사용자 승인으로 사업자 지위를 이 앱에 적용하고 이용약관 URL은 비워 저장했다. 1.0.4(5)와 사업자 선언을 심사 제출하여 기존 1.0.3(4) 심사를 재시작했다. Console의 Changes in review에서 최신 버전 및 선언을 확인했으며 자동 사전 검사 통과 후 심사로 전달된다. Managed publishing off로 승인 후 자동 공개한다. 실제 iPhone 적용과 Android 심사 승인·공개는 미확인이다.
 
@@ -164,7 +164,7 @@ Workout/
 │   │   ├── appSettings.js    # 알림 거부 시 앱별 iPhone Settings 열기
 │   │   └── storage.js        # localStorage 설정값 (휴식 시간, 체중 기본값)
 │   ├── data/
-│   │   └── exercises.js      # DEFAULT_EXERCISES(54개), LEGACY_CARDIO_EXERCISES(과거 기록용 7개), 영문 카테고리 + 한국어 호환 별칭
+│   │   └── exercises.js      # DEFAULT_EXERCISES(58개), LEGACY_CARDIO_EXERCISES(과거 기록용 7개), 영문 카테고리 + 한국어 호환 별칭
 │   └── ...
 ├── ios/                      # Capacitor Xcode 프로젝트 + 앱 설정 브리지 + 공유 App Scheme
 ├── .eas/build/ios-production.yml # Capacitor/SPM용 EAS Custom Build
@@ -581,15 +581,16 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 ---
 
-## 9. 기본 운동 목록 (`exercises.js`, 54개 / 6카테고리)
+## 9. 기본 운동 목록 (`exercises.js`, 58개 / 6카테고리)
 
 - **Chest(13):** Bench Press, Incline Bench Press, Decline Bench Press, Dumbbell Fly, Cable Crossover, Dips(bw), Push-up(bw), Pec Deck Fly, Cable Dips, Incline Dumbbell Press, Chest Press, Assisted Dip, Cable Chest Press
-- **Back(9):** Pull-up(bw), Lat Pulldown, Seated Row, One-arm Dumbbell Row, Deadlift, T-bar Row, Cable Row, Assisted Chin-up, Straight-arm Pulldown
-- **Shoulders(8):** Overhead Press, Dumbbell Shoulder Press, Lateral Raise, Front Raise, Face Pull, Upright Row, Shoulder Press, Reverse Pec Deck Fly
+- **Back(10):** Inverted Row, Pull-up(bw), Lat Pulldown, Seated Row, One-arm Dumbbell Row, Deadlift, T-bar Row, Cable Row, Assisted Chin-up, Straight-arm Pulldown
+- **Shoulders(9):** High Pull, Overhead Press, Dumbbell Shoulder Press, Lateral Raise, Front Raise, Face Pull, Upright Row, Shoulder Press, Reverse Pec Deck Fly
 - **Arms(8):** Barbell Curl, Dumbbell Curl, Hammer Curl, Preacher Curl, Triceps Pushdown, Overhead Triceps Extension, Skull Crusher, EZ-bar Curl
-- **Legs(9):** Squat, Leg Press, Lunge, Leg Extension, Leg Curl, Hip Abduction, Calf Raise, Romanian Deadlift, Thigh Abduction
+- **Legs(11):** Hip Thrust, Single-leg Deadlift, Squat, Leg Press, Lunge, Leg Extension, Leg Curl, Hip Abduction, Calf Raise, Romanian Deadlift, Thigh Abduction
 - **Core(7):** Crunch(bw), Leg Raise(bw), Plank(bw), Cable Crunch, Hanging Leg Raise(bw), Ab Wheel Rollout(bw), Back Extension
 - **과거 호환 전용 LEGACY_CARDIO_EXERCISES(7, 신규 목록 제외):** Treadmill 8.3, Cycling 8.0, Rowing Machine 7.0, Elliptical 5.0, Jump Rope 10.0, Walking 3.5, Stair Climber 9.0
+- 신규 기본 운동 4종은 기존 이름·부위·타입이 일치하면 커스텀 ID 그대로 승격한다. `One leg deadlift`는 `Single-leg Deadlift`로 정규화한다. 한국어 이름은 힙 쓰러스트·하이 풀·싱글 레그 데드리프트·인버티드 로우다. Inverted Row는 기존 weight 입력과 기록 보존을 위해 weight 타입을 유지하며, Bodyweight 기구 선택이 입력 타입을 변환하지는 않는다. 기본 정의 58개는 호환용 변형을 포함하고 화면에서는 기존 운동 계열로 묶는다.
 - `CATEGORIES = ['Chest','Back','Legs','Shoulders','Arms','Core']`
 - `LEGACY_EXERCISE_NAMES`와 `LEGACY_CATEGORIES`는 한국어 저장 데이터/백업을 영문 기본 정의로 연결한다. ID만 같고 사용자가 이름을 임의 변경한 운동은 이름을 강제로 덮어쓰지 않는다.
 
@@ -889,3 +890,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-11-10: Manage exercises의 커스텀 운동 삭제에 운동 이름·삭제 영향·되돌리기 불가 안내와 예/아니오 모달을 추가했다. scripts/verify-exercise-deletion.mjs에서 한국어/영어 320px 화면의 기본 취소 초점·아니오·Escape·확인 삭제·재로드 유지 및 세션 원본 보존을 검증했다. 관련 단위 테스트 7개·lint·웹 빌드 통과. 앱 배포는 별도다.
 
 - 2026-11-10 배포: 삭제 확인 팝업의 iOS OTA 게시 및 공개 파일 서명 검증 완료. Android 1.0.4(5)의 AAB/APK 기존 인증서 서명·버전·웹 자산 일치·iOS OTA 설정 제외를 검증했다. AAB SHA-256: cee6ec7fb32b26b11afa558bd23a84bde21af86161472ae70eee3b37516c2a03. Play 업로드·한영 출시 설명·100% 전체 대상 국가 출시 저장 완료. 비난독화 빌드에 대한 deobfuscation 파일 경고 1개 외 업로드 오류는 없었다. 필수 사업자 선언으로 제출이 차단되었으나 같은 날 사용자 승인으로 앱에 사업자 지위를 적용하고 이용약관 URL은 비워 저장했다. 1.0.4(5)와 선언 2개 변경을 제출하고 기존 1.0.3 심사 재시작을 확정했다. Changes in review에서 최신 버전 및 Trader status를 확인했다. 자동 사전 검사 진행 중이며 통과 후 심사로 전달된다. Managed publishing off를 유지하여 승인 후 자동 공개한다. OTA 테스트 7개·iOS 구성 검사·lint·웹 빌드 통과. 실제 기기 적용 확인은 별도다.
+
+- 2026-11-15: Hip Thrust·High Pull·Single-leg Deadlift·Inverted Row를 기본 운동에 추가(58개/6부위). One leg deadlift 별칭을 정규화하며 기존 커스텀 ID·세션 참조·입력 타입을 유지한다. 한국어 표시 및 승격/Progress/백업 왕복 회귀 검사를 추가했다. 기존 기구 중립 화면 이름과 원본 백업 이름의 분리 정책을 유지한다. 앱 배포는 별도다.
