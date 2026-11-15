@@ -1,8 +1,14 @@
 # Google Play release preparation
 
-Updated: 2026-11-07
+Updated: 2026-11-15
 
 ## Current release status
+
+- 2026-11-15: Submitted production 1.0.5 (6) - Expanded exercise library. Korean/English notes saved; 100% rollout in all existing targeted countries, managed publishing off. Changes in review lists version 6; quick checks are running and review follows successful checks. Approval/public availability remains unverified. Previous production 1.0.4 (5) is Active, last published November 13.
+- Reused the existing upload certificate; AAB signature and APK v2 signature verified. 81 unit tests passed. All 15 packaged assets match APK/AAB and the synced source; fresh web bundle matches, and Android excludes iOS OTA configuration. No new device installation check was performed for this release.
+- Artifacts: release-artifacts/google-play/2026-11-15/steady-sets-1.0.5-6.aab and .apk (Git-excluded). AAB SHA-256: 66493d391f361a30a3d1c3b29c345e8ff91246ca67cef2d132e9b7c25a97fdfa. Play reported only the existing non-blocking deobfuscation warning; supported-device counts are unchanged.
+
+### Previous version 4 submission
 
 - 2026-11-07: Submitted production 1.0.3 (4) - History date button, replacing 1.0.2 (3) and restarting review with owner authorization. Korean/English notes saved; 100% worldwide rollout, 177 countries/regions plus Rest of World, managed publishing off retained. Console lists version 4 under Changes in review; quick checks are still running and will forward the changes after success. Approval/public availability remains unverified.
 - Existing-key signed build and AAB signature passed. 80 unit tests passed. Installed the signed APK over version 3 on the QA emulator; existing records and 45 kg × 9 completed set remained. Shared History date button, Edit alignment and native calendar opening verified. This is not a Play-delivered update test.
