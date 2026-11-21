@@ -897,4 +897,4 @@ kcal = round( MET × 체중(kg) × (분/60) )
 
 - 2026-11-15 배포: 기본 운동 확장 iOS OTA 공개 검증 완료. Android 1.0.5(6) 프로덕션 심사 제출 및 자동 공개 설정 확인. AAB SHA-256: 66493d391f361a30a3d1c3b29c345e8ff91246ca67cef2d132e9b7c25a97fdfa. 기존 업로드 인증서 및 APK v2 서명, 15개 웹 자산과 최신 빌드 일치, Android iOS OTA 설정 제외 검증 통과. Play의 난독화 매핑 파일 경고 1개 외 차단 오류 없음. 릴리스 파일은 release-artifacts/google-play/2026-11-15에 로컬 보관한다. Google 사전 검사·심사 완료 및 실기기 검증은 미확인이다.
 
-- 2026-11-21: 홈페이지 상단의 설치 버튼 문구는 iPhone용 “Download on the App Store”와 Android용 “Download on Google Play”다.
+- 2026-11-21: 홈페이지 상단의 설치 버튼은 Apple 로고와 “Download on the App Store”, Google Play 컬러 아이콘과 “Download on Google Play”를 각각 표시한다. 아이콘은 문구 왼쪽에 배치하고 스크린 리더는 링크 문구만 읽는다.
