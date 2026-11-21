@@ -17,7 +17,8 @@
     p { color: #a1a1aa; line-height: 1.7; }
     .lead { font-size: 19px; max-width: 560px; }
     .stores { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-    .stores a { padding: 13px 20px; border-radius: 12px; background: #e4e4e7; color: #18181b; font-weight: 650; text-decoration: none; }
+    .stores a { display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; border-radius: 12px; background: #e4e4e7; color: #18181b; font-weight: 650; text-decoration: none; }
+    .stores svg { width: 22px; height: 22px; flex: none; }
     .stores a:hover { background: white; }
     .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 36px 0; }
     section { padding: 22px; border: 1px solid #27272a; border-radius: 18px; background: #18181b; }
@@ -36,8 +37,21 @@
     <h1>Steady Sets</h1>
     <p class="lead">A simple workout journal that keeps your training records on your phone. Log your sets, take a rest, and see how far you’ve come.</p>
     <nav class="stores" aria-label="Download Steady Sets">
-      <a href="https://apps.apple.com/kr/app/steady-sets/id6808960698">Download on the App Store</a>
-      <a href="https://play.google.com/store/apps/details?id=com.choongchoongeestar.workout">Download on Google Play</a>
+      <a href="https://apps.apple.com/kr/app/steady-sets/id6808960698">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M17.05 12.54c.03 3.28 2.88 4.37 2.91 4.38-.02.08-.46 1.56-1.51 3.09-.91 1.32-1.85 2.64-3.34 2.67-1.46.04-1.93-.86-3.6-.86-1.66 0-2.18.83-3.56.9-1.44.05-2.53-1.43-3.44-2.75C2.64 17.27 1.22 12.4 3.14 9.04c.96-1.67 2.67-2.73 4.52-2.76 1.41-.03 2.74.95 3.6.95.86 0 2.47-1.18 4.17-1.01.71.03 2.71.29 3.99 2.17-.1.06-2.38 1.39-2.37 4.15zM14.31 4.43c.76-.92 1.27-2.2 1.13-3.48-1.09.04-2.41.73-3.19 1.65-.7.81-1.31 2.1-1.15 3.34 1.22.1 2.46-.62 3.21-1.51z"/>
+        </svg>
+        Download on the App Store
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=com.choongchoongeestar.workout">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="#4285f4" d="M3.4 1.8 13.8 12 3.4 22.2a2 2 0 0 1-.6-1.5V3.3a2 2 0 0 1 .6-1.5Z"/>
+          <path fill="#34a853" d="M3.4 1.8a2 2 0 0 1 2.4-.2l12 6.9-4 3.5Z"/>
+          <path fill="#fbbc04" d="m17.8 8.5 3.4 1.9a1.84 1.84 0 0 1 0 3.2l-3.4 1.9-4-3.5Z"/>
+          <path fill="#ea4335" d="m17.8 15.5-12 6.9a2 2 0 0 1-2.4-.2L13.8 12Z"/>
+        </svg>
+        Download on Google Play
+      </a>
     </nav>
     <div class="features">
       <section><h2>Keep your rhythm</h2><p>Record strength and bodyweight sessions with quick set entry and rest timer alerts.</p></section>
