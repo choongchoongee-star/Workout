@@ -1,6 +1,6 @@
 # Steady Sets — 기획서 (재구성용 마스터 스펙)
 
-> 마지막 업데이트: 2026-11-15
+> 마지막 업데이트: 2026-11-21
 
 > **운동 목록 확장 배포 (2026-11-15):** 소스 20cbe51의 기본 운동 4종 추가를 기존 iOS runtime ios-326d6b3c3dd1fbb3에 OTA 게시했다. bundle 43a5626f28e49ff3a3092275353a100b78c0a98f20d9b373051802b731653439, ZIP 138506 bytes. GitHub Pages 실행 43677648564 성공 및 공개 manifest 일치·ZIP SHA-256·RSA 서명을 검증했다. Android 1.0.5(6)은 기존 업로드 키로 서명하여 프로덕션 전체 대상 국가·100% 출시를 심사 제출했다. Changes in review에서 해당 버전과 Start full rollout을 확인했으며 자동 사전 검사는 진행 중이다. Managed publishing off로 승인 후 자동 공개한다. 기존 Android 1.0.4(5)는 Active이며 콘솔의 마지막 게시일은 2026-11-13이다. 81개 단위 테스트·iOS 구성 검사·서명 빌드·APK/AAB 웹 자산 일치 검증 통과. 실기기 적용 및 신규 Android 심사 승인·공개는 별도 확인 사항이다.
 
@@ -109,7 +109,7 @@ mode !== 'capacitor' && VitePWA({
 
 #### iOS 및 웹
 - **자동 CI 없음.** `master` 푸시는 소스만 올라감.
-- 공개 사이트 반영은 **수동으로 `npm run deploy`** 실행 → `site-dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙. 공개 루트는 `site/index.html`의 영문 iPhone 앱 소개·TestFlight 준비 상태·지원 링크이며 운동 기록 UI나 OTA 파일 링크를 표시하지 않는다. 개인정보처리방침은 `/privacy/`, OTA는 `/ota/<runtime>/`에 유지한다.
+- 공개 사이트 반영은 **수동으로 `npm run deploy`** 실행 → `site-dist/`를 `gh-pages` 브랜치로 push → GitHub Pages 서빙. 공개 루트는 `site/index.html`의 영문 iPhone·Android 앱 소개, App Store 및 Google Play 설치 바로가기, 지원 링크이며 운동 기록 UI나 OTA 파일 링크를 표시하지 않는다. 개인정보처리방침은 `/privacy/`, OTA는 `/ota/<runtime>/`에 유지한다.
 - 라이브 URL: `https://choongchoongee-star.github.io/Workout/`
 - 브라우저/PWA 운동 UI는 로컬 개발용이다. 공개 배포 시 기존 앱 JS/CSS·manifest·Workbox 파일을 제거하고 `site/sw.js`로 이전 서비스워커를 해제한다. 기존 브라우저의 localStorage 운동 기록은 삭제하지 않는다. 오프라인 캐시 사용자는 온라인 복귀 후 worker 갱신 시 안내 페이지로 전환된다.
 - iOS 앱은 `npm run ios:sync` 후 `ios/App.xcodeproj`의 공유 `App` Scheme을 빌드한다. App Store용 원격 빌드·서명은 `.eas/build/ios-production.yml`의 Capacitor/SPM 전용 EAS Custom Build를 사용한다. 웹 빌드와 프로젝트 경로 어댑터 동기화 후 EAS 자격 증명·버전을 적용하고 Release archive를 업로드하며, Expo prebuild와 CocoaPods는 실행하지 않는다.
@@ -896,3 +896,5 @@ kcal = round( MET × 체중(kg) × (분/60) )
 - 2026-11-15: Hip Thrust·High Pull·Single-leg Deadlift·Inverted Row를 기본 운동에 추가(58개/6부위). One leg deadlift 별칭을 정규화하며 기존 커스텀 ID·세션 참조·입력 타입을 유지한다. 한국어 표시 및 승격/Progress/백업 왕복 회귀 검사를 추가했다. 기존 기구 중립 화면 이름과 원본 백업 이름의 분리 정책을 유지한다. 앱 배포는 별도다.
 
 - 2026-11-15 배포: 기본 운동 확장 iOS OTA 공개 검증 완료. Android 1.0.5(6) 프로덕션 심사 제출 및 자동 공개 설정 확인. AAB SHA-256: 66493d391f361a30a3d1c3b29c345e8ff91246ca67cef2d132e9b7c25a97fdfa. 기존 업로드 인증서 및 APK v2 서명, 15개 웹 자산과 최신 빌드 일치, Android iOS OTA 설정 제외 검증 통과. Play의 난독화 매핑 파일 경고 1개 외 차단 오류 없음. 릴리스 파일은 release-artifacts/google-play/2026-11-15에 로컬 보관한다. Google 사전 검사·심사 완료 및 실기기 검증은 미확인이다.
+
+- 2026-11-21: 홈페이지 상단에 iPhone용 App Store 및 Android용 Google Play 설치 버튼을 추가했다.

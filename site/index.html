@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Steady Sets — a private, offline-first workout journal for iPhone.">
+  <meta name="description" content="Steady Sets — a private, offline-first workout journal for iPhone and Android.">
   <meta name="theme-color" content="#09090b">
-  <title>Steady Sets for iPhone</title>
+  <title>Steady Sets for iPhone and Android</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, -apple-system, sans-serif; color: #e4e4e7; background: #09090b; }
     * { box-sizing: border-box; }
@@ -16,7 +16,9 @@
     h1 { font-size: clamp(36px, 8vw, 56px); letter-spacing: -.045em; line-height: 1.1; margin: 12px 0 24px; }
     p { color: #a1a1aa; line-height: 1.7; }
     .lead { font-size: 19px; max-width: 560px; }
-    .badge { display: inline-block; padding: 8px 12px; border: 1px solid #3f3f46; border-radius: 99px; font-size: 13px; }
+    .stores { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .stores a { padding: 13px 20px; border-radius: 12px; background: #e4e4e7; color: #18181b; font-weight: 650; text-decoration: none; }
+    .stores a:hover { background: white; }
     .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 36px 0; }
     section { padding: 22px; border: 1px solid #27272a; border-radius: 18px; background: #18181b; }
     h2 { font-size: 17px; margin: 0 0 10px; }
@@ -30,10 +32,13 @@
 <body>
   <main>
     <img src="/Workout/icon-192.png" alt="Steady Sets dumbbell icon" width="80" height="80">
-    <p class="eyebrow">Made for iPhone</p>
+    <p class="eyebrow">Made for iPhone and Android</p>
     <h1>Steady Sets</h1>
-    <p class="lead">A simple workout journal that keeps your training records on your iPhone. Log your sets, take a rest, and see how far you’ve come.</p>
-    <p class="badge">Coming to the App Store</p>
+    <p class="lead">A simple workout journal that keeps your training records on your phone. Log your sets, take a rest, and see how far you’ve come.</p>
+    <nav class="stores" aria-label="Download Steady Sets">
+      <a href="https://apps.apple.com/kr/app/steady-sets/id6808960698">Download on the App Store</a>
+      <a href="https://play.google.com/store/apps/details?id=com.choongchoongeestar.workout">Get it on Google Play</a>
+    </nav>
     <div class="features">
       <section><h2>Keep your rhythm</h2><p>Record strength and bodyweight sessions with quick set entry and rest timer alerts.</p></section>
       <section><h2>Stay private</h2><p>Your workouts stay on your device. No account, ads, or analytics.</p></section>
@@ -41,7 +46,7 @@
     </div>
     <section id="support"><h2>Need help?</h2><p>For questions or bug reports, visit our <a href="https://github.com/choongchoongee-star/Workout/issues">support page</a>. Please do not include private workout records in public reports.</p></section>
     <section><h2>Your records, explained</h2><p>There is no account or automatic sync. Before changing phones or deleting the app, export a backup from Settings and keep it somewhere safe. Restore that file on your new device.</p><p>Rest timer alerts require notification permission. Live Activities require iOS 16.2 or later, and Dynamic Island requires a supported iPhone.</p></section>
-    <footer><nav aria-label="Information"><a href="/Workout/privacy/">Privacy Policy</a><a href="https://github.com/choongchoongee-star/Workout/issues">Support</a></nav><p>Steady Sets · iPhone app</p></footer>
+    <footer><nav aria-label="Information"><a href="/Workout/privacy/">Privacy Policy</a><a href="https://github.com/choongchoongee-star/Workout/issues">Support</a></nav><p>Steady Sets · iPhone and Android</p></footer>
   </main>
 </body>
 </html>
