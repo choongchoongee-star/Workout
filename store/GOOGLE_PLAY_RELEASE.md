@@ -1,8 +1,12 @@
 # Google Play release preparation
 
-Updated: 2026-11-15
+Updated: 2026-11-26
 
 ## Current release status
+
+- 2026-11-26: Submitted production 1.0.6 (7) with the exercise history back-navigation fix and English and Korean release notes. Play Console confirmed one change sent for review. Rollout is 100% in all targeted countries with managed publishing off. Public availability awaits approval.
+
+### Previous version 6 submission
 
 - 2026-11-15: Submitted production 1.0.5 (6) - Expanded exercise library. Korean/English notes saved; 100% rollout in all existing targeted countries, managed publishing off. Changes in review lists version 6; quick checks are running and review follows successful checks. Approval/public availability remains unverified. Previous production 1.0.4 (5) is Active, last published November 13.
 - Reused the existing upload certificate; AAB signature and APK v2 signature verified. 81 unit tests passed. All 15 packaged assets match APK/AAB and the synced source; fresh web bundle matches, and Android excludes iOS OTA configuration. No new device installation check was performed for this release.
