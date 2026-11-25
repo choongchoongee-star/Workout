@@ -4,7 +4,7 @@ import { t } from '../lib/i18n'
 import EquipmentSelect from '../components/EquipmentSelect'
 import { defaultEquipment, equipmentOptions, equipmentRecords, exerciseChoices, familyId } from '../lib/equipment'
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { CATEGORIES } from '../data/exercises'
 import { formatDate } from '../lib/dateUtils'
@@ -31,8 +31,10 @@ function summarizeSet(set, type, unit) {
 export default function Weight() {
   const unit = storage.getWeightUnit()
   const { exercises, sessions, loaded, syncError } = useApp()
-  const [selected, setSelected] = useState(null) // 선택된 exercise 객체 (null = 선택 화면)
-  const [selectedEquipment, setSelectedEquipment] = useState(null)
+  const navigate = useNavigate()
+  const { state } = useLocation()
+  const selected = exercises.find(exercise => exercise.id === state?.exerciseId)
+  const selectedEquipment = state?.equipment
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
 
@@ -64,8 +66,10 @@ export default function Weight() {
   }, [sessions, exercises, selected, selectedEquipment])
 
   function selectExercise(exercise) {
-    setSelected(exercise)
-    setSelectedEquipment(defaultEquipment(exercise, sessions, exercises))
+    navigate('/weight', { state: {
+      exerciseId: exercise.id,
+      equipment: defaultEquipment(exercise, sessions, exercises),
+    } })
   }
 
   // ===== 상세 화면 =====
@@ -74,7 +78,7 @@ export default function Weight() {
       <div className="p-4 max-w-lg mx-auto">
         <div className="flex items-center gap-3 mb-5 pt-2">
           <button
-            onClick={() => setSelected(null)}
+            onClick={() => navigate(-1)}
             aria-label={t("Choose another exercise")}
             className="text-zinc-400 active:text-white text-lg"
           >
@@ -89,7 +93,7 @@ export default function Weight() {
         <div className="mb-4">
           <EquipmentSelect name={movementName(selected)} value={selectedEquipment}
             options={equipmentOptions(selected)}
-            onChange={setSelectedEquipment} />
+            onChange={equipment => navigate('/weight', { replace: true, state: { ...state, equipment } })} />
         </div>
         {records.length === 0 ? (
           <p className="text-zinc-600 text-sm text-center py-12">{t("No history for this exercise yet.")}</p>

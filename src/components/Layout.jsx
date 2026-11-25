@@ -55,7 +55,7 @@ export default function Layout({ children }) {
   const navRef = useRef(null)
   const layoutRef = useRef(null)
   const scrollPositions = useRef({})
-  const { pathname } = useLocation()
+  const { pathname, state } = useLocation()
   const { recoveryNotice, dismissRecoveryNotice } = useApp()
 
   useEffect(() => {
@@ -112,6 +112,7 @@ export default function Layout({ children }) {
           <NavLink
             key={to}
             to={to}
+            state={to === '/weight' && pathname === to ? state : undefined}
             className={({ isActive }) =>
               `min-w-0 flex flex-col items-center gap-1 px-1 py-2 text-xs transition-colors ${
                 isActive ? 'text-zinc-800' : 'text-zinc-950/80'
